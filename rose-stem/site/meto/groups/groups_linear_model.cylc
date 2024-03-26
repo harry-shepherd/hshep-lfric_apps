@@ -9,7 +9,11 @@
 {% do site_groups.update({
     "linear_model_spice_developer": [
         "linear_model_nwp_gal9-C12_spice_intel_fast-debug-64bit",
+        "linear_model_nwp_gal9_random-C12_spice_intel_fast-debug-64bit",
+        "linear_model_nwp_gal9_zero-C12_spice_intel_fast-debug-64bit",
         "linear_model_runge-kutta-C12_spice_intel_fast-debug-64bit",
+        "linear_model_semi-implicit-C12_spice_intel_fast-debug-64bit",
+        "linear_model_dcmip301-C24_spice_intel_fast-debug-64bit",
         "linear_model_spice_canned",
     ],
     "linear_model_spice": [
@@ -17,9 +21,12 @@
     ],
     "linear_model_spice_build": [
         "build_linear_model_spice_intel_fast-debug-64bit",
+        "build_linear_model_spice_gnu_fast-debug-64bit",
+        "build_linear_model_spice_gnu_full-debug-64bit",
     ],
     "linear_model_spice_canned": [
         "linear_model_canned_spice_intel_fast-debug-64bit",
+        "linear_model_canned_spice_gnu_fast-debug-64bit",
     ],
     }) %}
 
@@ -27,7 +34,11 @@
 {% do site_groups.update({
     "linear_model_xc40_developer": [
         "linear_model_nwp_gal9-C12_xc40_intel_fast-debug-64bit",
+        "linear_model_nwp_gal9_random-C12_xc40_intel_fast-debug-64bit",
+        "linear_model_nwp_gal9_zero-C12_xc40_intel_fast-debug-64bit",
         "linear_model_runge-kutta-C12_xc40_intel_fast-debug-64bit",
+        "linear_model_semi-implicit-C12_xc40_intel_fast-debug-64bit",
+        "linear_model_dcmip301-C24_xc40_intel_fast-debug-64bit",
         "linear_model_xc40_canned",
     ],
     "linear_model_xc40": [
