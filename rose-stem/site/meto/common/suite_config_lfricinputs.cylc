@@ -197,7 +197,7 @@
 {% else %}
         pre-script = """
                      module use /common/lfric/modules/modulefiles
-                     module load meto-environment/lfric/cce/8.7.0/6
+                     module load meto-environment/lfric/cray/8.7.0/6
                      module load cray-snplauncher/$CRAY_MPICH2_VER
                      module swap craype-haswell craype-ivybridge
                      module list 2>&1

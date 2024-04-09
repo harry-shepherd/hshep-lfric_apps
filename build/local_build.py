@@ -61,6 +61,7 @@ def determine_core_source(root_dir):
     # variables for requested repo
     with open(os.path.join(root_dir, "dependencies.sh"), "r") as dep_file:
         for line in dep_file:
+            line = line.strip()
             if line.startswith("export lfric_core_rev"):
                 rev = line.split("=")[1].strip()
             if line.startswith("export lfric_core_sources"):
@@ -106,15 +107,15 @@ def get_lfric_core(core_source, working_dir):
 
     if core_source.startswith("fcm:"):
         print(f"Exporting lfric_core source from {core_source}")
-        lfric_core_loc = f"{working_dir}/scratch"
+        lfric_core_loc = f"{working_dir}/scratch/core"
         export_command = f"fcm export --force -q {core_source} {lfric_core_loc}"
         subprocess_run(export_command)
+        print("rsyncing the exported lfric_core source")
     else:
         lfric_core_loc = core_source
+        print("rsyncing the local lfric_core source")
 
-
-    print("rsyncing the exported lfric_core source")
-    rsync_command = f"rsync -acvzq {lfric_core_loc}/* {working_dir}/lfric_core"
+    rsync_command = f"rsync -acvzq {lfric_core_loc}/ {working_dir}/lfric_core"
     subprocess_run(rsync_command)
 
 

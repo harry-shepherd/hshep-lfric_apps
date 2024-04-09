@@ -1,17 +1,21 @@
 {% do LOG.debug("Entered site/nci/variables.cylc") %}
 
-{% do site_vars.update({"known_applications": ["gungho_model",
-                                              "lfric_atm",
-                                              "mesh",
-                                              "gravity_wave",
-                                              "jedi_lfric_tests",
-                                              "shallow_water",
-                                              "lfricinputs",
-                                              "linear_model",
-                                              "gungho",
-                                              "socrates",
-                                              "um_physics",
-                                              "linear",]}) %}
+{% do site_vars.update({"known_applications": ["adjoint_tests",
+                                               "gungho_model",
+                                               "lfric_atm",
+                                               "mesh",
+                                               "gravity_wave",
+                                               "jedi_lfric_tests",
+                                               "shallow_water",
+                                               "lfricinputs",
+                                               "linear_model",
+                                               "gungho",
+                                               "socrates_interface",
+                                               "um_physics_interface",
+                                               "linear",
+                                               "jedi_lfric_interface",
+                                               "transport",
+                                               "solver"]}) %}
 
 {% do site_vars.update({"site_platforms": ["gadi"]}) %}
 

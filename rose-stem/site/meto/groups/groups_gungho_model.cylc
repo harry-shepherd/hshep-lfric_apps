@@ -60,7 +60,7 @@
         "build_gungho_model_spice_intel_fast-debug-64bit",
         "build_gungho_model_spice_intel_fast-debug-32bit",
         "build_gungho_model_spice_gnu_fast-debug-64bit",
-        "build_gungho_model_gnu_intel_fast-debug-32bit",
+        "build_gungho_model_spice_intel_fast-debug-32bit",
     ],
     "gungho_model_spice_next-config": [
         "gungho_model_baroclinic-next-C24_MG_spice_intel_fast-debug-64bit",
