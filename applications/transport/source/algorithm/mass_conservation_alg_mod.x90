@@ -11,6 +11,7 @@ module mass_conservation_alg_mod
 
   use compute_total_mass_alg_mod,      only: compute_total_mass_alg
   use constants_mod,                   only: r_def, i_def, l_def
+  use energy_correction_config_mod,    only: integral_method_fe
   use extrusion_mod,                   only: SHIFTED
   use fem_constants_mod,               only: get_qr
   use function_space_collection_mod,   only: function_space_collection
@@ -70,7 +71,8 @@ contains
     mesh => rho_d%get_mesh()
 
     ! Compute dry mass
-    call compute_total_mass_alg( total_dry_mass, rho_d, mesh )
+    call compute_total_mass_alg( total_dry_mass, rho_d, &
+                                 mesh, method=integral_method_fe )
 
     ! Compute moist mass by converting into moisture density on shifted mesh
     shifted_mesh => mesh_collection%get_mesh(mesh, SHIFTED)
@@ -81,7 +83,8 @@ contains
     call obtain_shifted_rho(rho_d_shifted, rho_d)
     call invoke( inject_wt_to_sh_w3_kernel_type( mr_shifted, mr(1) ),        &
                   X_times_Y( rho_X_shifted, mr_shifted, rho_d_shifted ) )
-    call compute_total_mass_alg( total_water_mass, rho_X_shifted, shifted_mesh )
+    call compute_total_mass_alg( total_water_mass, rho_X_shifted, &
+                                 shifted_mesh, method=integral_method_fe )
 
     ! Write out masses
     write( log_scratch_space, '(A,I4,1E32.24)')  &
@@ -103,7 +106,8 @@ contains
       call rho_X%initialise( w3_aerosol%get_function_space() )
       call map_rho_intermesh(coarse_rho_d, rho_d)
       call invoke( X_times_Y(rho_X, coarse_rho_d, w3_aerosol) )
-      call compute_total_mass_alg( total_w3_aerosol_mass, rho_X, coarse_mesh )
+      call compute_total_mass_alg( total_w3_aerosol_mass, rho_X, &
+                                   coarse_mesh, method=integral_method_fe )
 
       ! Compute Wtheta aerosol mass by converting into density on shifted mesh
       call aerosol_shifted%initialise( vector_space = w3_sh_fs )
@@ -112,7 +116,8 @@ contains
       call obtain_shifted_rho(rho_d_shifted, coarse_rho_d)
       call invoke( inject_wt_to_sh_w3_kernel_type( aerosol_shifted, wt_aerosol ), &
                    X_times_Y( rho_X_shifted, aerosol_shifted, rho_d_shifted ) )
-      call compute_total_mass_alg( total_wt_aerosol_mass, rho_X_shifted, shifted_mesh )
+      call compute_total_mass_alg( total_wt_aerosol_mass, rho_X_shifted, &
+                                   shifted_mesh, method=integral_method_fe )
 
       ! Write out masses
       write( log_scratch_space, '(A,I4,1E32.24)')  &

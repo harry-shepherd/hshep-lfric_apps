@@ -23,7 +23,9 @@ contains
   !> @param[out] total_mass Total dry mass of the atmosphere
   !> @param[in]  rho        Density of dry component of atmosphere
   !> @param[in]  mesh       Mesh information
-  subroutine compute_total_mass_alg( total_mass, rho, mesh )
+  !> @param[in]  method     (Optional) Argument to specify which calculation
+  !!                        method to use
+  subroutine compute_total_mass_alg( total_mass, rho, mesh, method )
 
     use compute_column_integral_kernel_mod, &
                                         only: compute_column_integral_kernel_type
@@ -52,9 +54,10 @@ contains
 
     implicit none
 
-    type( field_type ),    intent(in)          :: rho
-    type( mesh_type ),     intent(in), pointer :: mesh
-    real( kind=r_def ),    intent(out)         :: total_mass
+    type( field_type ),              intent(in)  :: rho
+    type( mesh_type ),     pointer,  intent(in)  :: mesh
+    real( kind=r_def ),              intent(out) :: total_mass
+    integer( kind=i_def ), optional, intent(in)  :: method
 
     ! For finite difference calculations
     type( field_type ), pointer :: height_w3 => null()
@@ -68,11 +71,17 @@ contains
     type( function_space_type ),  pointer :: w3_fs => null()
     type( field_type )                    :: mass
 
-    integer( kind=i_def ) :: mesh_id
+    integer( kind=i_def ) :: mesh_id, method_to_use
 
     mesh_id = mesh%get_id()
 
-    select case( integral_method )
+    if (present(method)) then
+      method_to_use = method
+    else
+      method_to_use = integral_method
+    end if
+
+    select case( method_to_use )
     case( integral_method_fd )
       height_w3  => get_height( W3, mesh_id )
       height_wth => get_height( Wtheta, mesh_id )

@@ -9,6 +9,7 @@ module moisture_conservation_alg_mod
 
   use compute_total_mass_alg_mod,      only: compute_total_mass_alg
   use constants_mod,                   only: r_def, i_def, l_def
+  use energy_correction_config_mod,    only: integral_method_fe
   use extrusion_mod,                   only: SHIFTED
   use function_space_collection_mod,   only: function_space_collection
   use field_mod,                       only: field_type
@@ -89,7 +90,8 @@ contains
     panel_id => get_panel_id(mesh%get_id())
 
     ! Compute mass of dry air
-    call compute_total_mass_alg(total_dry, rho_d, mesh)
+    call compute_total_mass_alg(total_dry, rho_d, mesh, &
+                                method=integral_method_fe)
 
     ! Initialise fields for masses of water species in W3
     shifted_mesh => mesh_collection%get_mesh(mesh, SHIFTED)
@@ -103,7 +105,8 @@ contains
     do i_mr = 1, nummr
       call invoke( inject_wt_to_sh_w3_kernel_type(mr_shifted, mr(i_mr)),   &
                    X_times_Y(rho_X_shifted, mr_shifted, rho_d_shifted) )
-      call compute_total_mass_alg(total_water_all(i_mr), rho_X_shifted, shifted_mesh)
+      call compute_total_mass_alg(total_water_all(i_mr), rho_X_shifted, &
+                                  shifted_mesh, method=integral_method_fe)
     end do
 
     ! Output diagnostic values to log
