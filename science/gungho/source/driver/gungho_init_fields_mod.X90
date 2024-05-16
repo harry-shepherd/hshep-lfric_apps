@@ -17,9 +17,6 @@ module gungho_init_fields_mod
   use integer_field_mod,                  only : integer_field_type
   use field_parent_mod,                   only : write_interface
   use field_collection_mod,               only : field_collection_type
-  use io_value_mod,                       only : io_value_type, &
-                                                 io_operation_interface, &
-                                                 get_io_value
   use gungho_modeldb_mod,                 only : modeldb_type
   use gungho_model_data_mod,              only : model_data_type
   use gungho_time_axes_mod,               only : gungho_time_axes_type, &
@@ -56,10 +53,8 @@ module gungho_init_fields_mod
                                                  checkpoint_write, &
                                                  write_dump
   use lfric_xios_read_mod,                only : read_checkpoint,  &
-                                                 read_state,       &
-                                                 checkpoint_read_value
+                                                 read_state
   use lfric_xios_write_mod,               only : write_checkpoint, &
-                                                 checkpoint_write_value, &
                                                  write_state
   use boundaries_config_mod,              only : limited_area
   use create_iau_mod,                     only : create_iau_fields
@@ -448,11 +443,9 @@ subroutine create_model_data( modeldb,      &
     type( field_type ), pointer :: rho   => null()
     type( field_type ), pointer :: u     => null()
     type( field_type ), pointer :: exner => null()
+    type( field_type ), pointer :: temp_correction_field => null()
     type( field_type ), pointer :: accumulated_fluxes    => null()
     type( field_type ), pointer :: ageofair => null()
-
-    type( io_value_type ),               pointer :: temp_corr_io_value
-    procedure( io_operation_interface ), pointer :: io_op_ptr
 
     type(field_collection_type),   pointer :: prognostic_fields
     type( field_collection_type ), pointer :: depository => null()
@@ -460,6 +453,7 @@ subroutine create_model_data( modeldb,      &
 
     type(gungho_time_axes_type), pointer :: model_axes
 
+    real(r_def), pointer :: temperature_correction_rate
     real(r_def), pointer :: total_dry_mass
     real(r_def), pointer :: total_energy_previous
 
@@ -479,7 +473,8 @@ subroutine create_model_data( modeldb,      &
     ! Get model_axes out of modeldb
     model_axes => get_time_axes_from_collection(modeldb%values, "model_axes" )
 
-    temp_corr_io_value => get_io_value( modeldb%values, 'temperature_correction_io_value' )
+    call modeldb%values%get_value( 'temperature_correction_rate', &
+                                   temperature_correction_rate )
     call modeldb%values%get_value( 'total_dry_mass', total_dry_mass )
     call modeldb%values%get_value( 'total_energy_previous', &
                                    total_energy_previous )
@@ -514,12 +509,6 @@ subroutine create_model_data( modeldb,      &
     call moisture_fields%get_field("mr", mr_array)
     call moisture_fields%get_field("moist_dyn", moist_dyn_array)
 
-    ! Ideally, setting IO behaviour should be part of the initialisation 
-    ! like with the fields but currently there is no support for this so they are placed here
-    io_op_ptr => checkpoint_read_value
-    call temp_corr_io_value%set_checkpoint_read_behaviour(io_op_ptr)
-    io_op_ptr => checkpoint_write_value
-    call temp_corr_io_value%set_checkpoint_write_behaviour(io_op_ptr)
     ! Initialise prognostic fields appropriately
     select case ( prognostic_init_choice )
 
@@ -542,9 +531,6 @@ subroutine create_model_data( modeldb,      &
                               modeldb%clock%get_first_step() - 1,   &
                               checkpoint_stem_name )
         call combine_complex_prognostics( prognostic_fields )
-        ! Get io_values from checkpoint
-        ! First initialise properly by setting the id and allocating the size:
-        call temp_corr_io_value%read_checkpoint()
 
         ! Update factors for moist dynamics
         call moist_dyn_factors_alg( moist_dyn_array%bundle, &
@@ -630,6 +616,7 @@ subroutine create_model_data( modeldb,      &
           'Energy correction valid for spherical geometry only.'
           call log_event(log_scratch_space, log_level_error)
         end if
+        call modeldb%model_data%derived_fields%get_field('temp_correction_field',temp_correction_field)
         call modeldb%model_data%derived_fields%get_field('accumulated_fluxes',accumulated_fluxes)
       end if
 
@@ -721,12 +708,16 @@ subroutine create_model_data( modeldb,      &
         call invoke( setval_c(accumulated_fluxes, 0.0_r_def) )
 
         if ( checkpoint_read ) then
+          ! Read scalar temperature_correction_rate from checkponted field
+          ! temp_correction_field
+          call field_to_scalar_alg( temperature_correction_rate, &
+                                    temp_correction_field )
           write( log_scratch_space,                                     &
                  '("restart_temperature_correction_rate = ", e30.22)' ) &
-            temp_corr_io_value%data(1)
+            temperature_correction_rate
           call log_event(log_scratch_space, LOG_LEVEL_DEBUG)
         else
-          temp_corr_io_value%data(1) = 0.0_r_def
+          call invoke( setval_c(temp_correction_field, 0.0_r_def) )
         end if
 
       end if
@@ -761,13 +752,9 @@ subroutine create_model_data( modeldb,      &
     type( field_collection_type ), pointer :: fd_fields => null()
     type( field_collection_type ), pointer :: prognostic_fields
 
-    type( io_value_type ), pointer :: temp_corr_io_value
-
     ! Get pointers to field collections for use downstream
     fd_fields => modeldb%model_data%fd_fields
     prognostic_fields => modeldb%fields%get_field_collection("prognostic_fields")
-
-    temp_corr_io_value => get_io_value(modeldb%values, 'temperature_correction_io_value')
 
     !===================== Write fields to dump ======================!
     if( use_physics ) then
@@ -788,7 +775,6 @@ subroutine create_model_data( modeldb,      &
     if( checkpoint_write ) then
        call split_complex_prognostics( prognostic_fields )
        call write_checkpoint( prognostic_fields, modeldb%clock, checkpoint_stem_name )
-       call temp_corr_io_value%write_checkpoint()
     end if
 
   end subroutine output_model_data

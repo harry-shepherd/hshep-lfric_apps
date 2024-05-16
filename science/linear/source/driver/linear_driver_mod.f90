@@ -12,7 +12,6 @@ module linear_driver_mod
   use field_array_mod,            only : field_array_type
   use field_mod,                  only : field_type
   use field_collection_mod,       only : field_collection_type
-  use io_value_mod,               only : io_value_type
   use gungho_diagnostics_driver_mod, &
                                   only : gungho_diagnostics_driver
   use gungho_model_mod,           only : initialise_infrastructure, &
@@ -87,15 +86,12 @@ contains
 
     type( field_collection_type ), pointer :: depository => null()
 
-    type( io_value_type ) :: temp_corr_io_value
-
     character(len=*), parameter :: io_context_name = "gungho_atm"
 
     depository => modeldb%fields%get_field_collection("depository")
 
-    call temp_corr_io_value%init('temperature_correction_rate', [0.0_r_def])
-    call modeldb%values%add_key_value( 'temperature_correction_io_value', &
-                                       temp_corr_io_value )
+    call modeldb%values%add_key_value( 'temperature_correction_rate', &
+                                       0.0_r_def )
     call modeldb%values%add_key_value( 'total_dry_mass', 0.0_r_def )
     call modeldb%values%add_key_value( 'total_energy_previous', 0.0_r_def )
 

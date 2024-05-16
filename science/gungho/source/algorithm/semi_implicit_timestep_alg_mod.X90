@@ -77,8 +77,6 @@ module semi_implicit_timestep_alg_mod
   use field_array_mod,            only: field_array_type
   use field_mod,                  only: field_type
   use field_collection_mod,       only: field_collection_type
-  use io_value_mod,               only: io_value_type, &
-                                        get_io_value
   use gungho_modeldb_mod,         only: modeldb_type
   use gungho_model_data_mod,      only: model_data_type
   use mesh_mod,                   only: mesh_type
@@ -283,7 +281,7 @@ contains
     type( field_collection_type ), pointer :: stph_fields
     type( field_collection_type ), pointer :: lbc_fields
 
-    type( io_value_type ), pointer :: temp_corr_io_value
+    real( r_def ), pointer :: temperature_correction_rate
     real( r_def )    :: dt
     real( r_def )    :: dtemp_encorr
 
@@ -330,9 +328,10 @@ contains
     ! Get timestep parameters from clock
     dt = real(model_clock%get_seconds_per_step(), r_def)
 
-    temp_corr_io_value => get_io_value( modeldb%values, 'temperature_correction_io_value')
-    ! Get temperature increment for energy correction
-    dtemp_encorr = dt * temp_corr_io_value%data(1)
+    call modeldb%values%get_value( 'temperature_correction_rate', &
+                                    temperature_correction_rate )
+   ! Get temperature increment for energy correction
+    dtemp_encorr = dt * temperature_correction_rate
 
     ! Run the timestep
     call run_step(self, u, rho, theta, exner, mr, moist_dyn,  &
@@ -359,7 +358,7 @@ contains
                   cloud_fields, surface_fields, soil_fields,  &
                   snow_fields, chemistry_fields,              &
                   aerosol_fields, stph_fields, lbc_fields,    &
-                  temp_corr_io_value,                         &
+                  temperature_correction_rate,                &
                   mr_array,moist_dyn_array)
 
   end subroutine semi_implicit_alg_step

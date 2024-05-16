@@ -19,8 +19,6 @@ module gungho_step_mod
   use field_array_mod,                only : field_array_type
   use field_collection_mod,           only : field_collection_type
   use field_mod,                      only : field_type
-  use io_value_mod,                   only : io_value_type, &
-                                             get_io_value
   use formulation_config_mod,         only : use_physics,             &
                                              moisture_formulation,    &
                                              moisture_formulation_dry
@@ -99,12 +97,13 @@ module gungho_step_mod
     type( field_type), pointer :: exner => null()
     type( field_type), pointer :: dA => null()  ! Areas of faces
     type( field_type), pointer :: accumulated_fluxes => null()
+    type( field_type), pointer :: temp_correction_field => null()
 
-    type( io_value_type ), pointer :: temp_corr_io_value
 
 
     class(timestep_method_type), pointer :: timestep_method => null()
 
+    real(r_def), pointer :: temperature_correction_rate
     real(r_def), pointer :: total_dry_mass
     real(r_def), pointer :: total_energy
     real(r_def), pointer :: total_energy_previous
@@ -118,7 +117,8 @@ module gungho_step_mod
            '(A,I0)' ) 'Start of timestep ', model_clock%get_step()
     call log_event( log_scratch_space, LOG_LEVEL_INFO )
 
-    temp_corr_io_value => get_io_value( modeldb%values, 'temperature_correction_io_value')
+    call modeldb%values%get_value( 'temperature_correction_rate', &
+                                   temperature_correction_rate )
     call modeldb%values%get_value( 'total_dry_mass', total_dry_mass )
     call modeldb%values%get_value( 'total_energy', total_energy )
     call modeldb%values%get_value( 'total_energy_previous', &
@@ -156,6 +156,10 @@ module gungho_step_mod
 
     if ( encorr_usage /= encorr_usage_none ) then
       call derived_fields%get_field('accumulated_fluxes', accumulated_fluxes)
+      ! temperature_correction_rate is stored in this field so that it
+      ! maybe written to checkpoint file
+      call derived_fields%get_field('temp_correction_field', &
+                                    temp_correction_field)
       call sum_fluxes_alg( accumulated_fluxes, &
                            radiation_fields,   &
                            turbulence_fields,  &
@@ -171,13 +175,15 @@ module gungho_step_mod
                                        mesh, twod_mesh )
 
         call update_energy_correction_alg(                  &
-                               temp_corr_io_value%data(1),  &
+                               temperature_correction_rate, &
                                accumulated_fluxes,          &
                                total_dry_mass, dt,          &
                                mesh, twod_mesh,             &
                                total_energy,                &
                                total_energy_previous )
 
+        call invoke( setval_c(temp_correction_field,        &
+                              temperature_correction_rate) )
       end if
 
     end if

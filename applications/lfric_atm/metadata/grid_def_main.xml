@@ -111,9 +111,5 @@
     <axis axis_ref="one_time_axis"/>
   </grid>
 
-  <grid id="scalar_grid">
-    <axis axis_ref="scalar_axis"/>
-  </grid>
-
 
 </grid_definition>

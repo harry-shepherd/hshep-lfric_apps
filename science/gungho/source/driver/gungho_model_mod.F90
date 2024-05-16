@@ -205,9 +205,6 @@ contains
     use time_dimensions_mod,            only: sync_time_dimensions
     use boundaries_config_mod,          only: limited_area
     use formulation_config_mod,         only: use_physics
-    use initialization_config_mod, only: init_option, &
-                                         init_option_checkpoint_dump
-    use io_config_mod,                  only: checkpoint_read, checkpoint_write
 
     implicit none
     class(clock_type), intent(in) :: clock
@@ -220,15 +217,6 @@ contains
 
     call persistor%init(clock)
     call process_gungho_prognostics(persistor)
-    ! Add the temperature_correction_rate to the appropriate files
-    if (checkpoint_write) then
-      call add_field( persistor%ckp_out, "temperature_correction_rate", "checkpoint_", "once", &
-                      id_as_name=.true.)
-    end if
-    if (checkpoint_read .or. init_option == init_option_checkpoint_dump) then
-      call add_field( persistor%ckp_inp, "temperature_correction_rate", "restart_", "once", &
-                      id_as_name=.true.)
-    end if
     if (limited_area) call process_lbc_fields(persistor)
     if (use_physics) then
       call process_physics_prognostics(persistor)

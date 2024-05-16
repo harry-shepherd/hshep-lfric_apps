@@ -183,6 +183,9 @@ contains
 
     ! 2D fields
     if ( encorr_usage /= encorr_usage_none ) then
+      call processor%apply(make_spec('temp_correction_field', main%derived,     &
+           ckp=.true.))
+
       call processor%apply(make_spec('accumulated_fluxes', main%derived, W3,    &
           twod=.true.))
     end if

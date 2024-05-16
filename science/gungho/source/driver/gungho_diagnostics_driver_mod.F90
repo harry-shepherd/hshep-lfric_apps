@@ -30,7 +30,6 @@ module gungho_diagnostics_driver_mod
   use field_collection_mod,      only : field_collection_type
   use field_mod,                 only : field_type
   use field_parent_mod,          only : field_parent_type, write_interface
-  use io_value_mod,              only : io_value_type, get_io_value
   use lfric_xios_write_mod,      only : write_field_generic
   use formulation_config_mod,    only : use_physics,             &
                                         moisture_formulation,    &
@@ -123,7 +122,7 @@ contains
     ! when iterating over them
     class( field_parent_type ), pointer :: field_ptr  => null()
 
-    type(io_value_type), pointer :: temp_corr_io_value
+    real(r_def), pointer :: temperature_correction_rate
 
     character(str_def) :: name
 
@@ -295,10 +294,11 @@ contains
       call pmsl_alg(exner, derived_fields, theta, twod_mesh)
 #endif
 
-      temp_corr_io_value => get_io_value( modeldb%values, 'temperature_correction_io_value')
+      call modeldb%values%get_value( 'temperature_correction_rate', &
+                                     temperature_correction_rate )
       call column_total_diagnostics_alg(rho, mr, derived_fields, exner, &
                                         mesh, twod_mesh,             &
-                                        temp_corr_io_value%data(1))
+                                        temperature_correction_rate)
 
     end if
 
