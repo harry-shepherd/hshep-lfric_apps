@@ -1794,6 +1794,9 @@ contains
   !> @param[in]     mesh   The mesh to compute consistent quantities on
   subroutine compute_consistent_quantities(self, mesh)
 
+    use base_mesh_config_mod,                 only: topology, geometry,        &
+                                                    topology_fully_periodic,   &
+                                                    geometry_spherical
     use hori_dep_dist_ffsl_kernel_mod,        only: hori_dep_dist_ffsl_kernel_type
     use vert_dep_dist_ffsl_kernel_mod,        only: vert_dep_dist_ffsl_kernel_type
     use departure_points_config_mod,          only: horizontal_limit, &
@@ -1934,11 +1937,14 @@ contains
             write(field_name, '(A,I4)') 'dry_mass_ffsl_y', step
             call self%check_negative_field(dry_mass_y, field_name)
 
-            ! Swap the halo values of dry_mass_x and dry_mass_y here: this
-            ! reduces the number of different kernels required by FFSL
-            max_stencil_extent = get_required_stencil_depth()
-            call invoke_ffsl_panel_swap_kernel_type(dry_mass_x, dry_mass_y,    &
-                                                    panel_id, max_stencil_extent)
+            if (topology == topology_fully_periodic &
+                .AND. geometry == geometry_spherical) then
+              ! Swap the halo values of dry_mass_x and dry_mass_y here: this
+              ! reduces the number of different kernels required by FFSL
+              max_stencil_extent = get_required_stencil_depth()
+              call invoke_ffsl_panel_swap_kernel_type(dry_mass_x, dry_mass_y,    &
+                                                      panel_id, max_stencil_extent)
+            end if
 
             ! Compute tracer departure points
             call invoke(                                                       &

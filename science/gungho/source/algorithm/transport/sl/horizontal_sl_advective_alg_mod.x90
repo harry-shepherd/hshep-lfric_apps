@@ -13,6 +13,9 @@
 module horizontal_sl_advective_alg_mod
 
   ! Constants and types
+  use base_mesh_config_mod,             only: topology, geometry,      &
+                                              topology_fully_periodic, &
+                                              geometry_spherical
   use constants_mod,                    only: r_tran, i_def, l_def
   use field_mod,                        only: field_type
   use integer_field_mod,                only: integer_field_type
@@ -22,8 +25,9 @@ module horizontal_sl_advective_alg_mod
   use timer_mod,                        only: timer
 
   ! Transport runtime and metadata
-  use transport_enumerated_types_mod,   only: splitting_strang_hvh, &
-                                              horizontal_monotone_none
+  use transport_enumerated_types_mod,   only: splitting_strang_hvh,     &
+                                              horizontal_monotone_none, &
+                                              direction_h
   use transport_metadata_mod,           only: transport_metadata_type
   use transport_runtime_alg_mod,        only: transport_runtime_type
   use transport_runtime_collection_mod, only: get_transport_runtime
@@ -196,8 +200,10 @@ module horizontal_sl_advective_alg_mod
                    setval_x( field_y_big_halo, field_y ) )
     end if
 
-    call invoke_ffsl_panel_swap_kernel_type(field_x_big_halo, field_y_big_halo, &
-                                            panel_id, stencil_extent)
+    if (topology == topology_fully_periodic .AND. geometry == geometry_spherical) then
+      call invoke_ffsl_panel_swap_kernel_type(field_x_big_halo, field_y_big_halo, &
+                                              panel_id, stencil_extent)
+    end if
 
     call invoke( horizontal_cubic_sl_kernel_type( increment_x,        &
                                                   increment_y,        &

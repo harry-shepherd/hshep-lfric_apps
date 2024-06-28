@@ -9,7 +9,9 @@
 module ffsl_hori_alg_mod
 
   ! Constants and types
-  use base_mesh_config_mod,             only: topology, topology_non_periodic
+  use base_mesh_config_mod,             only: topology, topology_non_periodic, &
+                                              topology_fully_periodic,         &
+                                              geometry, geometry_spherical
   use boundaries_config_mod,            only: limited_area, transport_boundary_depth
   use check_configuration_mod,          only: check_any_eqn_consistent
   use constants_mod,                    only: r_tran, i_def, l_def
@@ -618,8 +620,10 @@ contains
 
     if ( subroutine_timers ) call timer('transport.ffsl_hori_sweeps')
 
-    call invoke_ffsl_panel_swap_kernel_type(remap_field_x, remap_field_y, &
-                                            panel_id_x, cfl_stencil_xy)
+    if (topology == topology_fully_periodic .AND. geometry == geometry_spherical) then
+      call invoke_ffsl_panel_swap_kernel_type(remap_field_x, remap_field_y, &
+                                              panel_id_x, cfl_stencil_xy)
+    end if
 
     ! MASS FLUX COMPUTATION ====================================================
     ! Kernel and arguments depend on:
