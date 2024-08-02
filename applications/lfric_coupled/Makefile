@@ -141,7 +141,7 @@ build: ALWAYS
 	$Q$(MAKE) $(QUIET_ARG) -f $(LFRIC_BUILD)/extract.mk \
 	          SOURCE_DIR=$(APPS_ROOT_DIR)/science/jules_interface/source
 	$Q$(MAKE) $(QUIET_ARG) -f $(LFRIC_BUILD)/extract.mk \
-	          SOURCE_DIR=$(APPS_ROOT_DIR)/science/constants/source
+	          SOURCE_DIR=$(APPS_ROOT_DIR)/science/shared/source/constants
 	$(call MESSAGE,========================================)
 	$(call MESSAGE,Extracting $(PROJECT_NAME))
 	$(call MESSAGE,========================================)
