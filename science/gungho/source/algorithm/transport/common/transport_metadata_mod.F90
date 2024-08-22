@@ -34,6 +34,7 @@ module transport_metadata_mod
     logical(kind=l_def)    :: log_space ! Do interpolation in log space
     logical(kind=l_def)    :: reversible ! Use a reversible transport scheme
     integer(kind=i_def)    :: ffsl_splitting ! Which FFSL splitting to use
+    integer(kind=i_def)    :: ffsl_vertical_order ! Which FFSL order to use for vertical reconstructions
 
     contains
 
@@ -54,6 +55,7 @@ module transport_metadata_mod
     procedure, public :: get_monotone_order
     procedure, public :: get_reversible
     procedure, public :: get_ffsl_splitting
+    procedure, public :: get_ffsl_vertical_order
 
   end type transport_metadata_type
 
@@ -78,7 +80,8 @@ contains
                                             min_value,                       &
                                             log_space,                       &
                                             reversible,                      &
-                                            ffsl_splitting)                  &
+                                            ffsl_splitting,                  &
+                                            ffsl_vertical_order)             &
                                             result(self)
 
     implicit none
@@ -100,6 +103,7 @@ contains
     logical(kind=l_def),    intent(in) :: log_space
     logical(kind=l_def),    intent(in) :: reversible
     integer(kind=i_def),    intent(in) :: ffsl_splitting
+    integer(kind=i_def),    intent(in) :: ffsl_vertical_order
 
     self%fname                   = trim(fname)
     self%equation_form           = equation_form
@@ -115,7 +119,8 @@ contains
     self%min_value               = min_value
     self%log_space               = log_space
     self%reversible              = reversible
-    self%ffsl_splitting = ffsl_splitting
+    self%ffsl_splitting          = ffsl_splitting
+    self%ffsl_vertical_order     = ffsl_vertical_order
 
   end function transport_metadata_constructor
 
@@ -362,5 +367,19 @@ contains
     ffsl_splitting = self%ffsl_splitting
 
   end function get_ffsl_splitting
+
+  !> @brief Get the splitting to use for consistent FFSL tracer transport
+  !> @param[in] self     The transport_metadata object
+  !> @return             The splitting
+  function get_ffsl_vertical_order(self) result(ffsl_vertical_order)
+
+    implicit none
+
+    class(transport_metadata_type), intent(in) :: self
+    integer(kind=i_def)                        :: ffsl_vertical_order
+
+    ffsl_vertical_order = self%ffsl_vertical_order
+
+  end function get_ffsl_vertical_order
 
 end module transport_metadata_mod

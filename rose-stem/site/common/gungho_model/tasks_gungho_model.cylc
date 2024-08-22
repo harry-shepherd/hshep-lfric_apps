@@ -464,7 +464,6 @@
         "opt_confs": ["sbr-next"],
         "resolution": "C24_MG",
         "DT": 3600,
-        "use_xios": false,
         "mpi_parts": 6,
         "threads": 4,
         "tsteps": 240,

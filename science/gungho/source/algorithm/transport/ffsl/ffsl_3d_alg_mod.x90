@@ -37,7 +37,8 @@ module ffsl_3d_alg_mod
 
   ! Configuration options
   use io_config_mod,                    only: subroutine_timers
-  use subgrid_config_mod,               only: inner_order, outer_order, vertical_order
+  use transport_config_mod,             only: ffsl_inner_order, &
+                                              ffsl_outer_order
   use finite_element_config_mod,        only: element_order
 
   implicit none
@@ -126,6 +127,7 @@ contains
     real(kind=r_tran)   :: half_dt
     real(kind=r_tran)   :: third_dt
     logical(kind=l_def) :: compute_adv_inc
+    integer(kind=i_def) :: vertical_order
 
     if ( subroutine_timers ) call timer(routine_name)
 
@@ -139,6 +141,8 @@ contains
     if (transport_metadata%get_equation_form() == equation_form_consistent) then
       call log_event('3D FFSL not implemented for consistent equation', LOG_LEVEL_ERROR)
     end if
+
+    vertical_order = transport_metadata%get_ffsl_vertical_order()
 
     ! Function spaces
     field_fs => field_n%get_function_space()
@@ -201,7 +205,7 @@ contains
                                      field_n, step_dt, transport_metadata )
     call ffsl_vert_transport_alg( flux_z, half_increment_z, dummy_np1,         &
                                   field_n, step_dt, transport_metadata,        &
-                                  inner_order, compute_adv_inc=.true.,         &
+                                  ffsl_inner_order, compute_adv_inc=.true.,    &
                                   compute_field_np1=.false. )
 
     call invoke( X_minus_bY(field_x, field_n, third_dt, half_increment_x),     &
@@ -212,7 +216,7 @@ contains
     call ffsl_hori_outer_alg( flux,                                            &
                               half_increment_xy, half_increment_yx,            &
                               dummy_np1, field_n, field_x, field_y, step_dt,   &
-                              transport_metadata, outer_order,                 &
+                              transport_metadata, ffsl_outer_order,            &
                               compute_adv_inc=.true., compute_field_np1=.false.)
     call ffsl_hori_cosmic_inner_alg( half_increment_xz, half_increment_yz,     &
                                      field_z, step_dt, transport_metadata )
@@ -238,7 +242,7 @@ contains
 
     call ffsl_hori_outer_alg( flux, increment_x, increment_y,                  &
                               dummy_np1, field_n, field_g, field_f, step_dt,   &
-                              transport_metadata, outer_order,                 &
+                              transport_metadata, ffsl_outer_order,            &
                               compute_adv_inc=compute_adv_inc,                 &
                               compute_field_np1=.false. )
     call ffsl_vert_transport_alg( flux_z, increment_z, dummy_np1, field_h,     &

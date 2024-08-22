@@ -85,6 +85,7 @@ contains
     real(kind=r_tran)             :: min_value = 1.9_r_tran
     logical(kind=l_def)           :: reversible = .false.
     integer(kind=i_def)           :: ffsl_splitting = ffsl_splitting_swift
+    integer(kind=i_def)           :: ffsl_vertical_order = 2
     type(transport_metadata_type) :: our_metadata
 
 
@@ -103,7 +104,8 @@ contains
                                            min_value,               &
                                            logspace,                &
                                            reversible,              &
-                                           ffsl_splitting)
+                                           ffsl_splitting,          &
+                                           ffsl_vertical_order)
 
     ! Check all properties of metadata object
     @assertEqual(fname, our_metadata%get_name())
@@ -120,6 +122,7 @@ contains
     @assertEqual(min_value, our_metadata%get_min_value())
     @assertEqual(logspace, our_metadata%get_log_space())
     @assertEqual(ffsl_splitting, our_metadata%get_ffsl_splitting())
+    @assertEqual(ffsl_vertical_order, our_metadata%get_ffsl_vertical_order())
 
   end subroutine test_all
 

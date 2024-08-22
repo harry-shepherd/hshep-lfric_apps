@@ -10,10 +10,14 @@
 
 module transport_runtime_alg_mod
 
+  use base_mesh_config_mod,           only: geometry, topology,              &
+                                            geometry_spherical,              &
+                                            topology_fully_periodic
   use check_configuration_mod,        only: check_any_scheme_mol,            &
                                             check_any_scheme_ffsl,           &
                                             check_any_scheme_split,          &
                                             check_any_scheme_slice,          &
+                                            check_any_scheme_split_ffsl,     &
                                             check_any_horizontal_method_mol, &
                                             check_any_hori_scheme_sl,        &
                                             check_any_vert_scheme_sl,        &
@@ -31,6 +35,8 @@ module transport_runtime_alg_mod
   use constants_mod,                  only: r_def, r_second, i_def, l_def,   &
                                             str_def, tiny_eps, imdi, r_tran, &
                                             EPS_R_TRAN
+  use departure_points_config_mod,    only: horizontal_limit, &
+                                            horizontal_limit_cap
   use extrusion_mod,                  only: SHIFTED, TWOD
   use fem_constants_mod,              only: get_detj_at_w3_r_tran
   use field_mod,                      only: field_type
@@ -45,10 +51,6 @@ module transport_runtime_alg_mod
                                             get_face_selector_ns
   use integer_field_mod,              only: integer_field_type
   use io_config_mod,                  only: subroutine_timers
-  use lipschitz_horizontal_kernel_mod, &
-                                      only: lipschitz_horizontal_kernel_type
-  use lipschitz_vertical_kernel_mod, &
-                                      only: lipschitz_vertical_kernel_type
   use local_mesh_mod,                 only: local_mesh_type
   use log_mod,                        only: log_event,            &
                                             log_scratch_space,    &
@@ -64,12 +66,13 @@ module transport_runtime_alg_mod
                                             remap_field_on_extended_mesh,      &
                                             linear_remap
   use runtime_tools_mod,              only: check_initialised_field
-  use subgrid_config_mod,             only: dep_pt_stencil_extent, &
-                                            outer_order,           &
-                                            inner_order
   use timer_mod,                      only: timer
-  use transport_config_mod,           only: extended_mesh,        &
-                                            special_edges_treatment
+  use transport_config_mod,           only: extended_mesh,           &
+                                            special_edges_treatment, &
+                                            dep_pt_stencil_extent,   &
+                                            ffsl_outer_order,        &
+                                            ffsl_inner_order,        &
+                                            adjust_vhv_wind
   use transport_enumerated_types_mod, only: scheme_split,         &
                                             direction_h,          &
                                             direction_v,          &
@@ -78,11 +81,13 @@ module transport_runtime_alg_mod
                                             splitting_strang_vhv, &
                                             splitting_hv,         &
                                             splitting_vh,         &
-                                            splitting_none
+                                            splitting_none,       &
+                                            split_method_null
 
   use psykal_lite_mod,                only: invoke_copy_to_rtran
-  use psykal_lite_transport_mod,      only: invoke_deep_X_times_Y
-
+  use psykal_lite_transport_mod,      only: invoke_deep_X_times_Y, &
+                                            invoke_ffsl_panel_swap_kernel_type
+  use lipschitz_diag_alg_mod,         only: lipschitz_diag_alg
   implicit none
 
   private
@@ -102,21 +107,30 @@ module transport_runtime_alg_mod
     integer(kind=i_def),        allocatable, dimension(:)     :: dep_stencil_extent_oxy
     integer(kind=i_def),        allocatable, dimension(:,:)   :: tracer_stencil_extent_ixy
     integer(kind=i_def),        allocatable, dimension(:,:)   :: tracer_stencil_extent_oxy
+    integer(kind=i_def),        allocatable, dimension(:,:)   :: unity_stencil_extent_ixy
+    integer(kind=i_def),        allocatable, dimension(:,:)   :: unity_stencil_extent_oxy
     type(r_tran_field_type),    allocatable, dimension(:)     :: advecting_wind
     type(r_tran_field_type),    allocatable, dimension(:)     :: horizontal_advecting_wind
     type(r_tran_field_type),    allocatable, dimension(:)     :: vertical_advecting_wind
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: adjusted_v_wind
     type(r_tran_field_type),    allocatable, dimension(:)     :: dep_dist_xy_w2
     type(r_tran_field_type),    allocatable, dimension(:)     :: dep_dist_xy_half_w2
     type(r_tran_field_type),    allocatable, dimension(:)     :: dep_dist_oxy_w2
     type(r_tran_field_type),    allocatable, dimension(:)     :: dep_dist_oxy_half_w2
     type(r_tran_field_type),    allocatable, dimension(:)     :: dep_dist_z_w2
     type(r_tran_field_type),    allocatable, dimension(:)     :: dep_dist_z_half_w2
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: unity_dep_dist_z
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: unity_dep_dist_ixy
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: unity_dep_dist_oxy
     type(r_tran_field_type),    allocatable, dimension(:)     :: frac_wind_z
     type(r_tran_field_type),    allocatable, dimension(:)     :: frac_wind_z_half
     type(r_tran_field_type),    allocatable, dimension(:)     :: frac_wind_xy
     type(r_tran_field_type),    allocatable, dimension(:)     :: frac_wind_xy_half
     type(r_tran_field_type),    allocatable, dimension(:)     :: frac_wind_oxy
     type(r_tran_field_type),    allocatable, dimension(:)     :: frac_wind_oxy_half
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: unity_frac_wind_z
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: unity_frac_wind_ixy
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: unity_frac_wind_oxy
     type(r_tran_field_type),    allocatable, dimension(:,:)   :: tracer_dep_dist_z
     type(r_tran_field_type),    allocatable, dimension(:,:)   :: tracer_dep_dist_ixy
     type(r_tran_field_type),    allocatable, dimension(:,:)   :: tracer_dep_dist_oxy
@@ -135,6 +149,9 @@ module transport_runtime_alg_mod
     type(r_tran_field_type),    allocatable, dimension(:)     :: adv_detj_x_half
     type(r_tran_field_type),    allocatable, dimension(:)     :: adv_detj_y_half
     type(r_tran_field_type),    allocatable, dimension(:)     :: adv_detj_xy_half
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: detj_unity
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: detj_unity_x
+    type(r_tran_field_type),    allocatable, dimension(:,:)   :: detj_unity_y
     type(r_tran_field_type)                                   :: field_n
     type(r_tran_field_type),    allocatable, dimension(:,:)   :: rho_d
     type(r_tran_field_type),    allocatable, dimension(:,:)   :: dry_mass
@@ -158,13 +175,17 @@ module transport_runtime_alg_mod
     type(integer_field_type)                                  :: remap_indices
     logical(kind=l_def)                                       :: computed_remapping
     logical(kind=l_def)                                       :: computed_dep_pt_idxs
+    integer(kind=i_def)                                       :: dry_config
+    logical(kind=l_def)                                       :: dry_config_found
 
     contains
 
     procedure, private :: idx_from_mesh_id
     procedure, private :: compute_num_dry_steps
     procedure, private :: check_negative_field
+    procedure, private :: find_dry_config
     procedure, public  :: direction_w2_fs
+    procedure, public  :: splitting_fraction
     procedure, public  :: get_local_mesh_id
     procedure, public  :: get_prime_extrusion_mesh_id
     procedure, public  :: restrict_dry_fields
@@ -176,22 +197,31 @@ module transport_runtime_alg_mod
     procedure, public  :: get_directional_advecting_wind
     procedure, public  :: get_horizontal_advecting_wind
     procedure, public  :: get_vertical_advecting_wind
+    procedure, public  :: get_adjusted_v_wind
     procedure, public  :: get_dep_dist_z_w2
     procedure, public  :: get_dep_dist_xy_w2
+    procedure, public  :: get_unity_dep_dist_z
+    procedure, public  :: get_unity_dep_dist_xy
     procedure, public  :: get_frac_wind_z
     procedure, public  :: get_frac_wind_xy
+    procedure, public  :: get_unity_frac_wind_z
+    procedure, public  :: get_unity_frac_wind_xy
     procedure, public  :: get_tracer_dep_dist_z
     procedure, public  :: get_tracer_dep_dist_xy
     procedure, public  :: get_dry_frac_flux_z
     procedure, public  :: get_dry_frac_flux_xy
     procedure, public  :: get_dep_stencil_extent_xy
     procedure, public  :: get_tracer_stencil_extent_xy
+    procedure, public  :: get_unity_stencil_extent_xy
     procedure, public  :: get_adv_unity_x
     procedure, public  :: get_adv_unity_y
     procedure, public  :: get_adv_unity_z
     procedure, public  :: get_adv_detj_x
     procedure, public  :: get_adv_detj_y
     procedure, public  :: get_adv_detj_xy
+    procedure, public  :: get_detj_unity_x
+    procedure, public  :: get_detj_unity_y
+    procedure, public  :: get_detj_unity
     procedure, public  :: get_vert_sl_coef
     procedure, public  :: get_vert_sl_index
     procedure, public  :: get_field_n
@@ -256,6 +286,9 @@ contains
     use transport_config_mod,          only: max_vert_cfl_calc,           &
                                              max_vert_cfl_calc_dep_point, &
                                              max_vert_cfl_calc_uniform,   &
+                                             horizontal_method,           &
+                                             vertical_method,             &
+                                             ffsl_unity_3d,               &
                                              vertical_sl_order,           &
                                              vertical_sl_order_cubic,     &
                                              vertical_sl_order_quintic,   &
@@ -265,6 +298,12 @@ contains
     use dg_matrix_vector_kernel_mod,   only: dg_matrix_vector_kernel_type
     use fem_constants_mod,             only: get_inverse_W3_mass_matrix_r_tran
     use r_tran_operator_mod,           only: r_tran_operator_type
+    use fv_difference_x_kernel_mod,    only: fv_difference_x_kernel_type
+    use fv_difference_y_kernel_mod,    only: fv_difference_y_kernel_type
+    use fv_difference_z_kernel_mod,    only: fv_difference_z_kernel_type
+    use hori_dep_dist_ffsl_kernel_mod, only: hori_dep_dist_ffsl_kernel_type
+    use vert_dep_dist_ffsl_kernel_mod, only: vert_dep_dist_ffsl_kernel_type
+    use watkins_kernel_mod,            only: watkins_kernel_type
 
     implicit none
 
@@ -283,8 +322,15 @@ contains
     type(r_tran_field_type)          :: cfl_dep, cfl_dep_half
     type(r_tran_field_type)          :: sum_cfl, sum_horizontal_cfl, hori_cfl_dep
     type(r_tran_field_type)          :: dep_pt_wind_n, dep_pt_wind_np1
+    type(r_tran_field_type)          :: unity_field, increment, detj_copy
+    type(r_tran_field_type)          :: unity_x, unity_y
+    type(r_tran_field_type)          :: hori_wind_dt, vert_wind_dt
+    type(r_tran_field_type), pointer :: hori_wind, vert_wind
+    type(field_type),        pointer :: panel_id
     integer(kind=i_def)              :: mesh_idx, num_compute_meshes
-    integer(kind=i_def)              :: n_steps, n_meshes, i_coef
+    integer(kind=i_def)              :: n_steps, n_meshes, i_coef, step
+    integer(kind=i_def)              :: stencil_extent_xy
+    logical(kind=l_def)              :: cap_dep_points
     type(mesh_type),         pointer :: mesh => null()
     type(local_mesh_type),   pointer :: local_mesh => null()
     type(r_tran_field_type), pointer :: wind_n   => null()
@@ -294,19 +340,17 @@ contains
     type(field_type),        target  :: shifted_wind_n_rdef
     type(field_type),        target  :: shifted_wind_np1_rdef
     type(r_tran_field_type)          :: detj_at_w2_transport
-    type(r_tran_field_type)          :: lipschitz_horizontal
-    type(r_tran_field_type)          :: lipschitz_vertical
     type(r_tran_field_type)          :: remapped_unity, adv_unity_xy
     real(kind=r_tran)                :: cfl_min, cfl_max
     real(kind=r_tran)                :: dep_min, dep_max
     real(kind=r_tran)                :: h_cfl_min, h_cfl_max
     real(kind=r_tran)                :: v_cfl_min, v_cfl_max
-    real(r_tran)                     :: cast_dt, half_dt
+    real(r_tran)                     :: cast_dt, half_dt, step_dt
     logical(kind=l_def)              :: any_scheme_mol, any_scheme_split
     logical(kind=l_def)              :: any_scheme_ffsl
     logical(kind=l_def)              :: any_wind_shifted
     logical(kind=l_def)              :: any_splitting_vhv, any_splitting_hvh
-    logical(kind=l_def)              :: any_scheme_slice
+    logical(kind=l_def)              :: any_scheme_slice, any_scheme_split_ffsl
     logical(kind=l_def)              :: any_hori_scheme_sl, any_vert_scheme_sl
     logical(kind=l_def)              :: any_reversible_sl
     logical(kind=l_def)              :: any_advective_swift
@@ -342,6 +386,11 @@ contains
     ! Proxy for the first time the object is initialised
     if ( .not. allocated(self%mesh_ids) ) self%computed_remapping = .false.
     if ( .not. allocated(self%mesh_ids) ) self%computed_dep_pt_idxs = .false.
+    if ( .not. allocated(self%mesh_ids) ) self%dry_config_found = .false.
+
+    ! If not already found, work out which config is for dry field and save this
+    ! so that it doesn't need finding again
+    if ( .not. self%dry_config_found ) call self%find_dry_config()
 
     ! TODO: options for remapping density are hard-wired
     ! They could be options in the future
@@ -370,6 +419,7 @@ contains
     any_hori_scheme_sl = check_any_hori_scheme_sl()
     any_vert_scheme_sl = check_any_vert_scheme_sl()
     any_wind_shifted = check_wind_shifted()
+    any_scheme_split_ffsl = check_any_scheme_split_ffsl()
     any_advective_swift = check_any_advective_swift()
     any_consistent_swift = check_any_consistent_swift()
     compute_cfl_dep = ((any_scheme_mol .or. log_level() <= LOG_LEVEL_INFO) &
@@ -391,6 +441,9 @@ contains
       self%n_meshes = 1
     end if
 
+    ! Dry fields stored for consistent transport of scalars
+    self%num_dry_steps = self%compute_num_dry_steps()
+
     !> @todo This is almost certainly the wrong thing to do but I want to get
     !>       something done.
     !>
@@ -408,6 +461,7 @@ contains
                 self%advecting_wind(self%n_meshes),             &
                 self%horizontal_advecting_wind(self%n_meshes),  &
                 self%vertical_advecting_wind(self%n_meshes),    &
+                self%adjusted_v_wind(self%n_meshes, 2),         &
                 self%dep_dist_z_w2(self%n_meshes),              &
                 self%dep_dist_z_half_w2(self%n_meshes),         &
                 self%dep_dist_xy_w2(self%n_meshes),             &
@@ -501,6 +555,9 @@ contains
         call self%horizontal_advecting_wind(mesh_idx)%initialise( w2h_fs )
         call self%vertical_advecting_wind(mesh_idx)%initialise( w2v_fs )
 
+        call self%adjusted_v_wind(mesh_idx,1)%initialise( w2v_fs )
+        call self%adjusted_v_wind(mesh_idx,2)%initialise( w2v_fs )
+
         ! TODO #4160: this assumes that if any_splitting_vhv=.true. then all transport uses VHV splitting
         if (any_splitting_vhv) then
           call self%adv_unity_half_z(mesh_idx)%initialise( w3_fs )
@@ -571,6 +628,10 @@ contains
                                                                0.5_r_tran, wind_np1) )
       end if
 
+      if (log_level() <= LOG_LEVEL_INFO .and. mesh_idx == 1) then
+        call lipschitz_diag_alg(self%advecting_wind(mesh_idx), cast_dt)
+      end if
+
       ! Split into horizontal and vertical advecting winds
       face_selector_ew => get_face_selector_ew(self%mesh_ids(mesh_idx))
       face_selector_ns => get_face_selector_ns(self%mesh_ids(mesh_idx))
@@ -581,6 +642,16 @@ contains
                                               self%advecting_wind(mesh_idx),            &
                                               face_selector_ew,                         &
                                               face_selector_ns) )
+
+      if (adjust_vhv_wind) then
+        detj_at_w3 => get_detj_at_w3_r_tran(tmp_mesh%get_id())
+        call invoke( watkins_kernel_type(self%adjusted_v_wind(mesh_idx,1),     &
+                                         self%advecting_wind(mesh_idx),        &
+                                         cast_dt, detj_at_w3),                 &
+                     X_minus_Y(self%adjusted_v_wind(mesh_idx,2),               &
+                               self%vertical_advecting_wind(mesh_idx),         &
+                               self%adjusted_v_wind(mesh_idx,1)) )
+      end if
 
       !=======================================================================!
       ! Compute departure points
@@ -627,13 +698,6 @@ contains
             call invoke( a_times_X(cfl_dep, 2.0_r_tran, cfl_dep_half) )
           end if
 
-          if (log_level() <= LOG_LEVEL_INFO) then
-            call lipschitz_vertical%initialise( w2v_fs )
-            call invoke( lipschitz_vertical_kernel_type(                       &
-                                            lipschitz_vertical,                &
-                                            self%dep_dist_z_half_w2(mesh_idx)) )
-            call log_field_minmax(LOG_LEVEL_INFO, 'lipschitz_vertical', lipschitz_vertical)
-          end if
         else
           ! If splitting is not VHV then compute full departure points
           call calc_vert_dep_pts( self%dep_dist_z_w2(mesh_idx),                &
@@ -644,13 +708,6 @@ contains
                                   cast_dt,                                     &
                                   compute_cfl_dep )
 
-          if (log_level() <= LOG_LEVEL_INFO) then
-            call lipschitz_vertical%initialise( w2v_fs )
-            call invoke( lipschitz_vertical_kernel_type(                       &
-                                            lipschitz_vertical,                &
-                                            self%dep_dist_z_w2(mesh_idx)) )
-            call log_field_minmax(LOG_LEVEL_INFO, 'lipschitz_vertical', lipschitz_vertical)
-          end if
         end if
 
       end if
@@ -674,15 +731,6 @@ contains
           call get_field_minmax(self%dep_dist_xy_half_w2(mesh_idx), dep_min, dep_max)
           self%dep_stencil_extent_xy(mesh_idx) = int( max( abs(dep_max), abs(dep_min) ) )
 
-          if (log_level() <= LOG_LEVEL_INFO) then
-            call lipschitz_horizontal%initialise( w2h_fs )
-            call invoke( setval_c(lipschitz_horizontal, 0.0_r_tran),           &
-                         lipschitz_horizontal_kernel_type(                     &
-                                            lipschitz_horizontal,              &
-                                            self%dep_dist_xy_half_w2(mesh_idx)) )
-            call log_field_minmax(LOG_LEVEL_INFO, 'lipschitz_horizontal', lipschitz_horizontal)
-          end if
-
         else
           call calc_hori_dep_pts( self%dep_dist_xy_w2(mesh_idx),               &
                                   self%frac_wind_xy(mesh_idx),                 &
@@ -693,15 +741,6 @@ contains
           ! Get the required stencil size from the departure points
           call get_field_minmax(self%dep_dist_xy_w2(mesh_idx), dep_min, dep_max)
           self%dep_stencil_extent_xy(mesh_idx) = int( max( abs(dep_max), abs(dep_min) ) )
-
-          if (log_level() <= LOG_LEVEL_INFO) then
-            call lipschitz_horizontal%initialise( w2h_fs )
-            call invoke( setval_c(lipschitz_horizontal, 0.0_r_tran),           &
-                         lipschitz_horizontal_kernel_type(                     &
-                                            lipschitz_horizontal,              &
-                                            self%dep_dist_xy_w2(mesh_idx)) )
-            call log_field_minmax(LOG_LEVEL_INFO, 'lipschitz_horizontal', lipschitz_horizontal)
-          end if
         end if
       end if
 
@@ -893,7 +932,7 @@ contains
           if (any_splitting_hvh) then
             if (extended_mesh) then
               remap_depth = self%dep_stencil_extent_oxy(mesh_idx) &
-                          + 2_i_def + max(inner_order, outer_order)
+                          + 2_i_def + max(ffsl_inner_order, ffsl_outer_order)
               call self%remap_on_extended_mesh(remapped_unity, adv_unity_xy,   &
                                                self%rho_monotone_remap,        &
                                                self%rho_enforce_minvalue,      &
@@ -907,7 +946,7 @@ contains
           else
             if (extended_mesh) then
               remap_depth = self%dep_stencil_extent_oxy(mesh_idx) &
-                          + 2_i_def + max(inner_order, outer_order)
+                          + 2_i_def + max(ffsl_inner_order, ffsl_outer_order)
               call self%remap_on_extended_mesh(remapped_unity, adv_unity_xy,   &
                                                self%rho_monotone_remap,        &
                                                self%rho_enforce_minvalue,      &
@@ -1030,8 +1069,6 @@ contains
     end do ! loop over meshes
 
     !==========================================================================!
-    ! Dry fields stored for consistent transport of scalars
-    self%num_dry_steps = self%compute_num_dry_steps()
 
     ! Allocate arrays for dry fields
     if ( .not. allocated( self%rho_d ) ) then
@@ -1043,16 +1080,27 @@ contains
                 self%dry_mass(n_meshes, n_steps+1),                            &
                 self%dry_mass_ffsl_x(n_meshes, n_steps),                       &
                 self%dry_mass_ffsl_y(n_meshes, n_steps),                       &
+                self%detj_unity(n_meshes, n_steps+1),                          &
+                self%detj_unity_x(n_meshes, n_steps),                          &
+                self%detj_unity_y(n_meshes, n_steps),                          &
                 self%flux(n_meshes, n_steps-1),                                &
                 self%dry_flux(n_meshes, n_steps),                              &
                 self%tracer_dep_dist_ixy(n_meshes, n_steps),                   &
                 self%tracer_dep_dist_oxy(n_meshes, n_steps),                   &
                 self%tracer_dep_dist_z(n_meshes, n_steps),                     &
+                self%unity_dep_dist_ixy(n_meshes, n_steps),                    &
+                self%unity_dep_dist_oxy(n_meshes, n_steps),                    &
+                self%unity_dep_dist_z(n_meshes, n_steps),                      &
+                self%unity_frac_wind_ixy(n_meshes, n_steps),                   &
+                self%unity_frac_wind_oxy(n_meshes, n_steps),                   &
+                self%unity_frac_wind_z(n_meshes, n_steps),                     &
                 self%dry_frac_flux_z(n_meshes, n_steps),                       &
                 self%dry_frac_flux_ixy(n_meshes, n_steps),                     &
                 self%dry_frac_flux_oxy(n_meshes, n_steps),                     &
                 self%tracer_stencil_extent_ixy(n_meshes, n_steps),             &
-                self%tracer_stencil_extent_oxy(n_meshes, n_steps)              &
+                self%tracer_stencil_extent_oxy(n_meshes, n_steps),             &
+                self%unity_stencil_extent_ixy(n_meshes, n_steps),              &
+                self%unity_stencil_extent_oxy(n_meshes, n_steps)               &
       )
       if ( subroutine_timers ) call timer('transport.runtime_allocate')
     end if
@@ -1062,6 +1110,189 @@ contains
       call rho_d_n%initialise( rho_d_n_rdef%get_function_space() )
       call invoke_copy_to_rtran(rho_d_n, rho_d_n_rdef)
       call self%set_rho_d(rho_d_n, 1)
+    end if
+
+    ! ------------------------------------------------------------------------ !
+    ! Now compute transport by unity terms
+    ! ------------------------------------------------------------------------ !
+    if (ffsl_unity_3d .and. any_scheme_split_ffsl) then
+      do mesh_idx = 1, num_compute_meshes
+        tmp_mesh => mesh_collection%get_mesh(self%mesh_ids(mesh_idx))
+        w3_fs => function_space_collection%get_fs(tmp_mesh, element_order, W3)
+        w2h_fs => function_space_collection%get_fs(tmp_mesh, element_order, W2h)
+        w2v_fs => function_space_collection%get_fs(tmp_mesh, element_order, W2v)
+        detj_at_w3 => get_detj_at_w3_r_tran(tmp_mesh%get_id())
+
+        stencil_extent_xy = dep_pt_stencil_extent
+        cap_dep_points = (horizontal_limit == horizontal_limit_cap)
+        face_selector_ew => get_face_selector_ew(tmp_mesh%get_id())
+        face_selector_ns => get_face_selector_ns(tmp_mesh%get_id())
+        panel_id => get_panel_id(tmp_mesh%get_id())
+
+        ! Set first unity and volume fields
+        call unity_field%initialise( w3_fs )
+        call increment%initialise( w3_fs )
+        call unity_x%initialise( w3_fs )
+        call unity_y%initialise( w3_fs )
+        call detj_copy%initialise( w3_fs, halo_depth=tmp_mesh%get_halo_depth() )
+        call hori_wind_dt%initialise( w2h_fs )
+        call vert_wind_dt%initialise( w2v_fs )
+
+        call self%detj_unity(mesh_idx, 1)%initialise( w3_fs, halo_depth=tmp_mesh%get_halo_depth() )
+
+        call invoke( setval_X(self%detj_unity(mesh_idx, 1), detj_at_w3) )
+
+        ! Loop through steps
+        do step = 1, self%num_dry_steps
+          step_dt = self%splitting_fraction(step)*cast_dt
+          call self%detj_unity(mesh_idx, step+1)%initialise( w3_fs, halo_depth=tmp_mesh%get_halo_depth() )
+
+          ! Depending on direction, and whether using null transport
+          ! NULL TRANSPORT -----------------------------------------------------
+          if (self%direction_w2_fs(step) == W2H .and.                          &
+              horizontal_method(self%dry_config) == split_method_null) then
+
+            call self%detj_unity_x(mesh_idx, step)%initialise( w3_fs, halo_depth=tmp_mesh%get_halo_depth() )
+            call self%detj_unity_y(mesh_idx, step)%initialise( w3_fs, halo_depth=tmp_mesh%get_halo_depth() )
+            call self%unity_dep_dist_ixy(mesh_idx, step)%initialise( w2h_fs )
+            call self%unity_dep_dist_oxy(mesh_idx, step)%initialise( w2h_fs )
+            call self%unity_frac_wind_ixy(mesh_idx, step)%initialise( w2h_fs )
+            call self%unity_frac_wind_oxy(mesh_idx, step)%initialise( w2h_fs )
+
+            call invoke( setval_X(self%detj_unity(mesh_idx, step+1),           &
+                                  self%detj_unity(mesh_idx, step)),            &
+                         setval_X(self%detj_unity_x(mesh_idx, step),           &
+                                  self%detj_unity(mesh_idx, step)),            &
+                         setval_X(self%detj_unity_y(mesh_idx, step),           &
+                                  self%detj_unity(mesh_idx, step)),            &
+                         setval_c(self%unity_dep_dist_ixy(mesh_idx, step),     &
+                                  0.0_r_tran),                                 &
+                         setval_c(self%unity_frac_wind_ixy(mesh_idx, step),    &
+                                  0.0_r_tran),                                 &
+                         setval_c(self%unity_dep_dist_oxy(mesh_idx, step),     &
+                                  0.0_r_tran),                                 &
+                         setval_c(self%unity_frac_wind_oxy(mesh_idx, step),    &
+                                  0.0_r_tran) )
+
+            self%unity_stencil_extent_ixy(mesh_idx, step) = 1_i_def
+            self%unity_stencil_extent_oxy(mesh_idx, step) = 1_i_def
+
+          else if (self%direction_w2_fs(step) == W2V .and.                     &
+                   vertical_method(self%dry_config) == split_method_null) then
+
+            call self%unity_dep_dist_z(mesh_idx, step)%initialise( w2v_fs )
+            call self%unity_frac_wind_z(mesh_idx, step)%initialise( w2v_fs )
+
+            call invoke( setval_X(self%detj_unity(mesh_idx, step+1),           &
+                                  self%detj_unity(mesh_idx, step)),            &
+                         setval_c(self%unity_dep_dist_z(mesh_idx, step),       &
+                                  0.0_r_tran),                                 &
+                         setval_c(self%unity_frac_wind_z(mesh_idx, step),      &
+                                  0.0_r_tran) )
+
+          ! HORIZONTAL TRANSPORT -----------------------------------------------
+          else if (self%direction_w2_fs(step) == W2H) then
+
+            call self%detj_unity_x(mesh_idx, step)%initialise( w3_fs, halo_depth=tmp_mesh%get_halo_depth() )
+            call self%detj_unity_y(mesh_idx, step)%initialise( w3_fs, halo_depth=tmp_mesh%get_halo_depth() )
+            call self%unity_dep_dist_ixy(mesh_idx, step)%initialise( w2h_fs )
+            call self%unity_dep_dist_oxy(mesh_idx, step)%initialise( w2h_fs )
+            call self%unity_frac_wind_ixy(mesh_idx, step)%initialise( w2h_fs )
+            call self%unity_frac_wind_oxy(mesh_idx, step)%initialise( w2h_fs )
+            hori_wind => self%get_directional_advecting_wind(tmp_mesh%get_id(), direction_h)
+
+            ! Compute updated volumes corresponding to advection of unity
+            call invoke( fv_difference_x_kernel_type(increment, hori_wind),    &
+                         X_minus_bY(self%detj_unity_x(mesh_idx, step),         &
+                                    self%detj_unity(mesh_idx, step),           &
+                                    step_dt, increment),                       &
+                         fv_difference_y_kernel_type(increment, hori_wind),    &
+                         X_minus_bY(self%detj_unity_y(mesh_idx, step),         &
+                                    self%detj_unity(mesh_idx, step),           &
+                                    step_dt, increment),                       &
+                         X_minus_bY(self%detj_unity(mesh_idx, step+1),         &
+                                    self%detj_unity_x(mesh_idx, step),         &
+                                    step_dt, increment) )
+
+            ! Swap the halo values of adv_detj_x and adv_detj_y here
+            if (topology == topology_fully_periodic .AND. geometry == geometry_spherical) then
+              call invoke_ffsl_panel_swap_kernel_type(self%detj_unity_x(mesh_idx, step), &
+                                                      self%detj_unity_y(mesh_idx, step), &
+                                                      panel_id, tmp_mesh%get_halo_depth() )
+            end if
+
+            ! Compute fractional wind and departure points from transported unity
+            call invoke( setval_X(detj_copy, self%detj_unity(mesh_idx, step)), &
+                         a_times_X(hori_wind_dt, step_dt, hori_wind),          &
+                         setval_c(self%unity_dep_dist_ixy(mesh_idx, step),     &
+                                  0.0_r_tran),                                 &
+                         setval_c(self%unity_frac_wind_ixy(mesh_idx, step),    &
+                                  0.0_r_tran),                                 &
+                         hori_dep_dist_ffsl_kernel_type(                       &
+                                  self%unity_dep_dist_ixy(mesh_idx, step),     &
+                                  self%unity_frac_wind_ixy(mesh_idx, step),    &
+                                  hori_wind_dt,                                &
+                                  self%detj_unity(mesh_idx, step),             &
+                                  stencil_extent_xy,                           &
+                                  detj_copy,                                   &
+                                  stencil_extent_xy,                           &
+                                  face_selector_ew,                            &
+                                  face_selector_ns,                            &
+                                  dep_pt_stencil_extent,                       &
+                                  cap_dep_points),                             &
+                         setval_c(self%unity_dep_dist_oxy(mesh_idx, step),     &
+                                  0.0_r_tran),                                 &
+                         setval_c(self%unity_frac_wind_oxy(mesh_idx, step),    &
+                                  0.0_r_tran),                                 &
+                         hori_dep_dist_ffsl_kernel_type(                       &
+                                  self%unity_dep_dist_oxy(mesh_idx, step),     &
+                                  self%unity_frac_wind_oxy(mesh_idx, step),    &
+                                  hori_wind_dt,                                &
+                                  self%detj_unity_y(mesh_idx, step),           &
+                                  stencil_extent_xy,                           &
+                                  self%detj_unity_x(mesh_idx, step),           &
+                                  stencil_extent_xy,                           &
+                                  face_selector_ew,                            &
+                                  face_selector_ns,                            &
+                                  dep_pt_stencil_extent,                       &
+                                  cap_dep_points) )
+            ! Determine stencil extent
+            call get_field_minmax(self%unity_dep_dist_ixy(mesh_idx, step), dep_min, dep_max)
+            self%unity_stencil_extent_ixy(mesh_idx, step) = MAX( int(abs(dep_max), i_def), int(abs(dep_min), i_def) )
+            call get_field_minmax(self%unity_dep_dist_oxy(mesh_idx, step), dep_min, dep_max)
+            self%unity_stencil_extent_oxy(mesh_idx, step) = MAX( int(abs(dep_max), i_def), int(abs(dep_min), i_def) )
+
+          ! VERTICAL TRANSPORT -------------------------------------------------
+          else if (self%direction_w2_fs(step) == W2V) then
+
+            call self%unity_dep_dist_z(mesh_idx, step)%initialise( w2v_fs )
+            call self%unity_frac_wind_z(mesh_idx, step)%initialise( w2v_fs )
+
+            if (adjust_vhv_wind) then
+              vert_wind => self%get_adjusted_v_wind(tmp_mesh%get_id(), step)
+              ! Wind already includes fractional factor, so need to just use
+              ! standard dt here (instead of dt*fractional factor)
+              step_dt = cast_dt
+            else
+              vert_wind => self%get_directional_advecting_wind(tmp_mesh%get_id(), direction_v)
+            end if
+
+            call invoke( fv_difference_z_kernel_type(increment, vert_wind),    &
+                         X_minus_bY(self%detj_unity(mesh_idx, step+1),         &
+                                    self%detj_unity(mesh_idx, step),           &
+                                    step_dt, increment),                       &
+                         a_times_X(vert_wind_dt, step_dt, vert_wind),          &
+                         vert_dep_dist_ffsl_kernel_type(                       &
+                                  self%unity_dep_dist_z(mesh_idx, step),       &
+                                  self%unity_frac_wind_z(mesh_idx, step),      &
+                                  vert_wind_dt,                                &
+                                  self%detj_unity(mesh_idx, step)) )
+
+          else
+            call log_event('Direction for unity transport not implemented', LOG_LEVEL_ERROR)
+          end if
+        end do
+      end do
     end if
 
     ! Set step counter to be 1
@@ -1084,6 +1315,7 @@ contains
     if ( allocated( self%advecting_wind ) )            deallocate( self%advecting_wind )
     if ( allocated( self%horizontal_advecting_wind ) ) deallocate( self%horizontal_advecting_wind )
     if ( allocated( self%vertical_advecting_wind ) )   deallocate( self%vertical_advecting_wind )
+    if ( allocated( self%adjusted_v_wind ) )           deallocate( self%adjusted_v_wind )
     if ( allocated( self%dep_dist_xy_w2 ) )            deallocate( self%dep_dist_xy_w2 )
     if ( allocated( self%dep_dist_xy_half_w2 ) )       deallocate( self%dep_dist_xy_half_w2 )
     if ( allocated( self%dep_dist_oxy_w2 ) )           deallocate( self%dep_dist_oxy_w2 )
@@ -1131,6 +1363,17 @@ contains
     if ( allocated( self%tracer_stencil_extent_oxy ) ) deallocate( self%tracer_stencil_extent_oxy )
     if ( allocated( self%dep_stencil_extent_xy ) )     deallocate( self%dep_stencil_extent_xy )
     if ( allocated( self%dep_stencil_extent_oxy ) )    deallocate( self%dep_stencil_extent_oxy )
+    if ( allocated( self%unity_dep_dist_z ) )          deallocate( self%unity_dep_dist_z )
+    if ( allocated( self%unity_dep_dist_ixy ) )        deallocate( self%unity_dep_dist_ixy )
+    if ( allocated( self%unity_dep_dist_oxy ) )        deallocate( self%unity_dep_dist_oxy )
+    if ( allocated( self%unity_frac_wind_ixy ) )       deallocate( self%unity_frac_wind_ixy )
+    if ( allocated( self%unity_frac_wind_oxy ) )       deallocate( self%unity_frac_wind_oxy )
+    if ( allocated( self%unity_frac_wind_z ) )         deallocate( self%unity_frac_wind_z )
+    if ( allocated( self%unity_stencil_extent_ixy ) )  deallocate( self%unity_stencil_extent_ixy )
+    if ( allocated( self%unity_stencil_extent_oxy ) )  deallocate( self%unity_stencil_extent_oxy )
+    if ( allocated( self%detj_unity ) )                deallocate( self%detj_unity )
+    if ( allocated( self%detj_unity_x ) )              deallocate( self%detj_unity_x )
+    if ( allocated( self%detj_unity_y ) )              deallocate( self%detj_unity_y )
 
   end subroutine destroy_transport_runtime
 
@@ -1214,7 +1457,7 @@ contains
         ! due to using the dry mass flux to compute departure points, therefore
         ! an extra + 1 is added to remap_depth for safety
         remap_depth = self%get_dep_stencil_extent_xy(self%mesh_ids(1), .false.) &
-                    + 2_i_def + max(inner_order, outer_order)
+                    + 2_i_def + max(ffsl_inner_order, ffsl_outer_order)
       end if
       call self%remap_on_extended_mesh(self%rho_d(1,step), rho_d, &
                                        self%rho_monotone_remap,   &
@@ -1485,7 +1728,7 @@ contains
             ! remappings, based on the direction and last step
             ! Restrict, then remap
             remap_depth = self%get_dep_stencil_extent_xy(self%mesh_ids(1), .false.) &
-                        + 2_i_def + max(inner_order, outer_order)
+                        + 2_i_def + max(ffsl_inner_order, ffsl_outer_order)
           end if
           ! Restrict and remap rho
           call tmp_rho_d%initialise( vector_space = w3_fs, &
@@ -2199,6 +2442,32 @@ contains
 
   end function get_vertical_advecting_wind
 
+  !> @brief Returns a pointer to the adjusted vertical advecting wind
+  !> @param[in] mesh_id The ID of the mesh to get the object for
+  !> @param[in] step    The split step to get the object for
+  !> @return The vertical part of the advecting wind for particular step
+  function get_adjusted_v_wind(self, mesh_id, step) result(advecting_wind)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    type(r_tran_field_type),               pointer    :: advecting_wind
+    character(str_def)                                :: field_name
+
+    field_name = 'adjusted_v_wind'
+    if (step == 1) then
+      advecting_wind => self%adjusted_v_wind(self%idx_from_mesh_id(mesh_id), 1)
+    else if (step == self%num_dry_steps) then
+      advecting_wind => self%adjusted_v_wind(self%idx_from_mesh_id(mesh_id), 2)
+    else
+      call log_event('No adjusted v wind for this step', LOG_LEVEL_ERROR)
+    end if
+    call check_initialised_field(advecting_wind, field_name, mesh_id)
+
+  end function get_adjusted_v_wind
+
   !> @brief Returns a pointer to the horizontal departure distances at W2h DoFs
   !> @param[in] mesh_id     The ID of the mesh to get the object for
   !> @param[in] strang      Logical for whether to return Strang split points
@@ -2857,6 +3126,186 @@ contains
 
   end function get_dry_flux
 
+  !> @brief Returns a pointer to a volume field
+  !> @param[in] mesh_id The ID of the mesh to get the object for
+  !> @param[in] step The step from which to return the density
+  !> @return The volume field after its transport
+  function get_detj_unity(self, mesh_id, step) result(detj_unity_3d)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    type(r_tran_field_type),               pointer    :: detj_unity_3d
+    character(str_def)                                :: field_name
+
+    field_name = 'detj_unity'
+    detj_unity_3d => self%detj_unity(self%idx_from_mesh_id(mesh_id), step)
+    call check_initialised_field(detj_unity_3d, field_name, mesh_id)
+
+  end function get_detj_unity
+
+  !> @brief Returns a pointer to a volume field from an FFSL x-sweep
+  !> @param[in] mesh_id The ID of the mesh to get the object for
+  !> @param[in] step The step from which to return the density
+  !> @return The volume field after its transport
+  function get_detj_unity_x(self, mesh_id, step) result(detj_unity)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    type(r_tran_field_type),               pointer    :: detj_unity
+    character(str_def)                                :: field_name
+
+    field_name = 'detj_unity_x'
+    detj_unity => self%detj_unity_x(self%idx_from_mesh_id(mesh_id), step)
+    call check_initialised_field(detj_unity, field_name, mesh_id)
+
+  end function get_detj_unity_x
+
+  !> @brief Returns a pointer to a volume field from an FFSL y-sweep
+  !> @param[in] mesh_id The ID of the mesh to get the object for
+  !> @param[in] step The step from which to return the density
+  !> @return The volume field after its transport
+  function get_detj_unity_y(self, mesh_id, step) result(detj_unity)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    type(r_tran_field_type),               pointer    :: detj_unity
+    character(str_def)                                :: field_name
+
+    field_name = 'detj_unity_y'
+    detj_unity => self%detj_unity_y(self%idx_from_mesh_id(mesh_id), step)
+    call check_initialised_field(detj_unity, field_name, mesh_id)
+
+  end function get_detj_unity_y
+
+  !> @brief Returns a pointer to required stencil size for unity
+  !!        transport based on the maximum horizontal inner departure distance
+  !> @param[in] mesh_id      The ID of the mesh to get the object for
+  !> @param[in] step         The split step to get the extent for
+  !> @param[in] outer_step   Logical denoting outer SWIFT step
+  !> @return The required stencil depth
+  function get_unity_stencil_extent_xy(self, mesh_id, step, outer_step) result(dep_stencil_extent_xy)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    logical(kind=l_def),                   intent(in) :: outer_step
+    integer(kind=i_def),                   pointer    :: dep_stencil_extent_xy
+
+    if (outer_step) then
+      dep_stencil_extent_xy => self%unity_stencil_extent_oxy(self%idx_from_mesh_id(mesh_id), step)
+    else
+      dep_stencil_extent_xy => self%unity_stencil_extent_ixy(self%idx_from_mesh_id(mesh_id), step)
+    end if
+
+  end function get_unity_stencil_extent_xy
+
+  !> @brief Returns a pointer to the unity departure points
+  !> @param[in] mesh_id      The ID of the mesh to get the object for
+  !> @param[in] step         The split step to get the departure points for
+  !> @param[in] outer_step   Logical denoting outer SWIFT step
+  !> @return The unity departure points at W2 DoFs
+  function get_unity_dep_dist_xy(self, mesh_id, step, outer_step) result(unity_dep_points_xy)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    logical(kind=l_def),                   intent(in) :: outer_step
+    type(r_tran_field_type),               pointer    :: unity_dep_points_xy
+    character(str_def)                                :: field_name
+
+    if (outer_step) then
+      field_name = 'unity_dep_points_ox'
+      unity_dep_points_xy => self%unity_dep_dist_oxy(self%idx_from_mesh_id(mesh_id), step)
+    else
+      field_name = 'unity_dep_points_ix'
+      unity_dep_points_xy => self%unity_dep_dist_ixy(self%idx_from_mesh_id(mesh_id), step)
+    end if
+
+    call check_initialised_field(unity_dep_points_xy, field_name, mesh_id)
+
+  end function get_unity_dep_dist_xy
+
+  !> @brief Returns a pointer to the unity departure points
+  !> @param[in] mesh_id The ID of the mesh to get the object for
+  !> @param[in] step    The split step to get the departure points for
+  !> @return The unity departure points for the z direction at W2 DoFs
+  function get_unity_dep_dist_z(self, mesh_id, step) result(unity_dep_points_z)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    type(r_tran_field_type),               pointer    :: unity_dep_points_z
+    character(str_def)                                :: field_name
+
+    field_name = 'unity_dep_points_z'
+    unity_dep_points_z => self%unity_dep_dist_z(self%idx_from_mesh_id(mesh_id), step)
+    call check_initialised_field(unity_dep_points_z, field_name, mesh_id)
+
+  end function get_unity_dep_dist_z
+
+  !> @brief Returns a pointer to the fractional part of the unity wind
+  !> @param[in] mesh_id      The ID of the mesh to get the object for
+  !> @param[in] step         The split step to get the fractional flux for
+  !> @param[in] outer_step   Logical denoting outer SWIFT step
+  !> @return The fractional part of the unity wind
+  function get_unity_frac_wind_xy(self, mesh_id, step, outer_step) result(unity_frac_wind_xy)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    logical(kind=l_def),                   intent(in) :: outer_step
+    type(r_tran_field_type),               pointer    :: unity_frac_wind_xy
+    character(str_def)                                :: field_name
+
+    if (outer_step) then
+      field_name = 'unity_frac_wind_ox'
+      unity_frac_wind_xy => self%unity_frac_wind_oxy(self%idx_from_mesh_id(mesh_id), step)
+    else
+      field_name = 'unity_frac_wind_ix'
+      unity_frac_wind_xy => self%unity_frac_wind_ixy(self%idx_from_mesh_id(mesh_id), step)
+    end if
+
+    call check_initialised_field(unity_frac_wind_xy, field_name, mesh_id)
+
+  end function get_unity_frac_wind_xy
+
+  !> @brief Returns a pointer to the fractional part of the unity wind
+  !> @param[in] mesh_id The ID of the mesh to get the object for
+  !> @param[in] step    The split step to get the fractional flux for
+  !> @return The fractional part of the unity wind for the z direction
+  function get_unity_frac_wind_z(self, mesh_id, step) result(unity_frac_wind_z)
+
+    implicit none
+
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: mesh_id
+    integer(kind=i_def),                   intent(in) :: step
+    type(r_tran_field_type),               pointer    :: unity_frac_wind_z
+    character(str_def)                                :: field_name
+
+    field_name = 'unity_frac_wind_z'
+    unity_frac_wind_z => self%unity_frac_wind_z(self%idx_from_mesh_id(mesh_id), step)
+    call check_initialised_field(unity_frac_wind_z, field_name, mesh_id)
+
+  end function get_unity_frac_wind_z
+
   !> @brief Returns the counter of tracer transport steps
   !> @return The tracer step counter
   function get_tracer_step_ctr(self) result(tracer_step_ctr)
@@ -2900,10 +3349,7 @@ contains
   !> @result    num_dry_steps    Total number of transport steps for rho
   function compute_num_dry_steps(self) result(num_dry_steps)
 
-    use transport_config_mod,           only: profile_size,           &
-                                              field_names,            &
-                                              splitting,              &
-                                              dry_field_name
+    use transport_config_mod, only: splitting
 
     implicit none
 
@@ -2911,28 +3357,9 @@ contains
     class(transport_runtime_type), target, intent(in) :: self
     ! Internal variables
     integer(kind=i_def) :: num_dry_steps
-    integer(kind=i_def) :: config, dry_config
-    logical(kind=l_def) :: dry_config_found
-
-    ! Extract dry density metadata
-    dry_config_found = .false.
-    do config = 1, profile_size
-      if ( trim(field_names(config)) == trim(dry_field_name) ) then
-        dry_config_found = .true.
-        dry_config = config
-        exit
-      end if
-    end do
-
-    if (.not. dry_config_found) then
-      write(log_scratch_space, '(2A)') &
-        'transport_runtime: Cannot set up consistent tracer transport ' // &
-        'if there is no field named ', trim(dry_field_name)
-      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
-    end if
 
     ! Compute total number of split steps
-    select case(splitting(dry_config))
+    select case(splitting(self%dry_config))
     case(splitting_strang_hvh, splitting_strang_vhv)
       num_dry_steps = 3
     case(splitting_hv, splitting_vh)
@@ -2948,15 +3375,45 @@ contains
 
   end function compute_num_dry_steps
 
+  !> @brief Finds the index in the array of config variables corresponding to
+  !!        the dry density
+  subroutine find_dry_config(self)
+
+    use transport_config_mod,           only: profile_size,           &
+                                              field_names,            &
+                                              dry_field_name
+
+    ! Arguments
+    class(transport_runtime_type), target, intent(inout) :: self
+    ! Internal variables
+    integer(kind=i_def) :: config
+
+    ! Extract dry density metadata
+    self%dry_config_found = .false.
+    do config = 1, profile_size
+      if ( trim(field_names(config)) == trim(dry_field_name) ) then
+        self%dry_config_found = .true.
+        self%dry_config = config
+        exit
+      end if
+    end do
+
+    if (.not. self%dry_config_found) then
+      write(log_scratch_space, '(2A)') &
+        'transport_runtime: Cannot set up compute dry steps ' // &
+        'if there is no field named ', trim(dry_field_name)
+      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+    end if
+
+
+  end subroutine
+
   !> @brief Returns the function space for the direction of the dry step
   !> @param[in] step  Index of the dry density splitting step
   !> @result    fs    Enumerator for the W2 function space
   function direction_w2_fs(self, step) result(fs)
 
-    use transport_config_mod,           only: profile_size,           &
-                                              field_names,            &
-                                              splitting,              &
-                                              dry_field_name
+    use transport_config_mod, only: splitting
 
     implicit none
 
@@ -2964,28 +3421,10 @@ contains
     class(transport_runtime_type), target, intent(in) :: self
     integer(kind=i_def),                   intent(in) :: step
     ! Internal variables
-    integer(kind=i_def) :: config, dry_config, fs
-    logical(kind=l_def) :: dry_config_found
-
-    ! Extract dry density metadata
-    dry_config_found = .false.
-    do config = 1, profile_size
-      if ( trim(field_names(config)) == trim(dry_field_name) ) then
-        dry_config_found = .true.
-        dry_config = config
-        exit
-      end if
-    end do
-
-    if (.not. dry_config_found) then
-      write(log_scratch_space, '(2A)') &
-        'transport_runtime: Cannot set up compute dry steps ' // &
-        'if there is no field named ', trim(dry_field_name)
-      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
-    end if
+    integer(kind=i_def) :: fs
 
     ! Compute total number of split steps
-    select case(splitting(dry_config))
+    select case(splitting(self%dry_config))
     case(splitting_strang_hvh)
       select case(step)
       case(1_i_def, 3_i_def)
@@ -3031,6 +3470,40 @@ contains
     end select
 
   end function direction_w2_fs
+
+  !> @brief Returns the fraction to multiply dt for this splitting step
+  !> @param[in] step      Index of the dry density splitting step
+  !> @result    fraction  The multiplying fraction
+  function splitting_fraction(self, step) result(fraction)
+
+    use transport_config_mod, only: splitting
+
+    implicit none
+
+    ! Arguments
+    class(transport_runtime_type), target, intent(in) :: self
+    integer(kind=i_def),                   intent(in) :: step
+    ! Internal variables
+    real(kind=r_tran) :: fraction
+
+    ! Compute total number of split steps
+    select case(splitting(self%dry_config))
+    case(splitting_strang_hvh, splitting_strang_vhv)
+      select case(step)
+      case(1_i_def, 3_i_def)
+        fraction = 0.5_r_tran
+      case(2_i_def)
+        fraction = 1.0_r_tran
+      end select
+    case(splitting_hv, splitting_vh, splitting_none)
+      fraction = 1.0_r_tran
+    case default
+      write(log_scratch_space, '(A)') &
+        'transport_runtime: Your splitting is not implemented'
+      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+    end select
+
+  end function splitting_fraction
 
   !> @brief Private function for getting array index corresponding to mesh_id
   !> @param[in] self      The transport_runtime object
@@ -3111,7 +3584,7 @@ contains
   !!          distances for tracers if the dry mass is no longer positive.
   subroutine check_negative_field(self, field, field_name)
 
-    use sci_field_minmax_alg_mod, only: get_local_field_minmax
+    use sci_field_minmax_alg_mod, only: get_field_minmax, get_local_field_minmax
 
     implicit none
 
@@ -3124,14 +3597,21 @@ contains
     real(kind=r_tran) :: field_min
     real(kind=r_tran) :: field_max
 
-    call get_local_field_minmax(field, field_min, field_max)
+    if (log_level() <= LOG_LEVEL_INFO) then
+      ! Global min/max is more expensive but makes failure easier to spot
+      call get_field_minmax(field, field_min, field_max)
+    else
+      ! For more sparse logging, avoid the global communication
+      call get_local_field_minmax(field, field_min, field_max)
+    end if
 
     if (field_min < EPS_R_TRAN) then
       write(log_scratch_space, '(A,E16.8,A,E16.8,A)')                          &
         'The minimum of field ' // adjustl(trim(field_name)) // ' is ',        &
-        field_min, ' which is below the accepted minimum of ', EPS_R_TRAN,     &
+        field_min, ' which is below the tolerance of ', EPS_R_TRAN,            &
         ' which makes it impossible to find consistent departure distances. '  &
-        // 'Stopping model rather than continuing'
+        // 'Most likely the transporting wind has a maximum Lipschitz number ' &
+        // 'that exceeds 1. Stopping model rather than continuing'
       call log_event(log_scratch_space, LOG_LEVEL_ERROR)
     end if
 

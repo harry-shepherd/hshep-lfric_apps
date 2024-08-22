@@ -30,7 +30,8 @@ module split_transport_mod
   use mol_advective_alg_mod,            only: mol_advective_alg
   use mol_consistent_alg_mod,           only: mol_consistent_alg
   use end_of_transport_step_alg_mod,    only: end_of_conservative_step_alg, &
-                                              end_of_consistent_step_alg
+                                              end_of_consistent_step_alg,   &
+                                              end_of_advective_step_alg
 
   implicit none
 
@@ -288,6 +289,9 @@ contains
     case ( equation_form_consistent )
       call calculate_null_flux(flux, field_np1, direction)
       call end_of_consistent_step_alg(field_np1, flux, transport_metadata)
+
+    case ( equation_form_advective )
+      call end_of_advective_step_alg(field_np1, field_n, transport_metadata)
 
     end select
 

@@ -60,11 +60,13 @@ module ffsl_hori_alg_mod
 
   ! Configuration options
   use io_config_mod,                    only: subroutine_timers
-  use subgrid_config_mod,               only: inner_order, outer_order
   use finite_element_config_mod,        only: element_order
   use transport_config_mod,             only: extended_mesh, &
-                                              special_edges_treatment,       &
-                                              special_edges_high_order
+                                              special_edges_treatment,  &
+                                              special_edges_high_order, &
+                                              ffsl_inner_order,         &
+                                              ffsl_outer_order,         &
+                                              ffsl_unity_3d
 
   implicit none
 
@@ -191,7 +193,8 @@ contains
     ! 1st advective step -------------------------------------------------------
     if ( swift_splitting ) then
       call ffsl_hori_swift_inner_alg(flux_first, field_x, field_y, field_n,    &
-                                     step_dt, transport_metadata, outer_order)
+                                     step_dt, transport_metadata,              &
+                                     ffsl_outer_order)
     else
       call ffsl_hori_cosmic_inner_alg( first_increment_x, first_increment_y,   &
                                        field_n, step_dt, transport_metadata )
@@ -202,7 +205,7 @@ contains
     ! Final step (advective or conservative) -----------------------------------
     call ffsl_hori_outer_alg( flux, increment_x, increment_y,                  &
                               field_np1, field_n, field_x, field_y,            &
-                              step_dt, transport_metadata, outer_order,        &
+                              step_dt, transport_metadata, ffsl_outer_order,   &
                               compute_adv_inc=.false.,                         &
                               compute_field_np1=to_compute_field_np1 )
 
@@ -319,7 +322,7 @@ contains
 
     ! Set constant values
     extra_points = ffsl_extra_points(special_edges_treatment,special_edges_high_order)
-    stencil_extent_xy = dep_stencil_extent_xy + extra_points + inner_order
+    stencil_extent_xy = dep_stencil_extent_xy + extra_points + ffsl_inner_order
     ! PSyclone needs these to be different variables to the stencil_extents
     cfl_stencil_xy = stencil_extent_xy
 
@@ -367,7 +370,7 @@ contains
                                             face_selector_ew,                   &
                                             face_selector_ns,                   &
                                             special_edges_high_order,           &
-                                            inner_order, monotone,              &
+                                            ffsl_inner_order, monotone,         &
                                             special_edges_monotone, min_val,    &
                                             cfl_stencil_xy, dt ) )
     else
@@ -380,8 +383,8 @@ contains
                                             dep_dist_xy, frac_wind_xy,          &
                                             face_selector_ew,                   &
                                             face_selector_ns,                   &
-                                            inner_order, monotone, min_val,     &
-                                            cfl_stencil_xy, dt ) )
+                                            ffsl_inner_order, monotone,         &
+                                            min_val, cfl_stencil_xy, dt ) )
     end if
 
     if ( subroutine_timers ) call timer('transport.ffsl_hori_sweeps')
@@ -554,6 +557,13 @@ contains
       dep_dist_xy => transport_runtime%get_tracer_dep_dist_xy(mesh_id, step, outer)
       dep_stencil_extent_xy => transport_runtime%get_tracer_stencil_extent_xy(mesh_id, step, outer)
       frac_flux_xy => transport_runtime%get_dry_frac_flux_xy(mesh_id, step, outer)
+    else if (ffsl_unity_3d) then
+      step = transport_runtime%get_tracer_step_ctr()
+      frac_flux_xy => transport_runtime%get_unity_frac_wind_xy(mesh_id, step, outer)
+      adv_detj_x => transport_runtime%get_detj_unity_x(mesh_id, step)
+      adv_detj_y => transport_runtime%get_detj_unity_y(mesh_id, step)
+      dep_dist_xy => transport_runtime%get_unity_dep_dist_xy(mesh_id, step, outer)
+      dep_stencil_extent_xy => transport_runtime%get_unity_stencil_extent_xy(mesh_id, step, outer)
     else
       ! Advective/conservative forms of equation use volume ("detj") of cells
       frac_flux_xy => transport_runtime%get_frac_wind_xy(mesh_id, strang, outer)
@@ -755,7 +765,12 @@ contains
           call invoke( fv_difference_x_kernel_type(increment_x, flux),         &
                        fv_difference_y_kernel_type(increment_y, flux) )
 
-          adv_detj_xy => transport_runtime%get_adv_detj_xy(mesh_id, strang)
+          if (ffsl_unity_3d) then
+            adv_detj_xy => transport_runtime%get_detj_unity(mesh_id, step+1)
+          else
+            adv_detj_xy => transport_runtime%get_adv_detj_xy(mesh_id, strang)
+          end if
+
           ! @todo #4301: replace this with loop fusion
           call invoke_swift_outer_update_tracer(field_np1, field_x, field_y,   &
                                                 adv_detj_xy, adv_detj_x,       &
@@ -946,6 +961,15 @@ contains
       dep_dist_xy => transport_runtime%get_tracer_dep_dist_xy(mesh_id, step, outer_step=.false.)
       dep_stencil_extent_xy => transport_runtime%get_tracer_stencil_extent_xy(mesh_id, step, outer_step=.false.)
       frac_flux_xy => transport_runtime%get_dry_frac_flux_xy(mesh_id, step, outer_step=.false.)
+    else if (ffsl_unity_3d) then
+      ! Advective/conservative forms of equation use volume ("detj")
+      detj_at_w3 => transport_runtime%get_detj_unity(mesh_id, step)
+      detj_at_w3_copy => transport_runtime%get_detj_unity(mesh_id, step)
+      adv_detj_x => transport_runtime%get_detj_unity_x(mesh_id, step)
+      adv_detj_y => transport_runtime%get_detj_unity_y(mesh_id, step)
+      dep_dist_xy => transport_runtime%get_unity_dep_dist_xy(mesh_id, step, outer_step=.false.)
+      dep_stencil_extent_xy => transport_runtime%get_unity_stencil_extent_xy(mesh_id, step, outer_step=.false.)
+      frac_flux_xy => transport_runtime%get_unity_frac_wind_xy(mesh_id, step, outer_step=.false.)
     else
       ! Advective/conservative forms of equation use volume ("detj")
       detj_at_w3 => get_detj_at_w3_r_tran(mesh_id)

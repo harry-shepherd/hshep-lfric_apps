@@ -8,7 +8,7 @@
 !>
 module transport_metadata_collection_test
 
-  use constants_mod,                  only : r_def, l_def, str_def, r_tran
+  use constants_mod,                  only : r_def, i_def, l_def, str_def, r_tran
   use transport_enumerated_types_mod, only : equation_form_advective,        &
                                              equation_form_conservative,     &
                                              splitting_none,                 &
@@ -61,7 +61,8 @@ contains
                                      vertical_monotone,             &
                                      vertical_monotone_order,       &
                                      theta_variable_dry,            &
-                                     min_val_method_iterative
+                                     min_val_method_iterative,      &
+                                     calculate_detj_upwind
 
     implicit none
 
@@ -89,6 +90,12 @@ contains
       ffsl_splitting = (/ 1, 1, 1 /),                      &
       operators = operators_fv,                            &
       runge_kutta_method = runge_kutta_method_ssp2,        &
+      calculate_detj = calculate_detj_upwind,              &
+      dep_pt_stencil_extent = 2,                           &
+      ffsl_inner_order = 0,                                &
+      ffsl_outer_order = 1,                                &
+      ffsl_vertical_order = (/ 1, 1, 1 /),                 &
+      ffsl_unity_3d = .true.,                              &
       fv_vertical_order = 2,                               &
       fv_horizontal_order = 2,                             &
       min_val_abs_tol = -1.0e-12_r_def,                    &
@@ -96,6 +103,7 @@ contains
       min_val_method = min_val_method_iterative,           &
       adjust_theta = .false.,                              &
       adjust_theta_above = 0.0_r_def,                      &
+      adjust_vhv_wind=.false.,                             &
       broken_w2_projection = .false.,                      &
       consistent_metric  = .false.,                        &
       oned_reconstruction = .false.,                       &
@@ -156,6 +164,7 @@ contains
     logical(kind=l_def),           parameter :: enforce_min_value = .true.
     logical(kind=l_def),           parameter :: logspace = .true.
     logical(kind=l_def),           parameter :: reversible = .true.
+    integer(kind=i_def),           parameter :: ffsl_vertical_order = 2
     type(transport_metadata_type), pointer   :: metadata_ptr
     type(transport_metadata_type)            :: metadata
     character(len=str_def)                   :: fname
@@ -176,7 +185,8 @@ contains
                                        zero_min_value,                 &
                                        no_logspace,                    &
                                        reversible,                     &
-                                       ffsl_splitting_swift)
+                                       ffsl_splitting_swift,           &
+                                       ffsl_vertical_order)
 
     call transport_metadata_collection%set_transport_metadata(metadata)
 
@@ -195,7 +205,8 @@ contains
                                        zero_min_value,                 &
                                        no_logspace,                    &
                                        reversible,                     &
-                                       ffsl_splitting_swift)
+                                       ffsl_splitting_swift,           &
+                                       ffsl_vertical_order)
 
     call transport_metadata_collection%set_transport_metadata(metadata)
 
@@ -214,7 +225,8 @@ contains
                                        one_min_value,                  &
                                        logspace,                       &
                                        reversible,                     &
-                                       ffsl_splitting_swift)
+                                       ffsl_splitting_swift,           &
+                                       ffsl_vertical_order)
 
     call transport_metadata_collection%set_transport_metadata(metadata)
 

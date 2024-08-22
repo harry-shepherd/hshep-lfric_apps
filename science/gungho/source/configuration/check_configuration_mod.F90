@@ -9,10 +9,6 @@ module check_configuration_mod
   use constants_mod,        only: i_def, l_def
   use mixing_config_mod,    only: viscosity,                       &
                                   viscosity_mu
-  use subgrid_config_mod,   only: dep_pt_stencil_extent,           &
-                                  inner_order,                     &
-                                  outer_order,                     &
-                                  vertical_order
   use transport_config_mod, only: operators,                       &
                                   operators_fv,                    &
                                   operators_fem,                   &
@@ -38,7 +34,13 @@ module check_configuration_mod
                                   enforce_min_value,               &
                                   horizontal_monotone,             &
                                   vertical_monotone,               &
-                                  ffsl_splitting
+                                  ffsl_splitting,                  &
+                                  ffsl_vertical_order,             &
+                                  ffsl_inner_order,                &
+                                  ffsl_outer_order,                &
+                                  dep_pt_stencil_extent,           &
+                                  adjust_vhv_wind,                 &
+                                  ffsl_unity_3d
   use transport_enumerated_types_mod,                              &
                             only: scheme_mol_3d,                   &
                                   scheme_ffsl_3d,                  &
@@ -46,6 +48,7 @@ module check_configuration_mod
                                   split_method_mol,                &
                                   split_method_ffsl,               &
                                   split_method_sl,                 &
+                                  split_method_null,               &
                                   equation_form_advective,         &
                                   equation_form_conservative,      &
                                   equation_form_consistent,        &
@@ -75,6 +78,7 @@ module check_configuration_mod
   public :: check_any_vertical_method_mol
   public :: check_any_scheme_split
   public :: check_any_scheme_ffsl
+  public :: check_any_scheme_split_ffsl
   public :: check_any_scheme_slice
   public :: check_any_hori_scheme_sl
   public :: check_any_vert_scheme_sl
@@ -374,7 +378,7 @@ contains
           call log_event(log_scratch_space, LOG_LEVEL_ERROR)
         end if
 
-        if ( vertical_method(i) == split_method_ffsl .AND. vertical_order == 2    &
+        if ( vertical_method(i) == split_method_ffsl .AND. ffsl_vertical_order(i) == 2    &
             .AND. .NOT. reversible(i) ) then
           write( log_scratch_space, '(A)') trim(field_names(i)) // ' variable ' // &
             'is being transported with a reversible form of the FFSL scheme, ' // &
@@ -382,7 +386,7 @@ contains
           call log_event(log_scratch_space, LOG_LEVEL_ERROR)
         end if
 
-        if ( vertical_method(i) == split_method_ffsl .AND. vertical_order == 1    &
+        if ( vertical_method(i) == split_method_ffsl .AND. ffsl_vertical_order(i) == 1    &
             .AND. log_space(i) .AND. .NOT. reversible(i) ) then
           write( log_scratch_space, '(A)') trim(field_names(i)) // ' variable ' // &
             'is being transported with Nirvana as part of the FFSL scheme, ' // &
@@ -419,7 +423,7 @@ contains
 
         if ( (vertical_monotone(i) == vertical_monotone_qm_pos) .and. &
               .not. (vertical_method(i) == split_method_ffsl)   .and. &
-              .not. (vertical_order == 2) ) then
+              .not. (ffsl_vertical_order(i) == 2) ) then
           write( log_scratch_space, '(A)') trim(field_names(i)) // ' variable ' // &
             'is set to use quasi-monotone positive vertical monotonicity, but this is ' // &
             'incompatible with the choice of vertical method'
@@ -466,6 +470,34 @@ contains
             'variable is set to use consistent transport, but this is ' // &
             'not yet implemented with 3D FFSL.'
           call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+        end if
+
+        ! For 3D unity transport, require all transported fields to use the
+        ! same FFSL-FFSL splitting
+        if ( ffsl_unity_3d ) then
+          if ( splitting(i) /= dry_field_splitting ) then
+            call log_event(                                                    &
+              '3D unity transport can only be used when all variables '        &
+              // 'are transported with the same splitting', LOG_LEVEL_ERROR)
+          else if ( vertical_method(i) /= split_method_ffsl                    &
+                    .or. horizontal_method(i) /= split_method_ffsl ) then
+            call log_event(                                                    &
+              '3D unity transport can only be used when all variables '        &
+              // 'are using FFSL for vertical and horizontal transport', LOG_LEVEL_ERROR)
+          end if
+        end if
+
+        ! Can only adjust the V-H-V wind when using FFSL with 3D unity transport
+        ! and Strang V-H-V splitting
+        if ( adjust_vhv_wind ) then
+          if ( .not. ffsl_unity_3d ) then
+            call log_event(                                                    &
+              'adjust_vhv_wind only implemented with ffsl_unity_3d set to true', LOG_LEVEL_ERROR)
+          end if
+          if ( splitting(i) /= splitting_strang_vhv ) then
+            call log_event(                                                    &
+              'adjust_vhv_wind only implemented for Strang VHV splitting', LOG_LEVEL_ERROR)
+          end if
         end if
 
       end do
@@ -575,7 +607,7 @@ contains
       ! order + 1 is required. This is then extended
       ! by the dep_pt_stencil_extent (effectively the
       ! maximum CFL number we want the scheme to work for)
-      sl_reconstruction_depth = max( inner_order, outer_order ) + 1
+      sl_reconstruction_depth = max( ffsl_inner_order, ffsl_outer_order ) + 1
       stencil_depth = max( stencil_depth,          &
                            dep_pt_stencil_extent + &
                            sl_reconstruction_depth )
@@ -698,6 +730,33 @@ contains
     end do
 
   end function check_any_scheme_ffsl
+
+  !> @brief   Determine whether any of the transport schemes are split 3D FFSL
+  !> @details Loops through the transport schemes specified for different
+  !>          variables and determines whether any are using the split Flux-Form
+  !>          Semi-Lagrangian scheme
+  !> @return  any_scheme_ffsl
+  function check_any_scheme_split_ffsl() result(any_scheme_ffsl)
+
+    implicit none
+
+    logical(kind=l_def) :: any_scheme_ffsl
+    integer(kind=i_def) :: i
+
+    any_scheme_ffsl = .false.
+
+    do i = 1, profile_size
+      if ( scheme(i) == scheme_split .and.                        &
+           (vertical_method(i) == split_method_ffsl .or.          &
+            vertical_method(i) == split_method_null) .and.        &
+           (horizontal_method(i) == split_method_ffsl .or.        &
+            horizontal_method(i) == split_method_null) ) then
+        any_scheme_ffsl = .true.
+        exit
+      end if
+    end do
+
+  end function check_any_scheme_split_ffsl
 
   !> @brief   Determine whether any of the vertical transport schemes are SLICE
   !> @details Loops through the transport schemes specified for different

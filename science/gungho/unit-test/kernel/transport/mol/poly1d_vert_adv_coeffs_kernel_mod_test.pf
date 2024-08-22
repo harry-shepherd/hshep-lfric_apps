@@ -39,7 +39,8 @@ contains
                                      vertical_sl_order_quintic,     &
                                      max_vert_cfl_calc_uniform,     &
                                      theta_variable_dry,            &
-                                     min_val_method_iterative
+                                     min_val_method_iterative,      &
+                                     calculate_detj_upwind
     implicit none
 
     class(poly1d_vert_adv_coeffs_test_type), intent(inout) :: this
@@ -55,6 +56,12 @@ contains
                                  cfl_mol_2d_stab = 1.0_r_def,                              &
                                  cfl_mol_3d_stab = 1.0_r_def,                              &
                                  cheap_update = .false.,                                   &
+                                 calculate_detj = calculate_detj_upwind,                   &
+                                 dep_pt_stencil_extent = 2,                                &
+                                 ffsl_inner_order = 0,                                     &
+                                 ffsl_outer_order = 1,                                     &
+                                 ffsl_vertical_order = (/ 1, 1, 1 /),                      &
+                                 ffsl_unity_3d = .true.,                                   &
                                  slice_order = slice_order_cubic,                          &
                                  vertical_sl_order = vertical_sl_order_quintic,            &
                                  theta_variable=theta_variable_dry,                        &
@@ -66,6 +73,7 @@ contains
                                  min_val_method = min_val_method_iterative,                &
                                  adjust_theta = .false.,                                   &
                                  adjust_theta_above = 0.0_r_def,                           &
+                                 adjust_vhv_wind=.false.,                                  &
                                  dry_field_name='tracer',                                  &
                                  profile_size = 1,                                         &
                                  field_names = (/'tracer'/),                               &

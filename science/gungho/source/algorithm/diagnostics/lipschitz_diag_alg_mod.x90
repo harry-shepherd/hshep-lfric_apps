@@ -1,0 +1,194 @@
+!-----------------------------------------------------------------------------
+! (c) Crown copyright 2024 Met Office. All rights reserved.
+! The file LICENCE, distributed with this code, contains details of the terms
+! under which the code may be used.
+!-----------------------------------------------------------------------------
+
+!> @brief   Computes diagnostics relating to the Lipschitz numbers.
+
+module lipschitz_diag_alg_mod
+
+  ! Constants and types
+  use constants_mod,                   only: r_def, r_tran, l_def
+  use field_mod,                       only: field_type
+  use r_tran_field_mod,                only: r_tran_field_type
+  use function_space_mod,              only: function_space_type
+  use psykal_lite_mod,                 only: invoke_copy_rtran_to_rdef
+  use mesh_mod,                        only: mesh_type
+  use integer_field_mod,               only: integer_field_type
+  use r_tran_operator_mod,             only: r_tran_operator_type
+
+  use finite_element_config_mod,       only: element_order
+  use geometric_constants_mod,         only: get_face_selector_ew, &
+                                             get_face_selector_ns
+  use log_mod,                         only: LOG_LEVEL_INFO
+  use fem_constants_mod,               only: get_directional_im3_div_r_tran, &
+                                             get_detj_at_w3_r_tran
+  use fs_continuity_mod,               only: W3, W2V, W2H
+  use function_space_collection_mod,   only: function_space_collection
+
+  use dg_matrix_vector_kernel_mod,     only: dg_matrix_vector_kernel_type
+  use fv_divergence_x_kernel_mod,      only: fv_divergence_x_kernel_type
+  use fv_divergence_y_kernel_mod,      only: fv_divergence_y_kernel_type
+  use fv_divergence_z_kernel_mod,      only: fv_divergence_z_kernel_type
+  use split_w2_field_kernel_mod,       only: split_w2_field_kernel_type
+  use transport_enumerated_types_mod,  only: direction_h, direction_3d
+
+  use check_configuration_mod,         only: check_any_splitting_vhv
+  use print_field_stats_alg_mod,       only: print_field_stats_alg
+
+  implicit none
+
+  private
+  public :: lipschitz_diag_alg
+
+contains
+
+  !===========================================================================!
+  !> @brief Computes diagnostics relating to the 2D and 3D Lipschitz numbers
+  !> @param[in]     wind           The wind at time n
+  !> @param[in]     rhs_n          The RHS terms for u at time n
+  !> @param[in]     beta           The time n centring parameter
+  !> @param[in]     model_clock    Time within the model
+  subroutine lipschitz_diag_alg(wind, dt_r_tran)
+
+    implicit none
+
+    ! Arguments
+    type(r_tran_field_type),   intent(in) :: wind
+    real(kind=r_tran),         intent(in) :: dt_r_tran
+
+    type(mesh_type),            pointer :: mesh
+    type(function_space_type),  pointer :: w3_fs, w2h_fs, w2v_fs
+
+    type(r_tran_field_type)             :: wind_w2h, wind_w2v
+    type(r_tran_field_type)             :: div_3d_r_tran, div_2d_r_tran
+    type(r_tran_field_type)             :: lipschitz_x_r_tran
+    type(r_tran_field_type)             :: lipschitz_y_r_tran
+    type(r_tran_field_type)             :: lipschitz_z_r_tran
+    type(field_type)                    :: lipschitz_x_r_def
+    type(field_type)                    :: lipschitz_y_r_def
+    type(field_type)                    :: lipschitz_z_r_def
+    type(field_type)                    :: lipschitz_z2_r_def
+    type(field_type)                    :: lipschitz_z2x_r_def
+    type(field_type)                    :: lipschitz_z2y_r_def
+    type(field_type)                    :: lipschitz_z2xy_r_def
+    type(field_type)                    :: div_3d_r_def, div_2d_r_def
+    type(r_tran_operator_type), pointer :: im3_div_3d, im3_div_2d
+    type(integer_field_type),   pointer :: face_selector_ew
+    type(integer_field_type),   pointer :: face_selector_ns
+    type(r_tran_field_type),    pointer :: detj
+
+    mesh => wind%get_mesh()
+    w3_fs => function_space_collection%get_fs(mesh, 0, W3)
+    w2v_fs => function_space_collection%get_fs(mesh, 0, W2V)
+    w2h_fs => function_space_collection%get_fs(mesh, 0, W2H)
+
+    call wind_w2h%initialise( w2h_fs )
+    call wind_w2v%initialise( w2v_fs )
+    call div_2d_r_tran%initialise( w3_fs )
+    call div_3d_r_tran%initialise( w3_fs )
+    call lipschitz_x_r_tran%initialise( w3_fs )
+    call lipschitz_y_r_tran%initialise( w3_fs )
+    call lipschitz_z_r_tran%initialise( w3_fs )
+    call div_2d_r_def%initialise( w3_fs )
+    call div_3d_r_def%initialise( w3_fs )
+    call lipschitz_x_r_def%initialise( w3_fs )
+    call lipschitz_y_r_def%initialise( w3_fs )
+    call lipschitz_z_r_def%initialise( w3_fs )
+    call lipschitz_z2_r_def%initialise( w3_fs )
+    call lipschitz_z2x_r_def%initialise( w3_fs )
+    call lipschitz_z2y_r_def%initialise( w3_fs )
+    call lipschitz_z2xy_r_def%initialise( w3_fs )
+
+    im3_div_3d => get_directional_im3_div_r_tran(mesh%get_id(), direction_3d)
+    im3_div_2d => get_directional_im3_div_r_tran(mesh%get_id(), direction_h)
+    face_selector_ew => get_face_selector_ew(mesh%get_id())
+    face_selector_ns => get_face_selector_ns(mesh%get_id())
+    detj => get_detj_at_w3_r_tran(mesh%get_id())
+
+    ! ------------------------------------------------------------------------ !
+    ! Calculate scaled 3D divergence
+    ! ------------------------------------------------------------------------ !
+
+    call invoke( dg_matrix_vector_kernel_type(div_3d_r_tran, wind, im3_div_3d), &
+                 inc_a_times_X(dt_r_tran, div_3d_r_tran) )
+
+    ! Print location of max/min ------------------------------------------------
+    call invoke_copy_rtran_to_rdef(div_3d_r_def, div_3d_r_tran)
+    call print_field_stats_alg(div_3d_r_def, LOG_LEVEL_INFO,                   &
+                               -0.5_r_def, 0.5_r_def, 'lipschitz_3d')
+
+    ! ------------------------------------------------------------------------ !
+    ! Calculate scaled 2D divergence
+    ! ------------------------------------------------------------------------ !
+
+    call invoke( split_w2_field_kernel_type(wind_w2h, wind_w2v, wind,          &
+                                            face_selector_ew,                  &
+                                            face_selector_ns),                 &
+                 dg_matrix_vector_kernel_type(div_2d_r_tran, wind_w2h,         &
+                                              im3_div_2d),                     &
+                 inc_a_times_X(dt_r_tran, div_2d_r_tran) )
+
+    ! Print location of max/min ------------------------------------------------
+    call invoke_copy_rtran_to_rdef(div_2d_r_def, div_2d_r_tran)
+    call print_field_stats_alg(div_2d_r_def, LOG_LEVEL_INFO,                   &
+                               -0.5_r_def, 0.5_r_def, 'lipschitz_2d')
+
+    ! ------------------------------------------------------------------------ !
+    ! Calculate x, y and z Lipschitz numbers
+    ! ------------------------------------------------------------------------ !
+
+    if (element_order == 0) then
+      call invoke( fv_divergence_x_kernel_type(lipschitz_x_r_tran, wind_w2h,   &
+                                               detj),                          &
+                   fv_divergence_y_kernel_type(lipschitz_y_r_tran, wind_w2h,   &
+                                               detj),                          &
+                   fv_divergence_z_kernel_type(lipschitz_z_r_tran, wind_w2v,   &
+                                               detj),                          &
+                   inc_a_times_X(dt_r_tran, lipschitz_x_r_tran),               &
+                   inc_a_times_X(dt_r_tran, lipschitz_y_r_tran),               &
+                   inc_a_times_X(dt_r_tran, lipschitz_z_r_tran) )
+
+      ! Copy to r_def ----------------------------------------------------------
+      call invoke_copy_rtran_to_rdef(lipschitz_x_r_def, lipschitz_x_r_tran)
+      call invoke_copy_rtran_to_rdef(lipschitz_y_r_def, lipschitz_y_r_tran)
+      call invoke_copy_rtran_to_rdef(lipschitz_z_r_def, lipschitz_z_r_tran)
+
+      ! Print stats ------------------------------------------------------------
+      call print_field_stats_alg(lipschitz_x_r_def, LOG_LEVEL_INFO,            &
+                                 -0.5_r_def, 0.5_r_def, 'lipschitz_x')
+      call print_field_stats_alg(lipschitz_y_r_def, LOG_LEVEL_INFO,            &
+                                 -0.5_r_def, 0.5_r_def, 'lipschitz_y')
+      call print_field_stats_alg(lipschitz_z_r_def, LOG_LEVEL_INFO,            &
+                                 -0.5_r_def, 0.5_r_def, 'lipschitz_z')
+
+      ! ---------------------------------------------------------------------- !
+      ! Calculate VHV Lipschitz numbers
+      ! ---------------------------------------------------------------------- !
+
+      if (check_any_splitting_vhv()) then
+
+        call invoke( a_times_X(lipschitz_z2_r_def, 0.5_r_def,                  &
+                               lipschitz_z_r_def),                             &
+                     X_plus_Y(lipschitz_z2x_r_def, lipschitz_z2_r_def,         &
+                              lipschitz_x_r_def),                              &
+                     X_plus_Y(lipschitz_z2y_r_def, lipschitz_z2_r_def,         &
+                              lipschitz_y_r_def),                              &
+                     X_plus_Y(lipschitz_z2xy_r_def, lipschitz_z2x_r_def,       &
+                              lipschitz_y_r_def) )
+
+        call print_field_stats_alg(lipschitz_z2_r_def, LOG_LEVEL_INFO,         &
+                                   -0.5_r_def, 0.5_r_def, 'lipschitz_sz')
+        call print_field_stats_alg(lipschitz_z2x_r_def, LOG_LEVEL_INFO,        &
+                                   -0.5_r_def, 0.5_r_def, 'lipschitz_sx')
+        call print_field_stats_alg(lipschitz_z2y_r_def, LOG_LEVEL_INFO,        &
+                                   -0.5_r_def, 0.5_r_def, 'lipschitz_sy')
+        call print_field_stats_alg(lipschitz_z2xy_r_def, LOG_LEVEL_INFO,       &
+                                   -0.5_r_def, 0.5_r_def, 'lipschitz_s2')
+      end if
+    end if
+
+  end subroutine lipschitz_diag_alg
+
+end module lipschitz_diag_alg_mod

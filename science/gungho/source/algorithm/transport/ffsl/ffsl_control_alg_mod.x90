@@ -42,8 +42,7 @@ module ffsl_control_alg_mod
   use sci_inject_wt_to_sh_w3_kernel_mod, only: inject_wt_to_sh_w3_kernel_type
 
   ! Configs
-  use finite_element_config_mod,        only: element_order
-  use subgrid_config_mod,               only: vertical_order
+  use finite_element_config_mod,         only: element_order
 
   implicit none
 
@@ -79,6 +78,7 @@ contains
     logical(kind=l_def)                   :: compute_adv_field
     logical(kind=l_def)                   :: enforce_min_value
     integer(kind=i_def)                   :: function_space
+    integer(kind=i_def)                   :: vertical_order
     type(function_space_type),    pointer :: w3_shifted_fs => null()
     type(mesh_type),              pointer :: mesh => null()
     type(mesh_type),              pointer :: shifted_mesh => null()
@@ -133,6 +133,7 @@ contains
 
     select case (direction)
     case (direction_v)
+      vertical_order = transport_metadata%get_ffsl_vertical_order()
       call ffsl_vert_transport_alg(mass_flux, increment, field_np1_ptr,        &
                                    field_n_ptr, step_dt, transport_metadata,   &
                                    vertical_order, compute_adv_inc=.false.,    &

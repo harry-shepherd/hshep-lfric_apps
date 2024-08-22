@@ -51,7 +51,7 @@ module calc_dep_pts_alg_mod
                                                vertical_sorting
   use finite_element_config_mod,         only: element_order
   use io_config_mod,                     only: subroutine_timers
-  use subgrid_config_mod,                only: dep_pt_stencil_extent,   &
+  use transport_config_mod,              only: dep_pt_stencil_extent,   &
                                                calculate_detj,          &
                                                calculate_detj_averaged, &
                                                calculate_detj_upwind

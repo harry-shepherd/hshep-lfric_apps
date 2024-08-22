@@ -202,12 +202,6 @@ monitor_convergence=.false.
 preconditioner='diagonal',
 tolerance=1.0e-6,
 /
-&subgrid
-dep_pt_stencil_extent=3,
-inner_order = 2
-outer_order = 2
-calculate_detj = 'upwind',
-/
 &time
 calendar='timestep',
 timestep_end='20',
@@ -226,18 +220,25 @@ spinup_alpha=.false.,
 &transport
 adjust_theta=.false.
 adjust_theta_above=0.0
+adjust_vhv_wind=.false.
 broken_w2_projection=.false.
+calculate_detj = 'upwind',
 cap_density_predictor = 0.01
+dep_pt_stencil_extent=3,
 profile_size=5
 cfl_mol_1d_stab = 1.0,
 cfl_mol_2d_stab = 1.0,
 cfl_mol_3d_stab = 1.0,
 cheap_update=.false.,
-ffsl_splitting=5*1
 consistent_metric=.false.,
 dry_field_name='density',
 enforce_min_value=.false.,.false.,.false.,.false.,.false.,
 equation_form=1,2,2,2,2
+ffsl_inner_order=2
+ffsl_outer_order=2
+ffsl_splitting=5*1
+ffsl_unity_3d=.false.
+ffsl_vertical_order=5*2
 field_names='density','potential_temperature','wind','moisture','cloud',
 fv_vertical_order=2,
 fv_horizontal_order=2,

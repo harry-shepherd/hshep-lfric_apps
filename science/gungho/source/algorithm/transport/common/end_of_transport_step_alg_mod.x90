@@ -139,6 +139,9 @@ contains
                                          depth=transport_boundary_depth)
     end if
 
+    ! Increment the step counter in the transport runtime
+    call transport_runtime%inc_tracer_step_ctr()
+
     call log_field_minmax( LOG_LEVEL_DEBUG, 'field_np1: end_of_advective_step', field_np1)
 
     if ( subroutine_timers ) call timer('transport.end_of_transport')

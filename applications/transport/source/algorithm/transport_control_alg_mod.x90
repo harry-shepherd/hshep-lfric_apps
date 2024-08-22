@@ -77,7 +77,8 @@ contains
                                        vertical_monotone,       &
                                        vertical_monotone_order, &
                                        special_edges_monotone,  &
-                                       ffsl_splitting
+                                       ffsl_splitting,          &
+                                       ffsl_vertical_order
 
 
     use initial_wind_config_mod, only: profile,                      &
@@ -153,7 +154,8 @@ contains
                                                     min_value(config),               &
                                                     log_space(config),               &
                                                     reversible(config),              &
-                                                    ffsl_splitting(config) )
+                                                    ffsl_splitting(config),          &
+                                                    ffsl_vertical_order(config) )
 
       call transport_metadata_collection%set_transport_metadata(transport_metadata)
 

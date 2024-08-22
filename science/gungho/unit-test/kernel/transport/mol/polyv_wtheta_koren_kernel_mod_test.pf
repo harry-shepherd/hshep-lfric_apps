@@ -36,7 +36,8 @@ contains
                                     vertical_sl_order_quintic,     &
                                     max_vert_cfl_calc_uniform,     &
                                     theta_variable_dry,            &
-                                    min_val_method_iterative
+                                    min_val_method_iterative,      &
+                                    calculate_detj_upwind
     implicit none
 
     class(polyv_wtheta_koren_test_type), intent(inout) :: this
@@ -56,10 +57,17 @@ contains
                                  slice_order = slice_order_cubic,                          &
                                  vertical_sl_order = vertical_sl_order_quintic,            &
                                  theta_variable=theta_variable_dry,                        &
+                                 calculate_detj = calculate_detj_upwind,                   &
+                                 dep_pt_stencil_extent = 2,                                &
+                                 ffsl_inner_order = 0,                                     &
+                                 ffsl_outer_order = 1,                                     &
+                                 ffsl_vertical_order = (/ 1, 1, 1 /),                      &
+                                 ffsl_unity_3d = .true.,                                   &
                                  use_density_predictor = .false.,                          &
                                  cap_density_predictor = 0.001_r_def,                      &
                                  adjust_theta = .false.,                                   &
                                  adjust_theta_above = 0.0_r_def,                           &
+                                 adjust_vhv_wind=.false.,                                  &
                                  min_val_abs_tol = -1.0e-12_r_def,                         &
                                  min_val_max_iterations = 100,                             &
                                  min_val_method = min_val_method_iterative,                &
