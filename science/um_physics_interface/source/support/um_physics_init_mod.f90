@@ -66,6 +66,8 @@ module um_physics_init_mod
                                         rh_crit_opt_namelist, rh_crit_opt_tke,&
                                         pc2ini, pc2ini_smith,                 &
                                         pc2ini_bimodal,                       &
+                                        cloud_pc2_tol_in => cloud_pc2_tol,    &
+                                        cloud_pc2_tol_2_in => cloud_pc2_tol_2,&
                                         cff_spread_rate_in => cff_spread_rate,&
                                         falliceshear_method_in =>             &
                                         falliceshear_method,                  &
@@ -242,6 +244,7 @@ contains
          i_pc2_init_logic, dbsdtbs_turb_0,                                 &
          i_pc2_erosion_method, i_pc2_homog_g_method, i_pc2_init_method,    &
          check_run_cloud, l_pc2_implicit_erosion,                          &
+         cloud_pc2_tol, cloud_pc2_tol_2,                                   &
          forced_cu_fac, i_pc2_conv_coupling, allicetdegc, starticetkelvin, &
          l_bm_ez_subcrit_only, ez_max_bm
     use cloud_config_mod, only: cld_fsd_hill
@@ -781,6 +784,10 @@ contains
     rhcrit(1) = 0.96_r_um
     ice_fraction_method = min_liq_overlap
     i_eacf = not_mixph
+    ! The following PC2 parameters also used by Wilson-Ballard microphysics
+    cloud_pc2_tol    = cloud_pc2_tol_in
+    cloud_pc2_tol_2  = cloud_pc2_tol_2_in
+
     if ( cloud == cloud_um ) then
 
       if ( moisture_formulation == moisture_formulation_dry ) then
@@ -811,6 +818,7 @@ contains
       ! ... the radiation namelist (T=combined, F=liquid_and_ice).
       l_subgrid_qv               = subgrid_qv
       rhcrit(1:number_of_layers) = real(rh_crit, r_um)
+
       ! Options which are bespoke to the choice of scheme
       select case (scheme)
 
