@@ -1009,8 +1009,9 @@ contains
     do i = 1, profile_size
       ! Check for a variable using conservative/consistent equation
       ! (but don't include "dry_field" which will never use shifted grid)
-      if ( equation_form(i) /= equation_form_advective &
-            .and. field_names(i) /= dry_field_name ) then
+      if ( (equation_form(i) == equation_form_conservative .and. &
+            field_names(i) /= dry_field_name) .or.               &
+            equation_form(i) == equation_form_consistent ) then
           any_shifted = .true.
           return
       end if
