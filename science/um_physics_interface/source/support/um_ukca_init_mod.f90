@@ -36,7 +36,17 @@ module um_ukca_init_mod
                                        chem_scheme_strattrop, chem_scheme_none,&
                                        chem_scheme_strat_test,                 &
                                        chem_scheme_flexchem,                   &
-                                       l_ukca_ro2_ntp
+                                       l_ukca_ro2_ntp,                         &
+                                       l_ukca_asad_full,                       &
+                                       l_ukca_quasinewton,                     &
+                                       l_ukca_linox_scaling,                   &
+                                       lightnox_scale_fac,                     &
+                                       i_ukca_chem_version,                    &
+                                       top_bdy_opt, top_bdy_opt_no_overwrt,    &
+                                       top_bdy_opt_overwrt_top_two_lev,        &
+                                       top_bdy_opt_overwrt_only_top_lev,       &
+                                       top_bdy_opt_overwrt_co_no_o3_top,       &
+                                       top_bdy_opt_overwrt_co_no_o3_h2o_top
 
   ! JULES modules used
 
@@ -61,7 +71,10 @@ module um_ukca_init_mod
                           ukca_maxlen_emiss_long_name,                         &
                           ukca_maxlen_emiss_tracer_name,                       &
                           ukca_maxlen_emiss_var_name,                          &
-                          ukca_maxlen_emiss_vert_fact
+                          ukca_maxlen_emiss_vert_fact,                         &
+                          ukca_strat_lbc_env,                                  &
+                          ukca_get_photol_reaction_data,                       &
+                          ukca_photol_varname_len
 
   implicit none
 
@@ -75,7 +88,7 @@ module um_ukca_init_mod
   integer(i_um) :: n_emiss_slots
 
   ! Number of emission entries for each emitted species
-  integer, pointer :: n_slots(:) => null()
+  integer, pointer :: n_slots(:)
 
   ! --------------------------------------------------------------------------
   ! List of dust_only required chemistry emissions
@@ -89,6 +102,19 @@ module um_ukca_init_mod
       required_emissions(5) = [ 'DMS       ', 'Monoterp  ',  &
                                 'SO2_low   ', 'SO2_high  ', 'SO2_nat   ' ]
 
+  ! UKCA option choices
+
+  ! UKCA tracers top boundary (topmost levels) overwrite method
+  ! 0: Do not overwrite any levels
+  ! 1: Overwrite top 2 levels with 3rd (except H2O)
+  ! 2: Overwrite top level with level below
+  ! 3: Overwrite top level of CO, NO, O3 with ACE-FTS climatology
+  ! 4: Overwrite top level of CO, NO, O3, H2O with ACE-FTS climatology
+  integer, parameter, public :: i_no_overwrt = 0
+  integer, parameter, public :: i_overwrt_top_two_lev = 1
+  integer, parameter, public :: i_overwrt_only_top_lev = 2
+  integer, parameter, public :: i_overwrt_co_no_o3_top = 3
+  integer, parameter, public :: i_overwrt_co_no_o3_h2o_top = 4
   ! --------------------------------------------------------------------------
   ! UKCA field name definitions follow here.
   ! All UKCA field names used in LFRic should be defined below and should be
@@ -304,12 +330,46 @@ module um_ukca_init_mod
                                          'sin_declination'
   character(len=*), parameter, public :: fldname_equation_of_time =            &
                                          'equation_of_time'
+  character(len=*), parameter, public :: fldname_atmos_ccl4 = 'atmospheric_ccl4'
+  character(len=*), parameter, public :: fldname_atmos_cfc113 = 'atmospheric_cfc113'
+  character(len=*), parameter, public :: fldname_atmos_cfc114 = 'atmospheric_cfc114'
+  character(len=*), parameter, public :: fldname_atmos_cfc115 = 'atmospheric_cfc115'
+  character(len=*), parameter, public :: fldname_atmos_cfc11 = 'atmospheric_cfc11'
+  character(len=*), parameter, public :: fldname_atmos_cfc12 = 'atmospheric_cfc12'
+  character(len=*), parameter, public :: fldname_atmos_ch2br2 = 'atmospheric_ch2br2'
+  character(len=*), parameter, public :: fldname_atmos_chbr3 = 'atmospheric_chbr3'
+  character(len=*), parameter, public :: fldname_atmos_ch4 = 'atmospheric_ch4'
+  character(len=*), parameter, public :: fldname_atmos_co2 = 'atmospheric_co2'
+  character(len=*), parameter, public :: fldname_atmos_csul = 'atmospheric_cos'
+  character(len=*), parameter, public :: fldname_atmos_h1202 = 'atmospheric_h1202'
+  character(len=*), parameter, public :: fldname_atmos_h1211 = 'atmospheric_h1211'
+  character(len=*), parameter, public :: fldname_atmos_h1301 = 'atmospheric_h1301'
+  character(len=*), parameter, public :: fldname_atmos_h2 = 'atmospheric_h2'
+  character(len=*), parameter, public :: fldname_atmos_h2402 = 'atmospheric_h2402'
+  character(len=*), parameter, public :: fldname_atmos_hfc125 = 'atmospheric_hfc125'
+  character(len=*), parameter, public :: fldname_atmos_hfc134a =               &
+                                         'atmospheric_hfc134a'
+  character(len=*), parameter, public :: fldname_atmos_hcfc141b =              &
+                                         'atmospheric_hcfc141b'
+  character(len=*), parameter, public :: fldname_atmos_hcfc142b =              &
+                                         'atmospheric_hcfc142b'
+  character(len=*), parameter, public :: fldname_atmos_hcfc22 = 'atmospheric_hcfc22'
+  character(len=*), parameter, public :: fldname_atmos_mebr = 'atmospheric_mebr'
+  character(len=*), parameter, public :: fldname_atmos_meccl3 = 'atmospheric_meccl3'
+  character(len=*), parameter, public :: fldname_atmos_mecl = 'atmospheric_mecl'
+  character(len=*), parameter, public :: fldname_atmos_n2 = 'atmospheric_n2'
+  character(len=*), parameter, public :: fldname_atmos_n2o = 'atmospheric_n2o'
+  character(len=*), parameter, public :: fldname_atmos_o2 = 'atmospheric_o2'
 
   ! - Drivers in flat grid groups (integer, real & logical) -
 
   ! Photolysis & emissions-related drivers (integer)
   character(len=*), parameter, public :: fldname_kent = 'kent'
   character(len=*), parameter, public :: fldname_kent_dsc = 'kent_dsc'
+  character(len=*), parameter, public :: fldname_cv_base = 'conv_cloud_base'
+  character(len=*), parameter, public :: fldname_cv_top = 'conv_cloud_top'
+  character(len=*), parameter, public :: fldname_cv_cloud_lwp = 'conv_cloud_lwp'
+
   ! General purpose drivers (real)
   character(len=*), parameter, public :: fldname_latitude = 'latitude'
   character(len=*), parameter, public :: fldname_longitude = 'longitude'
@@ -323,6 +383,7 @@ module um_ukca_init_mod
   character(len=*), parameter, public :: fldname_ustar = 'u_s'
   character(len=*), parameter, public :: fldname_surf_hf = 'surf_hf'
   character(len=*), parameter, public :: fldname_zbl = 'zbl'
+  character(len=*), parameter, public :: fldname_surf_albedo  = 'surf_albedo'
   character(len=*), parameter, public :: fldname_grid_surf_area =              &
                                          'grid_surf_area'
   ! Emissions-related drivers (real)
@@ -372,6 +433,10 @@ module um_ukca_init_mod
   character(len=*), parameter, public :: fldname_conv_rain3d = 'conv_rain3d'
   character(len=*), parameter, public :: fldname_conv_snow3d = 'conv_snow3d'
   character(len=*), parameter, public :: fldname_rho_r2 = 'rho_r2'
+  character(len=*), parameter, public :: fldname_area_cloud_frac =             &
+                                         'area_cloud_fraction'
+  character(len=*), parameter, public :: fldname_conv_cloud_amount =           &
+                                         'conv_cloud_amount'
   character(len=*), parameter, public :: fldname_grid_volume = 'grid_volume'
   character(len=*), parameter, public :: fldname_grid_airmass = 'grid_airmass'
   ! Offline chemical fields
@@ -435,51 +500,57 @@ module um_ukca_init_mod
   character(len=*), parameter, public :: fldname_lai_pft = 'laift_lp'
   character(len=*), parameter, public :: fldname_canht_pft = 'canhtft_lp'
 
+  ! - Photolysis rates - 4-D real
+  character(len=*), parameter, public :: fldname_photol_rates = 'photol_rates'
+
   ! ------------------------------------------
   ! Pointers for accessing UKCA variable lists
   ! ------------------------------------------
 
   ! List of tracers required for the UKCA configuration
-  character(len=ukca_maxlen_fieldname), pointer, public :: tracer_names(:) =>  &
-                                                           null()
+  character(len=ukca_maxlen_fieldname), pointer, public :: tracer_names(:)
 
   ! List of non-transported prognostics required for the UKCA configuration
-  character(len=ukca_maxlen_fieldname), pointer, public :: ntp_names(:) =>     &
-                                                           null()
+  character(len=ukca_maxlen_fieldname), pointer, public :: ntp_names(:)
+
+  ! List of species involved in photolytic reactions
+  character(len=ukca_photol_varname_len), pointer, public :: ratj_varnames(:)
 
   ! Lists of environmental driver fields required for the UKCA configuration
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_scalar_real(:) => null()
+    env_names_scalar_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_flat_integer(:) => null()
+    env_names_flat_integer(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_flat_real(:) => null()
+    env_names_flat_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_flat_logical(:) => null()
+    env_names_flat_logical(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_flatpft_real(:) => null()
+    env_names_flatpft_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_fullht_real(:) => null()
+    env_names_fullht_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_fullht0_real(:) => null()
+    env_names_fullht0_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_fullhtp1_real(:) => null()
+    env_names_fullhtp1_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_bllev_real(:) => null()
+    env_names_bllev_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_entlev_real(:) => null()
+    env_names_entlev_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_land_real(:) => null()
+    env_names_land_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_landtile_real(:) => null()
+    env_names_landtile_real(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_landtile_logical(:) => null()
+    env_names_landtile_logical(:)
   character(len=ukca_maxlen_fieldname), pointer, public ::                     &
-    env_names_landpft_real(:) => null()
+    env_names_landpft_real(:)
+  character(len=ukca_maxlen_fieldname), pointer, public ::                     &
+    env_names_fullhtphot_real(:)
 
   ! Lists of emissions for the UKCA configuration
   character(len=ukca_maxlen_emiss_tracer_name), pointer ::                     &
-    emiss_names(:) => null()
+    emiss_names(:)
   character(len=ukca_maxlen_emiss_var_name), allocatable, public ::            &
     emiss_names_flat(:)
   character(len=ukca_maxlen_emiss_var_name), allocatable, public ::            &
@@ -507,6 +578,28 @@ contains
     integer(i_def), intent(in) :: ncells_ukca
 
     integer(i_um) :: row_length_ukca
+
+    ! Nullify pointers declared globally in this module
+    nullify(n_slots)
+    nullify(tracer_names)
+    nullify(ntp_names)
+    nullify(env_names_scalar_real)
+    nullify(env_names_flat_integer)
+    nullify(env_names_flat_real)
+    nullify(env_names_flat_logical)
+    nullify(env_names_flatpft_real)
+    nullify(env_names_fullht_real)
+    nullify(env_names_fullht0_real)
+    nullify(env_names_fullhtp1_real)
+    nullify(env_names_bllev_real)
+    nullify(env_names_entlev_real)
+    nullify(env_names_land_real)
+    nullify(env_names_landtile_real)
+    nullify(env_names_landtile_logical)
+    nullify(env_names_landpft_real)
+    nullify(env_names_fullhtphot_real)
+    nullify(emiss_names)
+    nullify(ratj_varnames)
 
     row_length_ukca = int( ncells_ukca, i_um )
 
@@ -564,6 +657,7 @@ contains
                         dzsoil_layer1, timestep, l_param_conv )
 
     use ukca_mode_setup, only: i_ukca_bc_tuned
+    use ukca_photol_param_mod, only: jppj
 
     implicit none
 
@@ -592,15 +686,39 @@ contains
     integer :: n
     integer :: i
 
+    ! List of photolysis file/variable names required for photolysis
+    ! calculations
+    character(len=10), save, pointer :: ratj_data(:,:)
+    integer(i_um) :: jppj_in  ! No of photolytic species
     character(len=*), parameter  :: emiss_units = 'kg m-2 s-1'
 
     ! Local copies of ukca configuration variables to allow setting up chemistry
     ! and aerosol schemes through single call to ukca_setup.
-    ! These should be obtained from namelists (chemistry_config) eventually
+    ! These should be obtained from namelists (chemistry_config) eventually.
+    ! Some of these will not be considered if a top-level switch is turned off.
+
     integer :: i_tmp_ukca_chem=ukca_chem_off
+    integer :: i_tmp_ukca_activation_scheme
+    integer :: i_ukca_top_boundary_opt = i_no_overwrt
+
+    logical :: l_ukca_ageair = .false.
+    logical :: l_ukca_set_trace_gases = .false.
+    logical :: l_chem_environ_gas_scalars = .false.
+    logical :: l_ukca_photolysis = .false.
+    logical :: l_ukca_prescribech4 = .false.
+    logical :: l_ukca_chem_aero = .false.
+    logical :: l_ukca_ro2_perm = .false.
     logical :: l_ukca_mode = .false.
     logical :: l_use_gridbox_mass = .false.
-    integer :: i_tmp_ukca_activation_scheme
+
+    ! Some default values - either standard values in UM, or the only ones
+    ! currently supported in the LFRic-side implementation.
+
+    integer :: i_ukca_light_param=1            ! Internal Price-Rind scheme
+    integer :: i_ukca_quasinewton_start=2, i_ukca_quasinewton_end=3
+    integer :: i_ukca_scenario=ukca_strat_lbc_env
+
+    real(r_um) :: linox_scale_in
 
     ! Variables for UKCA error handling
     integer :: ukca_errcode
@@ -624,7 +742,31 @@ contains
     ! Return if 'no chemistry' option is chosen, as UKCA requires at least
     ! one option to be active.
     if ( chem_scheme == chem_scheme_strattrop ) then
+       l_ukca_photolysis = .true.
        i_tmp_ukca_chem = ukca_chem_strattrop
+       l_ukca_set_trace_gases = .true.
+       l_chem_environ_gas_scalars = .true.
+       l_ukca_prescribech4 = .true.
+       l_ukca_ro2_perm = l_ukca_ro2_ntp     ! Reduces no. of transported fields
+                         ! ro2_perm usually 'On' when ro2_ntp is 'On'.
+
+       ! Top boundary overwrite method - convert to integer option
+       select case( top_bdy_opt )
+         case ( top_bdy_opt_no_overwrt )
+           i_ukca_top_boundary_opt = i_no_overwrt
+         case ( top_bdy_opt_overwrt_top_two_lev )
+           i_ukca_top_boundary_opt =  i_overwrt_top_two_lev
+         case ( top_bdy_opt_overwrt_only_top_lev )
+           i_ukca_top_boundary_opt = i_overwrt_only_top_lev
+         case ( top_bdy_opt_overwrt_co_no_o3_top )
+           i_ukca_top_boundary_opt = i_overwrt_co_no_o3_top
+         case ( top_bdy_opt_overwrt_co_no_o3_h2o_top )
+           i_ukca_top_boundary_opt = i_overwrt_co_no_o3_h2o_top
+         case default
+           call log_event('Unknown option - UKCA tracer top boundary handling', &
+                           LOG_LEVEL_ERROR)
+       end select
+
     else if ( chem_scheme == chem_scheme_offline_ox .or.  &
               chem_scheme == chem_scheme_strat_test ) then
        i_tmp_ukca_chem = ukca_chem_offline
@@ -633,6 +775,7 @@ contains
       return
     end if
     if (aerosol == aerosol_um .and. glomap_mode == glomap_mode_ukca) then
+      l_ukca_chem_aero = .true.
       l_ukca_mode = .true.
     end if
 
@@ -653,6 +796,12 @@ contains
       l_use_gridbox_mass = .true.
     end if
 
+    ! Set default lightning NOx scale factor to 1.0 if no factor supplied
+    if ( l_ukca_linox_scaling ) then
+      linox_scale_in = lightnox_scale_fac
+    else
+      linox_scale_in = 1.0_r_um
+    end if
     call ukca_setup( ukca_errcode,                                             &
            ! Context information
            row_length=row_length,                                              &
@@ -675,20 +824,34 @@ contains
            timestep=timestep,                                                  &
            ! General UKCA configuration options
            i_ukca_chem=i_tmp_ukca_chem,                                        &
+           l_ukca_chem_aero=l_ukca_chem_aero,                                  &
            l_ukca_mode=l_ukca_mode,                                            &
            l_fix_tropopause_level=.true.,                                      &
            l_ukca_persist_off=.true.,                                          &
+           l_ukca_ageair=l_ukca_ageair,                                        &
            ! Chemistry configuration options
-           i_ukca_chem_version=111,                                            &
+           i_ukca_chem_version=i_ukca_chem_version,                            &
            chem_timestep=3600,                                                 &
            nrsteps=45,                                                         &
            l_ukca_asad_columns=.true.,                                         &
-           l_ukca_asad_full=.false.,                                           &
+           l_ukca_asad_full=l_ukca_asad_full,                                  &
            l_ukca_intdd=.true.,                                                &
            l_ukca_ddep_lev1=.false.,                                           &
            l_ukca_ddepo3_ocean=.false.,                                        &
            l_ukca_dry_dep_so2wet=.true.,                                       &
+           l_ukca_quasinewton=l_ukca_quasinewton,                              &
+           i_ukca_quasinewton_start=i_ukca_quasinewton_start,                  &
+           i_ukca_quasinewton_end=i_ukca_quasinewton_end,                      &
+           l_use_photolysis=l_ukca_photolysis,                                 &
+           i_ukca_topboundary=i_ukca_top_boundary_opt,                         &
+           i_ukca_light_param=i_ukca_light_param,                              &
+           l_ukca_linox_scaling=l_ukca_linox_scaling,                          &
+           lightnox_scale_fac=linox_scale_in,                                  &
+           l_chem_environ_gas_scalars=l_chem_environ_gas_scalars,              &
+           l_ukca_prescribech4=l_ukca_prescribech4,                            &
+           i_strat_lbc_source=i_ukca_scenario,                                 &
            l_ukca_ro2_ntp = l_ukca_ro2_ntp,                                    &
+           l_ukca_ro2_perm = l_ukca_ro2_perm,                                  &
            l_use_gridbox_mass= l_use_gridbox_mass,                             &
            ! UKCA emissions configuration options
            mode_parfrac=2.5_r_um,                                              &
@@ -765,6 +928,20 @@ contains
 
     ! Register emissions required for this run
     call ukca_emiss_init()
+
+    ! Obtain and store photolysis reactions information, ensuring that
+    ! number of species match those expected by photol_param_mod
+    if ( l_ukca_photolysis ) then
+      call ukca_get_photol_reaction_data(ratj_data, ratj_varnames)
+      jppj_in = SIZE(ratj_varnames)
+
+      if ( jppj_in /= jppj ) then
+        write( log_scratch_space, '(A,2I6,A)' )                                &
+          'Mismatch in expected and registered photolysis reactions: ',        &
+           jppj_in, jppj,'. Check definitions in ukca_photol_param_mod'
+        call log_event( log_scratch_space, LOG_LEVEL_ERROR )
+      end if
+    end if
 
     ! Switch on optional UM microphysics diagnostics required by UKCA
     if (any(env_names_fullht_real(:) == fldname_autoconv))                     &
@@ -1095,6 +1272,7 @@ contains
            varnames_landtile_real_ptr=env_names_landtile_real,                 &
            varnames_landtile_logical_ptr=env_names_landtile_logical,           &
            varnames_landpft_real_ptr=env_names_landpft_real,                   &
+           varnames_fullhtphot_real_ptr=env_names_fullhtphot_real,             &
            error_message=ukca_errmsg, error_routine=ukca_errproc )
     if (ukca_errcode /= 0) then
       write( log_scratch_space, '(A,I0,A,A,A,A)' )                             &
@@ -1243,6 +1421,16 @@ contains
     call log_event( log_scratch_space, LOG_LEVEL_INFO )
     do i = 1, n
       write( log_scratch_space, '(A)' ) env_names_landpft_real(i)
+      call log_event( log_scratch_space, LOG_LEVEL_INFO )
+    end do
+    n_tot = n_tot + n
+
+    n = size(env_names_fullhtphot_real)
+    write( log_scratch_space, '(A,I0,A)' )                                     &
+      'Environmental drivers as photolysis rates required (', n, '):'
+    call log_event( log_scratch_space, LOG_LEVEL_INFO )
+    do i = 1, n
+      write( log_scratch_space, '(A)' ) env_names_fullhtphot_real(i)
       call log_event( log_scratch_space, LOG_LEVEL_INFO )
     end do
     n_tot = n_tot + n

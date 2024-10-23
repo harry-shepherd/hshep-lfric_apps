@@ -1437,7 +1437,8 @@ contains
           tot_tracer( 1, 1, :, i ) =                                           &
             real( h( map_wth(1) + 1 : map_wth(1) + ntra_lev ), r_um )
         case(fldname_ch2o)
-          ! Do nothing- H2O tracer from chemistry not transported.
+          ! H2O tracer from chemistry is not transported
+          tot_tracer( 1, 1, :, i ) = 0.0_r_um
         case(fldname_oh)
           tot_tracer( 1, 1, :, i ) =                                           &
             real( oh( map_wth(1) + 1 : map_wth(1) + ntra_lev ), r_um )

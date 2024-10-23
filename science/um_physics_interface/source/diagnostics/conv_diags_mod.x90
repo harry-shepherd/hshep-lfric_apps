@@ -30,8 +30,6 @@ module conv_diags_mod
                       cape_timescale_flag,         &
                       lowest_cv_base_flag,         &
                       lowest_cv_top_flag,          &
-                      cv_base_flag,                &
-                      cv_top_flag,                 &
                       pres_cv_base_flag,           &
                       pres_cv_top_flag,            &
                       pres_lowest_cv_base_flag,    &
@@ -198,12 +196,9 @@ contains
     lowest_cv_top_flag = init_diag(lowest_cv_top, 'convection__lowest_cv_top')
     ! not zeroed because overwritten
 
-    cv_base_flag = init_diag(cv_base, 'convection__cv_base')
-    ! zeroed because value tested in kernel
-    if (cv_base_flag) call invoke( setval_c(cv_base, 0.0_r_def) )
-
-    cv_top_flag = init_diag(cv_top, 'convection__cv_top')
-    ! not zeroed because overwritten
+    ! cv_base and _top are dependencies for chemistry, hence need to be 'active'
+    ! cv_base is zeroed because value tested in kernel
+    call invoke( setval_c(cv_base, 0.0_r_def) )
 
     pres_cv_base_flag = init_diag(pres_cv_base, 'convection__pres_cv_base')
     ! not zeroed because overwritten
@@ -480,8 +475,8 @@ contains
     if (cape_timescale_flag) call cape_timescale%write_field()
     if (lowest_cv_base_flag) call lowest_cv_base%write_field()
     if (lowest_cv_top_flag) call lowest_cv_top%write_field()
-    if (cv_base_flag) call cv_base%write_field()
-    if (cv_top_flag) call cv_top%write_field()
+    call cv_base%write_field()
+    call cv_top%write_field()
     if (pres_cv_base_flag) call pres_cv_base%write_field()
     if (pres_cv_top_flag) call pres_cv_top%write_field()
     if (pres_lowest_cv_base_flag) call pres_lowest_cv_base%write_field()

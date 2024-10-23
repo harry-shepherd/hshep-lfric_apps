@@ -251,6 +251,8 @@
   <field id="conv_prog_dtheta" name="conv_prog_dtheta" long_name="convective_prognostic_dtheta" unit="K" grid_ref="full_level_face_grid" />
   <field id="conv_prog_dmv" name="conv_prog_dmv" long_name="convective_prognostic_dmv" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="conv_prog_precip" name="conv_prog_precip" long_name="convective_prognostic_precipitation" unit="kg m-2 s-1" grid_ref="full_level_face_grid" />
+  <field id="cv_base" name="cv_base" long_name="model_level_number_at_conv_cloud_base" unit="1" domain_ref="face" />
+  <field id="cv_top" name="cv_top" long_name="model_level_number_at_conv_cloud_top" unit="1" domain_ref="face" />
   <!-- electric fields -->
   <field id="flash_potential" name="flash_potential" long_name="lightning_flash_potential" unit="1" domain_ref="face" />
   <!-- microphysics fields -->

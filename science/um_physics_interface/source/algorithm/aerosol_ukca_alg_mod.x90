@@ -79,8 +79,36 @@ contains
 
     use sci_field_minmax_alg_mod,      only: log_field_minmax
     use microphysics_config_mod,       only: microphysics_casim
+    use ukca_scalar_gas_init_mod,      only: atmospheric_ccl4,                 &
+                                             atmospheric_cfc113,               &
+                                             atmospheric_cfc114,               &
+                                             atmospheric_cfc115,               &
+                                             atmospheric_cfc11,                &
+                                             atmospheric_cfc12,                &
+                                             atmospheric_ch2br2,               &
+                                             atmospheric_chbr3,                &
+                                             atmospheric_ch4,                  &
+                                             atmospheric_co2,                  &
+                                             atmospheric_csul,                 &
+                                             atmospheric_h1202,                &
+                                             atmospheric_h1211,                &
+                                             atmospheric_h1301,                &
+                                             atmospheric_h2,                   &
+                                             atmospheric_h2402,                &
+                                             atmospheric_hfc125,               &
+                                             atmospheric_hfc134a,              &
+                                             atmospheric_hcfc141b,             &
+                                             atmospheric_hcfc142b,             &
+                                             atmospheric_hcfc22,               &
+                                             atmospheric_mebr,                 &
+                                             atmospheric_meccl3,               &
+                                             atmospheric_mecl,                 &
+                                             atmospheric_n2,                   &
+                                             atmospheric_n2o,                  &
+                                             atmospheric_o2
 
     use um_sizes_init_mod,             only: um_sizes_init
+    use pseudo_photol_kernel_mod,      only: pseudo_photol_kernel_type
 
     implicit none
 
@@ -104,260 +132,273 @@ contains
 
     ! Temporary unpacked fields from collections
 
-    type( mesh_type ),  pointer :: mesh => null()
-    type( mesh_type ),  pointer :: shifted_mesh => null()
+    type( mesh_type ),  pointer :: mesh
+    type( mesh_type ),  pointer :: shifted_mesh
 
-    type( field_type ), pointer :: latitude_w3 => null()
-    type( field_type ), pointer :: longitude_w3 => null()
-    type( field_type ), pointer :: height_w3 => null()
-    type( field_type ), pointer :: height_wth => null()
-    type( field_type ), pointer :: rdz_w3 => null()
-    type( field_type ), pointer :: cell_area => null()
-    type( field_type ), pointer :: detj_shifted => null()
+    type( field_type ), pointer :: latitude_w3
+    type( field_type ), pointer :: longitude_w3
+    type( field_type ), pointer :: height_w3
+    type( field_type ), pointer :: height_wth
+    type( field_type ), pointer :: rdz_w3
+    type( field_type ), pointer :: cell_area
+    type( field_type ), pointer :: detj_shifted
 
     ! Radiation fields
-    type( field_type ), pointer :: sin_stellar_declination_rts => null()
-    type( field_type ), pointer :: stellar_eqn_of_time_rts => null()
+    type( field_type ), pointer :: sin_stellar_declination_rts
+    type( field_type ), pointer :: stellar_eqn_of_time_rts
 
     ! Microphysics fields
-    type( field_type ), pointer :: ls_rain_3d => null()
-    type( field_type ), pointer :: ls_snow_3d => null()
-    type( field_type ), pointer :: autoconv => null()
-    type( field_type ), pointer :: accretion => null()
-    type( field_type ), pointer :: rim_cry => null()
-    type( field_type ), pointer :: rim_agg => null()
+    type( field_type ), pointer :: ls_rain_3d
+    type( field_type ), pointer :: ls_snow_3d
+    type( field_type ), pointer :: autoconv
+    type( field_type ), pointer :: accretion
+    type( field_type ), pointer :: rim_cry
+    type( field_type ), pointer :: rim_agg
 
     ! Turbulence fields
-    type( field_type ), pointer :: tke_bl => null()
-    type( field_type ), pointer :: zh => null()
-    type( field_type ), pointer :: rhokh_bl => null()
-    type( field_type ), pointer :: dtrdz_tq_bl => null()
-    type( field_type ), pointer :: zhsc => null()
-    type( integer_field_type ), pointer :: level_ent => null()
-    type( integer_field_type ), pointer :: level_ent_dsc => null()
-    type( field_type ), pointer :: ent_we_lim => null()
-    type( field_type ), pointer :: ent_t_frac => null()
-    type( field_type ), pointer :: ent_zrzi => null()
-    type( field_type ), pointer :: ent_we_lim_dsc => null()
-    type( field_type ), pointer :: ent_t_frac_dsc => null()
-    type( field_type ), pointer :: ent_zrzi_dsc => null()
+    type( field_type ), pointer :: tke_bl
+    type( field_type ), pointer :: zh
+    type( field_type ), pointer :: rhokh_bl
+    type( field_type ), pointer :: dtrdz_tq_bl
+    type( field_type ), pointer :: zhsc
+    type( integer_field_type ), pointer :: level_ent
+    type( integer_field_type ), pointer :: level_ent_dsc
+    type( field_type ), pointer :: ent_we_lim
+    type( field_type ), pointer :: ent_t_frac
+    type( field_type ), pointer :: ent_zrzi
+    type( field_type ), pointer :: ent_we_lim_dsc
+    type( field_type ), pointer :: ent_t_frac_dsc
+    type( field_type ), pointer :: ent_zrzi_dsc
 
     ! Convection fields
-    type( field_type ), pointer :: conv_rain_3d => null()
-    type( field_type ), pointer :: conv_snow_3d => null()
+    type( field_type ), pointer :: conv_rain_3d
+    type( field_type ), pointer :: conv_snow_3d
+    type( field_type ), pointer :: cv_base
+    type( field_type ), pointer :: cv_top
+    type( field_type ), pointer :: cca
 
     ! Cloud fields
-    type( field_type ), pointer :: bulk_fraction => null()
-    type( field_type ), pointer :: liquid_fraction => null()
+    type( field_type ), pointer :: bulk_fraction
+    type( field_type ), pointer :: liquid_fraction
+    type( field_type ), pointer :: area_fraction
 
     ! Surface fields
-    type( field_type ), pointer :: tile_fraction => null()
-    type( field_type ), pointer :: tile_temperature => null()
-    type( field_type ), pointer :: tile_heat_flux => null()
-    type( field_type ), pointer :: gc_tile => null()
-    type( field_type ), pointer :: leaf_area_index => null()
-    type( field_type ), pointer :: canopy_height => null()
-    type( field_type ), pointer :: z0m => null()
-    type( field_type ), pointer :: ustar => null()
-    type( field_type ), pointer :: wspd10m => null()
-    type( field_type ), pointer :: chloro_sea => null()
-    type( field_type ), pointer :: urbztm => null()
+    type( field_type ), pointer :: tile_fraction
+    type( field_type ), pointer :: tile_temperature
+    type( field_type ), pointer :: tile_heat_flux
+    type( field_type ), pointer :: gc_tile
+    type( field_type ), pointer :: leaf_area_index
+    type( field_type ), pointer :: canopy_height
+    type( field_type ), pointer :: z0m
+    type( field_type ), pointer :: ustar
+    type( field_type ), pointer :: wspd10m
+    type( field_type ), pointer :: chloro_sea
+    type( field_type ), pointer :: urbztm
 
     ! Soil fields
-    type( field_type ), pointer :: soil_moisture => null()
-    type( field_type ), pointer :: soil_roughness => null()
+    type( field_type ), pointer :: soil_moisture
+    type( field_type ), pointer :: soil_roughness
 
     ! Chemistry fields
-    type( field_type ), pointer :: o3p => null()
-    type( field_type ), pointer :: o1d => null()
-    type( field_type ), pointer :: o3 => null()
-    type( field_type ), pointer :: n => null()
-    type( field_type ), pointer :: no => null()
-    type( field_type ), pointer :: no3 => null()
-    type( field_type ), pointer :: lumped_n => null()
-    type( field_type ), pointer :: no2 => null()
-    type( field_type ), pointer :: n2o5 => null()
-    type( field_type ), pointer :: ho2no2 => null()
-    type( field_type ), pointer :: hono2 => null()
-    type( field_type ), pointer :: h2o2 => null()
-    type( field_type ), pointer :: ch4 => null()
-    type( field_type ), pointer :: co => null()
-    type( field_type ), pointer :: hcho => null()
-    type( field_type ), pointer :: meoo => null()
-    type( field_type ), pointer :: meooh => null()
-    type( field_type ), pointer :: h => null()
-    type( field_type ), pointer :: oh => null()
-    type( field_type ), pointer :: ho2 => null()
-    type( field_type ), pointer :: cl => null()
-    type( field_type ), pointer :: cl2o2 => null()
-    type( field_type ), pointer :: clo => null()
-    type( field_type ), pointer :: oclo => null()
-    type( field_type ), pointer :: br => null()
-    type( field_type ), pointer :: lumped_br => null()
-    type( field_type ), pointer :: bro => null()
-    type( field_type ), pointer :: brcl => null()
-    type( field_type ), pointer :: brono2 => null()
-    type( field_type ), pointer :: n2o => null()
-    type( field_type ), pointer :: lumped_cl => null()
-    type( field_type ), pointer :: hcl => null()
-    type( field_type ), pointer :: hocl => null()
-    type( field_type ), pointer :: hbr => null()
-    type( field_type ), pointer :: hobr => null()
-    type( field_type ), pointer :: clono2 => null()
-    type( field_type ), pointer :: cfcl3 => null()
-    type( field_type ), pointer :: cf2cl2 => null()
-    type( field_type ), pointer :: mebr => null()
-    type( field_type ), pointer :: hono => null()
-    type( field_type ), pointer :: c2h6 => null()
-    type( field_type ), pointer :: etoo => null()
-    type( field_type ), pointer :: etooh => null()
-    type( field_type ), pointer :: mecho => null()
-    type( field_type ), pointer :: meco3 => null()
-    type( field_type ), pointer :: pan => null()
-    type( field_type ), pointer :: c3h8 => null()
-    type( field_type ), pointer :: n_proo => null()
-    type( field_type ), pointer :: i_proo => null()
-    type( field_type ), pointer :: n_prooh => null()
-    type( field_type ), pointer :: i_prooh => null()
-    type( field_type ), pointer :: etcho => null()
-    type( field_type ), pointer :: etco3 => null()
-    type( field_type ), pointer :: me2co => null()
-    type( field_type ), pointer :: mecoch2oo => null()
-    type( field_type ), pointer :: mecoch2ooh => null()
-    type( field_type ), pointer :: ppan => null()
-    type( field_type ), pointer :: meono2 => null()
-    type( field_type ), pointer :: c5h8 => null()
-    type( field_type ), pointer :: iso2 => null()
-    type( field_type ), pointer :: isooh => null()
-    type( field_type ), pointer :: ison => null()
-    type( field_type ), pointer :: macr => null()
-    type( field_type ), pointer :: macro2 => null()
-    type( field_type ), pointer :: macrooh => null()
-    type( field_type ), pointer :: mpan => null()
-    type( field_type ), pointer :: hacet => null()
-    type( field_type ), pointer :: mgly => null()
-    type( field_type ), pointer :: nald => null()
-    type( field_type ), pointer :: hcooh => null()
-    type( field_type ), pointer :: meco3h => null()
-    type( field_type ), pointer :: meco2h => null()
-    type( field_type ), pointer :: h2 => null()
-    type( field_type ), pointer :: meoh => null()
-    type( field_type ), pointer :: msa => null()
-    type( field_type ), pointer :: nh3 => null()
-    type( field_type ), pointer :: cs2 => null()
-    type( field_type ), pointer :: csul => null()
-    type( field_type ), pointer :: h2s => null()
-    type( field_type ), pointer :: so3 => null()
-    type( field_type ), pointer :: passive_o3 => null()
-    type( field_type ), pointer :: age_of_air => null()
+    type( field_type ), pointer :: o3p
+    type( field_type ), pointer :: o1d
+    type( field_type ), pointer :: o3
+    type( field_type ), pointer :: n
+    type( field_type ), pointer :: no
+    type( field_type ), pointer :: no3
+    type( field_type ), pointer :: lumped_n
+    type( field_type ), pointer :: no2
+    type( field_type ), pointer :: n2o5
+    type( field_type ), pointer :: ho2no2
+    type( field_type ), pointer :: hono2
+    type( field_type ), pointer :: h2o2
+    type( field_type ), pointer :: ch4
+    type( field_type ), pointer :: co
+    type( field_type ), pointer :: hcho
+    type( field_type ), pointer :: meoo
+    type( field_type ), pointer :: meooh
+    type( field_type ), pointer :: h
+    type( field_type ), pointer :: oh
+    type( field_type ), pointer :: ho2
+    type( field_type ), pointer :: cl
+    type( field_type ), pointer :: cl2o2
+    type( field_type ), pointer :: clo
+    type( field_type ), pointer :: oclo
+    type( field_type ), pointer :: br
+    type( field_type ), pointer :: lumped_br
+    type( field_type ), pointer :: bro
+    type( field_type ), pointer :: brcl
+    type( field_type ), pointer :: brono2
+    type( field_type ), pointer :: n2o
+    type( field_type ), pointer :: lumped_cl
+    type( field_type ), pointer :: hcl
+    type( field_type ), pointer :: hocl
+    type( field_type ), pointer :: hbr
+    type( field_type ), pointer :: hobr
+    type( field_type ), pointer :: clono2
+    type( field_type ), pointer :: cfcl3
+    type( field_type ), pointer :: cf2cl2
+    type( field_type ), pointer :: mebr
+    type( field_type ), pointer :: hono
+    type( field_type ), pointer :: c2h6
+    type( field_type ), pointer :: etoo
+    type( field_type ), pointer :: etooh
+    type( field_type ), pointer :: mecho
+    type( field_type ), pointer :: meco3
+    type( field_type ), pointer :: pan
+    type( field_type ), pointer :: c3h8
+    type( field_type ), pointer :: n_proo
+    type( field_type ), pointer :: i_proo
+    type( field_type ), pointer :: n_prooh
+    type( field_type ), pointer :: i_prooh
+    type( field_type ), pointer :: etcho
+    type( field_type ), pointer :: etco3
+    type( field_type ), pointer :: me2co
+    type( field_type ), pointer :: mecoch2oo
+    type( field_type ), pointer :: mecoch2ooh
+    type( field_type ), pointer :: ppan
+    type( field_type ), pointer :: meono2
+    type( field_type ), pointer :: c5h8
+    type( field_type ), pointer :: iso2
+    type( field_type ), pointer :: isooh
+    type( field_type ), pointer :: ison
+    type( field_type ), pointer :: macr
+    type( field_type ), pointer :: macro2
+    type( field_type ), pointer :: macrooh
+    type( field_type ), pointer :: mpan
+    type( field_type ), pointer :: hacet
+    type( field_type ), pointer :: mgly
+    type( field_type ), pointer :: nald
+    type( field_type ), pointer :: hcooh
+    type( field_type ), pointer :: meco3h
+    type( field_type ), pointer :: meco2h
+    type( field_type ), pointer :: h2
+    type( field_type ), pointer :: meoh
+    type( field_type ), pointer :: msa
+    type( field_type ), pointer :: nh3
+    type( field_type ), pointer :: cs2
+    type( field_type ), pointer :: csul
+    type( field_type ), pointer :: h2s
+    type( field_type ), pointer :: so3
+    type( field_type ), pointer :: passive_o3
+    type( field_type ), pointer :: age_of_air
 
     ! Aerochem fields
-    type( field_type ), pointer :: h2o2_limit => null()
-    type( field_type ), pointer :: dms => null()
-    type( field_type ), pointer :: so2 => null()
-    type( field_type ), pointer :: h2so4 => null()
-    type( field_type ), pointer :: dmso => null()
-    type( field_type ), pointer :: monoterpene => null()
-    type( field_type ), pointer :: secondary_organic => null()
+    type( field_type ), pointer :: h2o2_limit
+    type( field_type ), pointer :: dms
+    type( field_type ), pointer :: so2
+    type( field_type ), pointer :: h2so4
+    type( field_type ), pointer :: dmso
+    type( field_type ), pointer :: monoterpene
+    type( field_type ), pointer :: secondary_organic
 
     ! Aerosol fields
-    type( field_type ), pointer :: n_nuc_sol => null()
-    type( field_type ), pointer :: nuc_sol_su => null()
-    type( field_type ), pointer :: nuc_sol_om => null()
-    type( field_type ), pointer :: n_ait_sol => null()
-    type( field_type ), pointer :: ait_sol_su => null()
-    type( field_type ), pointer :: ait_sol_bc => null()
-    type( field_type ), pointer :: ait_sol_om => null()
-    type( field_type ), pointer :: n_acc_sol => null()
-    type( field_type ), pointer :: acc_sol_su => null()
-    type( field_type ), pointer :: acc_sol_bc => null()
-    type( field_type ), pointer :: acc_sol_om => null()
-    type( field_type ), pointer :: acc_sol_ss => null()
-    type( field_type ), pointer :: acc_sol_du => null()
-    type( field_type ), pointer :: n_cor_sol => null()
-    type( field_type ), pointer :: cor_sol_su => null()
-    type( field_type ), pointer :: cor_sol_bc => null()
-    type( field_type ), pointer :: cor_sol_om => null()
-    type( field_type ), pointer :: cor_sol_ss => null()
-    type( field_type ), pointer :: cor_sol_du => null()
-    type( field_type ), pointer :: n_ait_ins => null()
-    type( field_type ), pointer :: ait_ins_bc => null()
-    type( field_type ), pointer :: ait_ins_om => null()
-    type( field_type ), pointer :: n_acc_ins => null()
-    type( field_type ), pointer :: acc_ins_du => null()
-    type( field_type ), pointer :: n_cor_ins => null()
-    type( field_type ), pointer :: cor_ins_du => null()
-    type( field_type ), pointer :: cloud_drop_no_conc => null()
-    type( field_type ), pointer :: drydp_ait_sol => null()
-    type( field_type ), pointer :: drydp_acc_sol => null()
-    type( field_type ), pointer :: drydp_cor_sol => null()
-    type( field_type ), pointer :: drydp_ait_ins => null()
-    type( field_type ), pointer :: drydp_acc_ins => null()
-    type( field_type ), pointer :: drydp_cor_ins => null()
-    type( field_type ), pointer :: wetdp_ait_sol => null()
-    type( field_type ), pointer :: wetdp_acc_sol => null()
-    type( field_type ), pointer :: wetdp_cor_sol => null()
-    type( field_type ), pointer :: rhopar_ait_sol => null()
-    type( field_type ), pointer :: rhopar_acc_sol => null()
-    type( field_type ), pointer :: rhopar_cor_sol => null()
-    type( field_type ), pointer :: rhopar_ait_ins => null()
-    type( field_type ), pointer :: rhopar_acc_ins => null()
-    type( field_type ), pointer :: rhopar_cor_ins => null()
-    type( field_type ), pointer :: pvol_wat_ait_sol => null()
-    type( field_type ), pointer :: pvol_wat_acc_sol => null()
-    type( field_type ), pointer :: pvol_wat_cor_sol => null()
-    type( field_type ), pointer :: pvol_su_ait_sol => null()
-    type( field_type ), pointer :: pvol_bc_ait_sol => null()
-    type( field_type ), pointer :: pvol_om_ait_sol => null()
-    type( field_type ), pointer :: pvol_su_acc_sol => null()
-    type( field_type ), pointer :: pvol_bc_acc_sol => null()
-    type( field_type ), pointer :: pvol_om_acc_sol => null()
-    type( field_type ), pointer :: pvol_ss_acc_sol => null()
-    type( field_type ), pointer :: pvol_du_acc_sol => null()
-    type( field_type ), pointer :: pvol_su_cor_sol => null()
-    type( field_type ), pointer :: pvol_bc_cor_sol => null()
-    type( field_type ), pointer :: pvol_om_cor_sol => null()
-    type( field_type ), pointer :: pvol_ss_cor_sol => null()
-    type( field_type ), pointer :: pvol_du_cor_sol => null()
-    type( field_type ), pointer :: pvol_bc_ait_ins => null()
-    type( field_type ), pointer :: pvol_om_ait_ins => null()
-    type( field_type ), pointer :: pvol_du_acc_ins => null()
-    type( field_type ), pointer :: pvol_du_cor_ins => null()
+    type( field_type ), pointer :: n_nuc_sol
+    type( field_type ), pointer :: nuc_sol_su
+    type( field_type ), pointer :: nuc_sol_om
+    type( field_type ), pointer :: n_ait_sol
+    type( field_type ), pointer :: ait_sol_su
+    type( field_type ), pointer :: ait_sol_bc
+    type( field_type ), pointer :: ait_sol_om
+    type( field_type ), pointer :: n_acc_sol
+    type( field_type ), pointer :: acc_sol_su
+    type( field_type ), pointer :: acc_sol_bc
+    type( field_type ), pointer :: acc_sol_om
+    type( field_type ), pointer :: acc_sol_ss
+    type( field_type ), pointer :: acc_sol_du
+    type( field_type ), pointer :: n_cor_sol
+    type( field_type ), pointer :: cor_sol_su
+    type( field_type ), pointer :: cor_sol_bc
+    type( field_type ), pointer :: cor_sol_om
+    type( field_type ), pointer :: cor_sol_ss
+    type( field_type ), pointer :: cor_sol_du
+    type( field_type ), pointer :: n_ait_ins
+    type( field_type ), pointer :: ait_ins_bc
+    type( field_type ), pointer :: ait_ins_om
+    type( field_type ), pointer :: n_acc_ins
+    type( field_type ), pointer :: acc_ins_du
+    type( field_type ), pointer :: n_cor_ins
+    type( field_type ), pointer :: cor_ins_du
+    type( field_type ), pointer :: cloud_drop_no_conc
+    type( field_type ), pointer :: drydp_ait_sol
+    type( field_type ), pointer :: drydp_acc_sol
+    type( field_type ), pointer :: drydp_cor_sol
+    type( field_type ), pointer :: drydp_ait_ins
+    type( field_type ), pointer :: drydp_acc_ins
+    type( field_type ), pointer :: drydp_cor_ins
+    type( field_type ), pointer :: wetdp_ait_sol
+    type( field_type ), pointer :: wetdp_acc_sol
+    type( field_type ), pointer :: wetdp_cor_sol
+    type( field_type ), pointer :: rhopar_ait_sol
+    type( field_type ), pointer :: rhopar_acc_sol
+    type( field_type ), pointer :: rhopar_cor_sol
+    type( field_type ), pointer :: rhopar_ait_ins
+    type( field_type ), pointer :: rhopar_acc_ins
+    type( field_type ), pointer :: rhopar_cor_ins
+    type( field_type ), pointer :: pvol_wat_ait_sol
+    type( field_type ), pointer :: pvol_wat_acc_sol
+    type( field_type ), pointer :: pvol_wat_cor_sol
+    type( field_type ), pointer :: pvol_su_ait_sol
+    type( field_type ), pointer :: pvol_bc_ait_sol
+    type( field_type ), pointer :: pvol_om_ait_sol
+    type( field_type ), pointer :: pvol_su_acc_sol
+    type( field_type ), pointer :: pvol_bc_acc_sol
+    type( field_type ), pointer :: pvol_om_acc_sol
+    type( field_type ), pointer :: pvol_ss_acc_sol
+    type( field_type ), pointer :: pvol_du_acc_sol
+    type( field_type ), pointer :: pvol_su_cor_sol
+    type( field_type ), pointer :: pvol_bc_cor_sol
+    type( field_type ), pointer :: pvol_om_cor_sol
+    type( field_type ), pointer :: pvol_ss_cor_sol
+    type( field_type ), pointer :: pvol_du_cor_sol
+    type( field_type ), pointer :: pvol_bc_ait_ins
+    type( field_type ), pointer :: pvol_om_ait_ins
+    type( field_type ), pointer :: pvol_du_acc_ins
+    type( field_type ), pointer :: pvol_du_cor_ins
 
-    type( field_type ), pointer :: dms_conc_ocean => null()
-    type( field_type ), pointer :: surf_wetness => null()
+    type( field_type ), pointer :: dms_conc_ocean
+    type( field_type ), pointer :: surf_wetness
 
     ! Chemistry emissions
-    type( field_type ), pointer :: emiss_c2h6 => null()
-    type( field_type ), pointer :: emiss_c3h8 => null()
-    type( field_type ), pointer :: emiss_c5h8 => null()
-    type( field_type ), pointer :: emiss_ch4 => null()
-    type( field_type ), pointer :: emiss_co => null()
-    type( field_type ), pointer :: emiss_hcho => null()
-    type( field_type ), pointer :: emiss_me2co => null()
-    type( field_type ), pointer :: emiss_mecho => null()
-    type( field_type ), pointer :: emiss_meoh => null()
-    type( field_type ), pointer :: emiss_nh3 => null()
-    type( field_type ), pointer :: emiss_no => null()
-    type( field_type ), pointer :: emiss_no_aircrft => null()
+    type( field_type ), pointer :: emiss_c2h6
+    type( field_type ), pointer :: emiss_c3h8
+    type( field_type ), pointer :: emiss_c5h8
+    type( field_type ), pointer :: emiss_ch4
+    type( field_type ), pointer :: emiss_co
+    type( field_type ), pointer :: emiss_hcho
+    type( field_type ), pointer :: emiss_me2co
+    type( field_type ), pointer :: emiss_mecho
+    type( field_type ), pointer :: emiss_meoh
+    type( field_type ), pointer :: emiss_nh3
+    type( field_type ), pointer :: emiss_no
+    type( field_type ), pointer :: emiss_no_aircrft
 
     ! Aerosol emissions
-    type( field_type ), pointer :: dust_flux => null()
-    type( field_type ), pointer :: emiss_bc_biofuel => null()
-    type( field_type ), pointer :: emiss_bc_biomass_high => null()
-    type( field_type ), pointer :: emiss_bc_biomass_low => null()
-    type( field_type ), pointer :: emiss_bc_fossil => null()
-    type( field_type ), pointer :: emiss_dms_land => null()
-    type( field_type ), pointer :: emiss_monoterp => null()
-    type( field_type ), pointer :: emiss_om_biofuel => null()
-    type( field_type ), pointer :: emiss_om_biomass_high => null()
-    type( field_type ), pointer :: emiss_om_biomass_low => null()
-    type( field_type ), pointer :: emiss_om_fossil => null()
-    type( field_type ), pointer :: emiss_so2_high => null()
-    type( field_type ), pointer :: emiss_so2_low => null()
-    type( field_type ), pointer :: emiss_bc_biomass => null()
-    type( field_type ), pointer :: emiss_om_biomass => null()
-    type( field_type ), pointer :: emiss_so2_nat => null()
+    type( field_type ), pointer :: dust_flux
+    type( field_type ), pointer :: emiss_bc_biofuel
+    type( field_type ), pointer :: emiss_bc_biomass_high
+    type( field_type ), pointer :: emiss_bc_biomass_low
+    type( field_type ), pointer :: emiss_bc_fossil
+    type( field_type ), pointer :: emiss_dms_land
+    type( field_type ), pointer :: emiss_monoterp
+    type( field_type ), pointer :: emiss_om_biofuel
+    type( field_type ), pointer :: emiss_om_biomass_high
+    type( field_type ), pointer :: emiss_om_biomass_low
+    type( field_type ), pointer :: emiss_om_fossil
+    type( field_type ), pointer :: emiss_so2_high
+    type( field_type ), pointer :: emiss_so2_low
+    type( field_type ), pointer :: emiss_bc_biomass
+    type( field_type ), pointer :: emiss_om_biomass
+    type( field_type ), pointer :: emiss_so2_nat
+
+    ! These fields are required by photolysis, which is not currently ported.
+    ! However, as these are 'required' environment fields when
+    ! chem_scheme=strattrop, they are added with dummy values here.
+    ! Photol_rates_single is the diagnostic to hold a sample vertical profile.
+
+    type( field_type ) :: dumm_cv_cloud_lwp
+    type( field_type ) :: dumm_srf_albedo
+    type( field_type ) :: photol_rates_single
 
     ! Derived fields (to be derived from current state after modification
     ! during the timestep)
@@ -393,6 +434,240 @@ contains
     if ( subroutine_timers ) call timer('aerosol_ukca_alg')
 
     call log_event( 'Running UKCA aerosol', LOG_LEVEL_DEBUG )
+
+    ! Nullify pointers declared above
+    nullify(mesh)
+    nullify(shifted_mesh)
+    nullify(latitude_w3)
+    nullify(longitude_w3)
+    nullify(height_w3)
+    nullify(height_wth)
+    nullify(rdz_w3)
+    nullify(cell_area)
+    nullify(detj_shifted)
+    nullify(sin_stellar_declination_rts)
+    nullify(stellar_eqn_of_time_rts)
+    nullify(ls_rain_3d)
+    nullify(ls_snow_3d)
+    nullify(autoconv)
+    nullify(accretion)
+    nullify(rim_cry)
+    nullify(rim_agg)
+    nullify(tke_bl)
+    nullify(zh)
+    nullify(rhokh_bl)
+    nullify(dtrdz_tq_bl)
+    nullify(zhsc)
+    nullify(level_ent)
+    nullify(level_ent_dsc)
+    nullify(ent_we_lim)
+    nullify(ent_t_frac)
+    nullify(ent_zrzi)
+    nullify(ent_we_lim_dsc)
+    nullify(ent_t_frac_dsc)
+    nullify(ent_zrzi_dsc)
+    nullify(conv_rain_3d)
+    nullify(conv_snow_3d)
+    nullify(cv_base)
+    nullify(cv_top)
+    nullify(cca)
+    nullify(bulk_fraction)
+    nullify(liquid_fraction)
+    nullify(area_fraction)
+    nullify(tile_fraction)
+    nullify(tile_temperature)
+    nullify(tile_heat_flux)
+    nullify(gc_tile)
+    nullify(leaf_area_index)
+    nullify(canopy_height)
+    nullify(z0m)
+    nullify(ustar)
+    nullify(wspd10m)
+    nullify(chloro_sea)
+    nullify(urbztm)
+    nullify(soil_moisture)
+    nullify(soil_roughness)
+    nullify(o3p)
+    nullify(o1d)
+    nullify(o3)
+    nullify(n)
+    nullify(no)
+    nullify(no3)
+    nullify(lumped_n)
+    nullify(no2)
+    nullify(n2o5)
+    nullify(ho2no2)
+    nullify(hono2)
+    nullify(h2o2)
+    nullify(ch4)
+    nullify(co)
+    nullify(hcho)
+    nullify(meoo)
+    nullify(meooh)
+    nullify(h)
+    nullify(oh)
+    nullify(ho2)
+    nullify(cl)
+    nullify(cl2o2)
+    nullify(clo)
+    nullify(oclo)
+    nullify(br)
+    nullify(lumped_br)
+    nullify(bro)
+    nullify(brcl)
+    nullify(brono2)
+    nullify(n2o)
+    nullify(lumped_cl)
+    nullify(hcl)
+    nullify(hocl)
+    nullify(hbr)
+    nullify(hobr)
+    nullify(clono2)
+    nullify(cfcl3)
+    nullify(cf2cl2)
+    nullify(mebr)
+    nullify(hono)
+    nullify(c2h6)
+    nullify(etoo)
+    nullify(etooh)
+    nullify(mecho)
+    nullify(meco3)
+    nullify(pan)
+    nullify(c3h8)
+    nullify(n_proo)
+    nullify(i_proo)
+    nullify(n_prooh)
+    nullify(i_prooh)
+    nullify(etcho)
+    nullify(etco3)
+    nullify(me2co)
+    nullify(mecoch2oo)
+    nullify(mecoch2ooh)
+    nullify(ppan)
+    nullify(meono2)
+    nullify(c5h8)
+    nullify(iso2)
+    nullify(isooh)
+    nullify(ison)
+    nullify(macr)
+    nullify(macro2)
+    nullify(macrooh)
+    nullify(mpan)
+    nullify(hacet)
+    nullify(mgly)
+    nullify(nald)
+    nullify(hcooh)
+    nullify(meco3h)
+    nullify(meco2h)
+    nullify(h2)
+    nullify(meoh)
+    nullify(msa)
+    nullify(nh3)
+    nullify(cs2)
+    nullify(csul)
+    nullify(h2s)
+    nullify(so3)
+    nullify(passive_o3)
+    nullify(age_of_air)
+    nullify(h2o2_limit)
+    nullify(dms)
+    nullify(so2)
+    nullify(h2so4)
+    nullify(dmso)
+    nullify(monoterpene)
+    nullify(secondary_organic)
+    nullify(n_nuc_sol)
+    nullify(nuc_sol_su)
+    nullify(nuc_sol_om)
+    nullify(n_ait_sol)
+    nullify(ait_sol_su)
+    nullify(ait_sol_bc)
+    nullify(ait_sol_om)
+    nullify(n_acc_sol)
+    nullify(acc_sol_su)
+    nullify(acc_sol_bc)
+    nullify(acc_sol_om)
+    nullify(acc_sol_ss)
+    nullify(acc_sol_du)
+    nullify(n_cor_sol)
+    nullify(cor_sol_su)
+    nullify(cor_sol_bc)
+    nullify(cor_sol_om)
+    nullify(cor_sol_ss)
+    nullify(cor_sol_du)
+    nullify(n_ait_ins)
+    nullify(ait_ins_bc)
+    nullify(ait_ins_om)
+    nullify(n_acc_ins)
+    nullify(acc_ins_du)
+    nullify(n_cor_ins)
+    nullify(cor_ins_du)
+    nullify(cloud_drop_no_conc)
+    nullify(drydp_ait_sol)
+    nullify(drydp_acc_sol)
+    nullify(drydp_cor_sol)
+    nullify(drydp_ait_ins)
+    nullify(drydp_acc_ins)
+    nullify(drydp_cor_ins)
+    nullify(wetdp_ait_sol)
+    nullify(wetdp_acc_sol)
+    nullify(wetdp_cor_sol)
+    nullify(rhopar_ait_sol)
+    nullify(rhopar_acc_sol)
+    nullify(rhopar_cor_sol)
+    nullify(rhopar_ait_ins)
+    nullify(rhopar_acc_ins)
+    nullify(rhopar_cor_ins)
+    nullify(pvol_wat_ait_sol)
+    nullify(pvol_wat_acc_sol)
+    nullify(pvol_wat_cor_sol)
+    nullify(pvol_su_ait_sol)
+    nullify(pvol_bc_ait_sol)
+    nullify(pvol_om_ait_sol)
+    nullify(pvol_su_acc_sol)
+    nullify(pvol_bc_acc_sol)
+    nullify(pvol_om_acc_sol)
+    nullify(pvol_ss_acc_sol)
+    nullify(pvol_du_acc_sol)
+    nullify(pvol_su_cor_sol)
+    nullify(pvol_bc_cor_sol)
+    nullify(pvol_om_cor_sol)
+    nullify(pvol_ss_cor_sol)
+    nullify(pvol_du_cor_sol)
+    nullify(pvol_bc_ait_ins)
+    nullify(pvol_om_ait_ins)
+    nullify(pvol_du_acc_ins)
+    nullify(pvol_du_cor_ins)
+    nullify(dms_conc_ocean)
+    nullify(surf_wetness)
+    nullify(emiss_c2h6)
+    nullify(emiss_c3h8)
+    nullify(emiss_c5h8)
+    nullify(emiss_ch4)
+    nullify(emiss_co)
+    nullify(emiss_hcho)
+    nullify(emiss_me2co)
+    nullify(emiss_mecho)
+    nullify(emiss_meoh)
+    nullify(emiss_nh3)
+    nullify(emiss_no)
+    nullify(emiss_no_aircrft)
+    nullify(dust_flux)
+    nullify(emiss_bc_biofuel)
+    nullify(emiss_bc_biomass_high)
+    nullify(emiss_bc_biomass_low)
+    nullify(emiss_bc_fossil)
+    nullify(emiss_dms_land)
+    nullify(emiss_monoterp)
+    nullify(emiss_om_biofuel)
+    nullify(emiss_om_biomass_high)
+    nullify(emiss_om_biomass_low)
+    nullify(emiss_om_fossil)
+    nullify(emiss_so2_high)
+    nullify(emiss_so2_low)
+    nullify(emiss_bc_biomass)
+    nullify(emiss_om_biomass)
+    nullify(emiss_so2_nat)
 
     ! Set time variables for UKCA
     call xios_get_current_date(datetime)
@@ -439,9 +714,13 @@ contains
 
     call convection_fields%get_field('conv_rain_3d', conv_rain_3d)
     call convection_fields%get_field('conv_snow_3d', conv_snow_3d)
+    call convection_fields%get_field('cca', cca)
+    call convection_fields%get_field('cv_base', cv_base)
+    call convection_fields%get_field('cv_top', cv_top)
 
     call cloud_fields%get_field('bulk_fraction', bulk_fraction)
     call cloud_fields%get_field('liquid_fraction', liquid_fraction)
+    call cloud_fields%get_field('area_fraction', area_fraction)
 
     call surface_fields%get_field('tile_fraction', tile_fraction)
     call surface_fields%get_field('tile_temperature', tile_temperature)
@@ -655,6 +934,12 @@ contains
     call aerosol_fields%get_field('emiss_om_biomass', emiss_om_biomass)
     call aerosol_fields%get_field('emiss_so2_nat', emiss_so2_nat)
 
+    ! Dummy / temp field initialisations - 2-D real
+    call zh%copy_field_properties(dumm_cv_cloud_lwp)
+    call zh%copy_field_properties(dumm_srf_albedo)
+    call invoke( setval_c(dumm_cv_cloud_lwp, 0.0_r_def), &
+                 setval_c(dumm_srf_albedo,   0.0_r_def) )
+
     ! Get location, level heights, cell area and volume data
 
     mesh => sin_stellar_declination_rts%get_mesh()   ! 2-D mesh
@@ -686,6 +971,22 @@ contains
     call invoke(setval_X(mr_ice, mr(imr_ci)))
     if (microphysics_casim) then
       call invoke(inc_X_plus_Y(mr_ice, mr(imr_s)))
+    end if
+
+    ! Pseudo / specified photolysis rates array
+    call ls_rain_3d%copy_field_properties(photol_rates_single)
+    call invoke ( setval_c(photol_rates_single, 0.0_r_def) )
+
+    if ( chem_scheme == chem_scheme_strattrop ) then
+      ! Should be ideally based on  i_ukca_photol but currently
+      ! default for strattrop.
+
+      call invoke ( pseudo_photol_kernel_type ( photol_rates_single,           &
+                                                current_time_hour,             &
+                                                current_time_minute,           &
+                                                latitude_w3,                   &
+                                                longitude_w3 ) )
+
     end if
 
     ! Do UKCA time step
@@ -855,6 +1156,33 @@ contains
                                           previous_time_minute,                &
                                           previous_time_second,                &
                                           previous_time_daynum,                &
+                                          atmospheric_ccl4,                    &
+                                          atmospheric_cfc113,                  &
+                                          atmospheric_cfc114,                  &
+                                          atmospheric_cfc115,                  &
+                                          atmospheric_cfc11,                   &
+                                          atmospheric_cfc12,                   &
+                                          atmospheric_ch2br2,                  &
+                                          atmospheric_chbr3,                   &
+                                          atmospheric_ch4,                     &
+                                          atmospheric_co2,                     &
+                                          atmospheric_csul,                    &
+                                          atmospheric_h1202,                   &
+                                          atmospheric_h1211,                   &
+                                          atmospheric_h1301,                   &
+                                          atmospheric_h2,                      &
+                                          atmospheric_h2402,                   &
+                                          atmospheric_hfc125,                  &
+                                          atmospheric_hfc134a,                 &
+                                          atmospheric_hcfc141b,                &
+                                          atmospheric_hcfc142b,                &
+                                          atmospheric_hcfc22,                  &
+                                          atmospheric_mebr,                    &
+                                          atmospheric_meccl3,                  &
+                                          atmospheric_mecl,                    &
+                                          atmospheric_n2,                      &
+                                          atmospheric_n2o,                     &
+                                          atmospheric_o2,                      &
                                           state(igh_t),                        &
                                           state(igh_p),                        &
                                           exner_in_wth,                        &
@@ -875,6 +1203,8 @@ contains
                                           tke_bl,                              &
                                           conv_rain_3d,                        &
                                           conv_snow_3d,                        &
+                                          cca,                                 &
+                                          area_fraction,                       &
                                           bulk_fraction,                       &
                                           liquid_fraction,                     &
                                           tile_fraction,                       &
@@ -901,6 +1231,10 @@ contains
                                           rdz_w3,                              &
                                           dtrdz_tq_bl,                         &
                                           zhsc,                                &
+                                          dumm_cv_cloud_lwp,                   &
+                                          dumm_srf_albedo,                     &
+                                          cv_base,                             &
+                                          cv_top,                              &
                                           level_ent,                           &
                                           level_ent_dsc,                       &
                                           ent_we_lim,                          &
@@ -909,6 +1243,7 @@ contains
                                           ent_we_lim_dsc,                      &
                                           ent_t_frac_dsc,                      &
                                           ent_zrzi_dsc,                        &
+                                          photol_rates_single,                 &
                                           h2o2_limit,                          &
                                           dms_conc_ocean,                      &
                                           dust_flux,                           &
@@ -1046,6 +1381,7 @@ contains
         call so3%write_field('chemistry__so3')
         call passive_o3%write_field('chemistry__passive_o3')
         call age_of_air%write_field('chemistry__age_of_air')
+        call photol_rates_single%write_field('chemistry__photol_rate')
 
         call emiss_c2h6%write_field('chemistry__emiss_c2h6')
         call emiss_c3h8%write_field('chemistry__emiss_c3h8')

@@ -659,6 +659,11 @@ contains
     call processor%apply(make_spec('cape_diluted', main%convection, W3,         &
         twod=.true.))
 
+    ! Convective cloud base and top. Diagnostics in reality but defined as
+    ! Prognostics as these are driving fields for UKCA
+    call processor%apply(make_spec('cv_base', main%convection, W3, twod=.true.))
+    call processor%apply(make_spec('cv_top', main%convection, W3, twod=.true.))
+
     ! 3D fields, don't need checkpointing
     call processor%apply(make_spec('dt_conv', main%convection, Wtheta))
     call processor%apply(make_spec('dmv_conv', main%convection, Wtheta))

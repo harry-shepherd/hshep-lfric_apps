@@ -30,7 +30,7 @@ implicit none
 
 type, public, extends(kernel_type) :: aerosol_ukca_kernel_type
   private
-  type(arg_type) :: meta_args(250) = (/            &
+  type(arg_type) :: meta_args(284) = (/                     &
        arg_type( GH_FIELD, GH_REAL, GH_READWRITE, WTHETA ), & ! o3p
        arg_type( GH_FIELD, GH_REAL, GH_READWRITE, WTHETA ), & ! o1d
        arg_type( GH_FIELD, GH_REAL, GH_READWRITE, WTHETA ), & ! o3
@@ -196,6 +196,33 @@ type, public, extends(kernel_type) :: aerosol_ukca_kernel_type
        arg_type( GH_SCALAR, GH_INTEGER, GH_READ ),          & ! previous_time_minute
        arg_type( GH_SCALAR, GH_INTEGER, GH_READ ),          & ! previous_time_second
        arg_type( GH_SCALAR, GH_INTEGER, GH_READ ),          & ! previous_time_daynum
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_ccl4
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_cfc113
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_cfc114
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_cfc115
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_cfc11
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_cfc12
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_ch2br2
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_chbr3
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_ch4
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_co2
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_csul
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_h1202
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_h1211
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_h1301
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_h2
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_h2402
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_hfc125
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_hfc134a
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_hcfc141b
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_hcfc142b
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_hcfc22
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_mebr
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_meccl3
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_mecl
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_n2
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_n2o
+       arg_type( GH_SCALAR, GH_REAL, GH_READ ),             & ! atmospheric_o2
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! theta_wth
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! exner_in_w3
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! exner_in_wth
@@ -216,6 +243,8 @@ type, public, extends(kernel_type) :: aerosol_ukca_kernel_type
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! tke_bl
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! conv_rain_3d
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! conv_snow_3d
+       arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! conv_cloud_amount
+       arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! area_cloud_frac
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! cf_bulk
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! cf_liq
        arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_1 ), & ! tile_fraction
@@ -242,6 +271,10 @@ type, public, extends(kernel_type) :: aerosol_ukca_kernel_type
        arg_type( GH_FIELD, GH_REAL, GH_READ, W3 ),          & ! rdz_tq_bl
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! dtrdz_tq_bl
        arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! zhsc
+       arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! conv_cloud_lwp
+       arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! surf_albedo
+       arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! conv_cloud_base
+       arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! conv_cloud_top
        arg_type( GH_FIELD, GH_INTEGER, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! level_ent
        arg_type( GH_FIELD, GH_INTEGER, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! level_ent_dsc
        arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_5 ), & ! ent_we_lim
@@ -251,6 +284,7 @@ type, public, extends(kernel_type) :: aerosol_ukca_kernel_type
        arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_5 ), & ! ent_t_frac_dsc
        arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_5 ), & ! ent_zrzi_dsc
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! h2o2_limit
+       arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! photol_rates_single
        arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_4 ), & ! dms_conc_ocean
        arg_type( GH_FIELD, GH_REAL, GH_READ, ANY_DISCONTINUOUS_SPACE_6 ), & ! dust_flux
        arg_type( GH_FIELD, GH_REAL, GH_READWRITE, ANY_DISCONTINUOUS_SPACE_4 ), & ! surf_wetness
@@ -470,6 +504,33 @@ contains
 !> @param[in]     previous_time_minute Model minute at previous time step
 !> @param[in]     previous_time_second Model second at previous time step
 !> @param[in]     previous_time_daynum Model day number at previous time step
+!> @param[in]     atmospheric_ccl4    Atmospheric_ccl4 as m.m.r
+!> @param[in]     atmospheric_cfc113  Atmospheric_cfc113 as m.m.r
+!> @param[in]     atmospheric_cfc114  Atmospheric_cfc114 as m.m.r
+!> @param[in]     atmospheric_cfc115  Atmospheric_cfc115 as m.m.r
+!> @param[in]     atmospheric_cfc11   Atmospheric_cfc11 as m.m.r
+!> @param[in]     atmospheric_cfc12   Atmospheric_cfc12 as m.m.r
+!> @param[in]     atmospheric_ch2br2  Atmospheric_ch2br2 as m.m.r
+!> @param[in]     atmospheric_chbr3   Atmospheric_chbr3 as m.m.r
+!> @param[in]     atmospheric_ch4     Atmospheric_ch4 as m.m.r
+!> @param[in]     atmospheric_co2     Atmospheric_co2 as m.m.r
+!> @param[in]     atmospheric_csul    Atmospheric_csul as m.m.r
+!> @param[in]     atmospheric_h1202   Atmospheric_h1202 as m.m.r
+!> @param[in]     atmospheric_h1211   Atmospheric_h1211 as m.m.r
+!> @param[in]     atmospheric_h1301   Atmospheric_h1301 as m.m.r
+!> @param[in]     atmospheric_h2      Atmospheric_h2 as m.m.r
+!> @param[in]     atmospheric_h2402   Atmospheric_h2402 as m.m.r
+!> @param[in]     atmospheric_hfc125  Atmospheric_hfc125 as m.m.r
+!> @param[in]     atmospheric_hfc134a Atmospheric_hfc134a as m.m.r
+!> @param[in]     atmospheric_hcfc141b Atmospheric_hcfc141b as m.m.r
+!> @param[in]     atmospheric_hcfc142b Atmospheric_hcfc142b as m.m.r
+!> @param[in]     atmospheric_hcfc22  Atmospheric_hcfc22 as m.m.r
+!> @param[in]     atmospheric_mebr    Atmospheric_mebr as m.m.r
+!> @param[in]     atmospheric_meccl3  Atmospheric_meccl3 as m.m.r
+!> @param[in]     atmospheric_mecl    Atmospheric_mecl as m.m.r
+!> @param[in]     atmospheric_n2      Atmospheric_n2 as m.m.r
+!> @param[in]     atmospheric_n2o     Atmospheric_n2o as m.m.r
+!> @param[in]     atmospheric_o2      Atmospheric_o2 as m.m.r
 !> @param[in]     theta_wth           Potential temperature field (K)
 !> @param[in]     exner_in_w3         Exner pressure in w3 space
 !> @param[in]     exner_in_wth        Exner pressure in theta space
@@ -490,6 +551,8 @@ contains
 !> @param[in]     tke_bl              Turbulent_kinetic_energy (m2 s-2)
 !> @param[in]     conv_rain_3d        Convective rainfall flux (kg m-2 s-1)
 !> @param[in]     conv_snow_3d        Convective snowfall flux (kg m-2 s-1)
+!> @param[in]     conv_cloud_amount   Convective clound amount (kg m-2)
+!> @param[in]     area_cloud_frac     Area cloud fraction
 !> @param[in]     cf_bulk             Bulk cloud fraction
 !> @param[in]     cf_liq              Liquid cloud fraction
 !> @param[in]     tile_fraction       Surface tile fractions
@@ -516,6 +579,10 @@ contains
 !> @param[in]     rdz_tq_bl           1/dz (m-1)
 !> @param[in]     dtrdz_tq_bl         dt/(rho*r*r*dz) (s kg-1)
 !> @param[in]     zhsc                Height at top of decoupled stratocumulus layer (m)
+!> @param[in]     conv_cloud_lwp      Convective cloud Liq water path
+!> @param[in]     surf_albedo         Surface albedo (0.0-1.0)
+!> @param[in]     conv_cloud_base     (Model level for) convective cloud base
+!> @param[in]     conv_cloud_top      (Model level for) convective cloud top
 !> @param[in]     level_ent           Level of surface mixed layer inversion
 !> @param[in]     level_ent_dsc       Level of decoupled stratocumulus inversion
 !> @param[in]     ent_we_lim          Rho * entrainment rate at surface ML inversion (kg m-2 s-1)
@@ -524,6 +591,7 @@ contains
 !> @param[in]     ent_we_lim_dsc      Rho * entrainment rate at DSC inversion (kg m-2 s-1)
 !> @param[in]     ent_t_frac_dsc      Fraction of time DSC inversion is above level
 !> @param[in]     ent_zrzi_dsc        Level height as fraction of DSC inversion height above DSC ML base
+!> @param[in]     photol_rates_single Photolysis rate, sample (s-1)
 !> @param[in]     h2o2_limit          Hydrogen peroxide m.m.r. upper limit
 !> @param[in]     dms_conc_ocean      DMS concentration in seawater (nmol l-1)
 !> @param[in]     dust_flux           Dust emission fluxes in CLASSIC size divisions (kg m-2 s-1)
@@ -747,6 +815,33 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               previous_time_minute,                            &
                               previous_time_second,                            &
                               previous_time_daynum,                            &
+                              atmospheric_ccl4,                                &
+                              atmospheric_cfc113,                              &
+                              atmospheric_cfc114,                              &
+                              atmospheric_cfc115,                              &
+                              atmospheric_cfc11,                               &
+                              atmospheric_cfc12,                               &
+                              atmospheric_ch2br2,                              &
+                              atmospheric_chbr3,                               &
+                              atmospheric_ch4,                                 &
+                              atmospheric_co2,                                 &
+                              atmospheric_csul,                                &
+                              atmospheric_h1202,                               &
+                              atmospheric_h1211,                               &
+                              atmospheric_h1301,                               &
+                              atmospheric_h2,                                  &
+                              atmospheric_h2402,                               &
+                              atmospheric_hfc125,                              &
+                              atmospheric_hfc134a,                             &
+                              atmospheric_hcfc141b,                            &
+                              atmospheric_hcfc142b,                            &
+                              atmospheric_hcfc22,                              &
+                              atmospheric_mebr,                                &
+                              atmospheric_meccl3,                              &
+                              atmospheric_mecl,                                &
+                              atmospheric_n2,                                  &
+                              atmospheric_n2o,                                 &
+                              atmospheric_o2,                                  &
                               theta_wth,                                       &
                               exner_in_w3,                                     &
                               exner_in_wth,                                    &
@@ -767,6 +862,8 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               tke_bl,                                          &
                               conv_rain_3d,                                    &
                               conv_snow_3d,                                    &
+                              conv_cloud_amount,                               &
+                              area_cloud_frac,                                 &
                               cf_bulk,                                         &
                               cf_liq,                                          &
                               tile_fraction,                                   &
@@ -793,6 +890,10 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               rdz_tq_bl,                                       &
                               dtrdz_tq_bl,                                     &
                               zhsc,                                            &
+                              conv_cloud_lwp,                                  &
+                              surf_albedo,                                     &
+                              conv_cloud_base,                                 &
+                              conv_cloud_top,                                  &
                               level_ent,                                       &
                               level_ent_dsc,                                   &
                               ent_we_lim,                                      &
@@ -801,6 +902,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               ent_we_lim_dsc,                                  &
                               ent_t_frac_dsc,                                  &
                               ent_zrzi_dsc,                                    &
+                              photol_rates_single,                             &
                               h2o2_limit,                                      &
                               dms_conc_ocean,                                  &
                               dust_flux,                                       &
@@ -846,7 +948,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   use conversions_mod,  only: rsec_per_day, rsec_per_hour
   use jules_control_init_mod, only: n_surf_tile, n_land_tile, n_sea_ice_tile,  &
                                     first_sea_ice_tile
-  use um_ukca_init_mod, only: tracer_names, ntp_names,                         &
+  use um_ukca_init_mod, only: tracer_names, ntp_names, ratj_varnames,          &
                               env_names_scalar_real,                           &
                               env_names_flat_integer,                          &
                               env_names_flat_real,                             &
@@ -861,6 +963,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               env_names_landtile_real,                         &
                               env_names_landtile_logical,                      &
                               env_names_landpft_real,                          &
+                              env_names_fullhtphot_real,                       &
                               emiss_names_flat,                                &
                               emiss_names_fullht,                              &
                               fldname_o3p,                                     &
@@ -1087,12 +1190,47 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               fldname_l_active_surft,                          &
                               fldname_lai_pft,                                 &
                               fldname_canht_pft,                               &
+                              fldname_atmos_ccl4,                              &
+                              fldname_atmos_cfc113,                            &
+                              fldname_atmos_cfc114,                            &
+                              fldname_atmos_cfc115,                            &
+                              fldname_atmos_cfc11,                             &
+                              fldname_atmos_cfc12,                             &
+                              fldname_atmos_ch2br2,                            &
+                              fldname_atmos_chbr3,                             &
+                              fldname_atmos_ch4,                               &
+                              fldname_atmos_co2,                               &
+                              fldname_atmos_csul,                              &
+                              fldname_atmos_h1202,                             &
+                              fldname_atmos_h1211,                             &
+                              fldname_atmos_h1301,                             &
+                              fldname_atmos_h2,                                &
+                              fldname_atmos_h2402,                             &
+                              fldname_atmos_hfc125,                            &
+                              fldname_atmos_hfc134a,                           &
+                              fldname_atmos_hcfc141b,                          &
+                              fldname_atmos_hcfc142b,                          &
+                              fldname_atmos_hcfc22,                            &
+                              fldname_atmos_mebr,                              &
+                              fldname_atmos_meccl3,                            &
+                              fldname_atmos_mecl,                              &
+                              fldname_atmos_n2,                                &
+                              fldname_atmos_n2o,                               &
+                              fldname_atmos_o2,                                &
+                              fldname_cv_base,                                 &
+                              fldname_cv_top,                                  &
+                              fldname_surf_albedo,                             &
                               fldname_grid_surf_area,                          &
+                              fldname_cv_cloud_lwp,                            &
+                              fldname_area_cloud_frac,                         &
+                              fldname_conv_cloud_amount,                       &
                               fldname_grid_volume,                             &
                               fldname_grid_airmass,                            &
+                              fldname_photol_rates,                            &
                               nlev_ent_tr_mix
 
   use log_mod,              only: log_event, log_scratch_space, LOG_LEVEL_ERROR
+  use chemistry_config_mod, only: chem_scheme, chem_scheme_strattrop
 
   ! UM modules
   use nlsizes_namelist_mod, only: bl_levels
@@ -1118,6 +1256,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   ! UKCA API module
   use ukca_api_mod,         only: ukca_step_control, ukca_maxlen_message, &
                                   ukca_maxlen_procname
+  use ukca_photol_param_mod, only: jppj, jrate_fac, jp_names
 
   implicit none
 
@@ -1317,6 +1456,34 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   integer(kind=i_def), intent(in) :: previous_time_second
   integer(kind=i_def), intent(in) :: previous_time_daynum
 
+  real(kind=r_def), intent(in) :: atmospheric_ccl4
+  real(kind=r_def), intent(in) :: atmospheric_cfc113
+  real(kind=r_def), intent(in) :: atmospheric_cfc114
+  real(kind=r_def), intent(in) :: atmospheric_cfc115
+  real(kind=r_def), intent(in) :: atmospheric_cfc11
+  real(kind=r_def), intent(in) :: atmospheric_cfc12
+  real(kind=r_def), intent(in) :: atmospheric_ch2br2
+  real(kind=r_def), intent(in) :: atmospheric_chbr3
+  real(kind=r_def), intent(in) :: atmospheric_ch4
+  real(kind=r_def), intent(in) :: atmospheric_co2
+  real(kind=r_def), intent(in) :: atmospheric_csul
+  real(kind=r_def), intent(in) :: atmospheric_h1202
+  real(kind=r_def), intent(in) :: atmospheric_h1211
+  real(kind=r_def), intent(in) :: atmospheric_h1301
+  real(kind=r_def), intent(in) :: atmospheric_h2
+  real(kind=r_def), intent(in) :: atmospheric_h2402
+  real(kind=r_def), intent(in) :: atmospheric_hfc125
+  real(kind=r_def), intent(in) :: atmospheric_hfc134a
+  real(kind=r_def), intent(in) :: atmospheric_hcfc141b
+  real(kind=r_def), intent(in) :: atmospheric_hcfc142b
+  real(kind=r_def), intent(in) :: atmospheric_hcfc22
+  real(kind=r_def), intent(in) :: atmospheric_mebr
+  real(kind=r_def), intent(in) :: atmospheric_meccl3
+  real(kind=r_def), intent(in) :: atmospheric_mecl
+  real(kind=r_def), intent(in) :: atmospheric_n2
+  real(kind=r_def), intent(in) :: atmospheric_n2o
+  real(kind=r_def), intent(in) :: atmospheric_o2
+
   real(kind=r_def), intent(in), dimension(undf_wth) :: theta_wth
   real(kind=r_def), intent(in), dimension(undf_w3) :: exner_in_w3
   real(kind=r_def), intent(in), dimension(undf_wth) :: exner_in_wth
@@ -1337,6 +1504,8 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   real(kind=r_def), intent(in), dimension(undf_wth) :: tke_bl
   real(kind=r_def), intent(in), dimension(undf_wth) :: conv_rain_3d
   real(kind=r_def), intent(in), dimension(undf_wth) :: conv_snow_3d
+  real(kind=r_def), intent(in), dimension(undf_wth) :: conv_cloud_amount
+  real(kind=r_def), intent(in), dimension(undf_wth) :: area_cloud_frac
   real(kind=r_def), intent(in), dimension(undf_wth) :: cf_bulk
   real(kind=r_def), intent(in), dimension(undf_wth) :: cf_liq
   real(kind=r_def), intent(in), dimension(undf_tile) :: tile_fraction
@@ -1364,6 +1533,10 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   real(kind=r_def), intent(in), dimension(undf_w3) :: rdz_tq_bl
   real(kind=r_def), intent(in), dimension(undf_wth) :: dtrdz_tq_bl
   real(kind=r_def), intent(in), dimension(undf_2d) :: zhsc
+  real(kind=r_def), intent(in), dimension(undf_2d) :: conv_cloud_lwp
+  real(kind=r_def), intent(in), dimension(undf_2d) :: surf_albedo
+  real(kind=r_def), intent(in), dimension(undf_2d) :: conv_cloud_base
+  real(kind=r_def), intent(in), dimension(undf_2d) :: conv_cloud_top
   integer(kind=i_def), intent(in), dimension(undf_2d) :: level_ent
   integer(kind=i_def), intent(in), dimension(undf_2d) :: level_ent_dsc
   real(kind=r_def), intent(in), dimension(undf_ent) :: ent_we_lim
@@ -1372,6 +1545,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   real(kind=r_def), intent(in), dimension(undf_ent) :: ent_we_lim_dsc
   real(kind=r_def), intent(in), dimension(undf_ent) :: ent_t_frac_dsc
   real(kind=r_def), intent(in), dimension(undf_ent) :: ent_zrzi_dsc
+  real(kind=r_def), intent(in), dimension(undf_wth) :: photol_rates_single
   real(kind=r_def), intent(in), dimension(undf_wth) :: h2o2_limit
   real(kind=r_def), intent(in), dimension(undf_2d) :: dms_conc_ocean
   real(kind=r_def), intent(in), dimension(undf_dust) :: dust_flux
@@ -1477,6 +1651,9 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   real(r_um), allocatable :: catch_surft(:,:)
   real(r_um), allocatable :: z0h_bare_surft(:,:)
 
+  ! Dimensions: X,Y,Z,JPPJ (Num photolysis species), M
+  real(r_um), allocatable :: environ_fullhtphot_real(:,:,:,:,:)
+
   ! Working variables
 
   integer(i_um) :: m_fields   ! Number of fields in a group
@@ -1485,6 +1662,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   integer(i_um) :: j          ! Model horizontal loop counter
   integer(i_um) :: k          ! Model level loop counter
   integer(i_um) :: m          ! Loop counter
+  integer(i_um) :: jp1, jp2   ! Loop counters for photolytic species
   integer(i_um) :: error_code
   integer(i_um) :: nlayers_plus_one
 
@@ -1501,8 +1679,6 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   ! single level logical fields
   logical, dimension(seg_len,1) :: land_sea_mask
 
-
-
   type(ainfo_data_type) :: ainfo_data
   type(ainfo_type) :: ainfo
   type(urban_param_data_type) :: urban_param_data
@@ -1517,6 +1693,10 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   ! Grid cell airmass and volume (for some emissions and diagnostics)
   real(r_um) :: grid_airmass(seg_len,1,nlayers)
   real(r_um) :: grid_volume(seg_len,1,nlayers)
+
+  ! Temporary photol_rates array, derived from single species values coming
+  ! from algorithm layer
+  real(r_um), allocatable :: photol_rates(:,:,:)
 
   ! UKCA error reporting variables
   character(len=ukca_maxlen_message)  :: ukca_errmsg  ! Error return message
@@ -2860,6 +3040,60 @@ subroutine aerosol_ukca_code( nlayers,                                         &
     case(fldname_equation_of_time)
       environ_scalar_real( m ) =                                               &
         real( stellar_eqn_of_time_rts( map_2d(1,1) ), r_um )
+    case(fldname_atmos_ccl4)
+      environ_scalar_real(m) = real(atmospheric_ccl4, r_um)
+    case(fldname_atmos_cfc113)
+      environ_scalar_real(m) = real(atmospheric_cfc113, r_um)
+    case(fldname_atmos_cfc114)
+      environ_scalar_real(m) = real(atmospheric_cfc114, r_um)
+    case(fldname_atmos_cfc115)
+      environ_scalar_real(m) = real(atmospheric_cfc115, r_um)
+    case(fldname_atmos_cfc11)
+      environ_scalar_real(m) = real(atmospheric_cfc11, r_um)
+    case(fldname_atmos_cfc12)
+      environ_scalar_real(m) = real(atmospheric_cfc12, r_um)
+    case(fldname_atmos_ch2br2)
+      environ_scalar_real(m) = real(atmospheric_ch2br2, r_um)
+    case(fldname_atmos_chbr3)
+      environ_scalar_real(m) = real(atmospheric_chbr3, r_um)
+    case(fldname_atmos_ch4)
+      environ_scalar_real(m) = real(atmospheric_ch4, r_um)
+    case(fldname_atmos_co2)
+      environ_scalar_real(m) = real(atmospheric_co2, r_um)
+    case(fldname_atmos_csul)
+      environ_scalar_real(m) = real(atmospheric_csul, r_um)
+    case(fldname_atmos_h1202)
+      environ_scalar_real(m) = real(atmospheric_h1202, r_um)
+    case(fldname_atmos_h1211)
+      environ_scalar_real(m) = real(atmospheric_h1211, r_um)
+    case(fldname_atmos_h1301)
+      environ_scalar_real(m) = real(atmospheric_h1301, r_um)
+    case(fldname_atmos_h2)
+      environ_scalar_real(m) = real(atmospheric_h2, r_um)
+    case(fldname_atmos_h2402)
+      environ_scalar_real(m) = real(atmospheric_h2402, r_um)
+    case(fldname_atmos_hfc125)
+      environ_scalar_real(m) = real(atmospheric_hfc125, r_um)
+    case(fldname_atmos_hfc134a)
+      environ_scalar_real(m) = real(atmospheric_hfc134a, r_um)
+    case(fldname_atmos_hcfc141b)
+      environ_scalar_real(m) = real(atmospheric_hcfc141b, r_um)
+    case(fldname_atmos_hcfc142b)
+      environ_scalar_real(m) = real(atmospheric_hcfc142b, r_um)
+    case(fldname_atmos_hcfc22)
+      environ_scalar_real(m) = real(atmospheric_hcfc22, r_um)
+    case(fldname_atmos_mebr)
+      environ_scalar_real(m) = real(atmospheric_mebr, r_um)
+    case(fldname_atmos_meccl3)
+      environ_scalar_real(m) = real(atmospheric_meccl3, r_um)
+    case(fldname_atmos_mecl)
+      environ_scalar_real(m) = real(atmospheric_mecl, r_um)
+    case(fldname_atmos_n2)
+      environ_scalar_real(m) = real(atmospheric_n2, r_um)
+    case(fldname_atmos_n2o)
+      environ_scalar_real(m) = real(atmospheric_n2o, r_um)
+    case(fldname_atmos_o2)
+      environ_scalar_real(m) = real(atmospheric_o2, r_um)
     case default
       write( log_scratch_space, '(A,A)' )                                      &
         'Missing required UKCA environment field: ', env_names_scalar_real(m)
@@ -2882,6 +3116,14 @@ subroutine aerosol_ukca_code( nlayers,                                         &
     case(fldname_kent_dsc)
       do i = 1, seg_len
         environ_flat_integer(i,1,m) = int( level_ent_dsc( map_2d(1,i) ), i_um)
+      end do
+    case(fldname_cv_base)
+      do i = 1, seg_len
+        environ_flat_integer(i,1,m) = int( conv_cloud_base(map_2d(1,i)), i_um )
+      end do
+    case(fldname_cv_top)
+      do i = 1, seg_len
+        environ_flat_integer(i,1,m) = int( conv_cloud_top(map_2d(1,i)), i_um )
       end do
     case default
       write( log_scratch_space, '(A,A)' )                                      &
@@ -3100,9 +3342,21 @@ subroutine aerosol_ukca_code( nlayers,                                         &
         environ_flat_real( i, 1, m ) = real(surf_wetness(map_2d(1,i)), r_um)
       end do
 
+    case(fldname_cv_cloud_lwp)
+      ! Convective cloud liquid water path
+      do i = 1, seg_len
+        environ_flat_real(i, 1, m) = real( conv_cloud_lwp(map_2d(1,i)), r_um )
+      end do
+    case(fldname_surf_albedo)
+      ! Surface Albedo
+      do i = 1, seg_len
+        environ_flat_real(i, 1, m) = real( surf_albedo(map_2d(1,i)), r_um )
+      end do
     case(fldname_grid_surf_area)
       ! Cell Area
-      environ_flat_real( i, 1, m ) = real(grid_surf_area(map_2d(1,i)), r_um)
+      do i = 1, seg_len
+        environ_flat_real(i, 1, m) = real(grid_surf_area(map_2d(1,i)), r_um)
+      end do
     case default
       write( log_scratch_space, '(A,A)' )                                      &
         'Missing required UKCA environment field: ', env_names_flat_real(m)
@@ -3354,6 +3608,22 @@ subroutine aerosol_ukca_code( nlayers,                                         &
         do k = 1, nlayers
           environ_fullht_real( i, 1, k, m ) =                                  &
             real( u3_in_wth( map_wth(1,i) + k ), r_um )
+        end do
+      end do
+    case(fldname_area_cloud_frac)
+      ! Area cloud fraction
+      do i = 1, seg_len
+        do k = 1, nlayers
+          environ_fullht_real( i, 1, k, m ) =                                  &
+            real( area_cloud_frac( map_wth(1,i) + k ), r_um )
+        end do
+      end do
+    case(fldname_conv_cloud_amount)
+      ! Conv cloud amount
+      do i = 1, seg_len
+        do k = 1, nlayers
+          environ_fullht_real( i, 1, k, m ) =                                  &
+            real( conv_cloud_amount( map_wth(1,i) + k ), r_um )
         end do
       end do
     case(fldname_grid_volume)
@@ -3864,6 +4134,55 @@ subroutine aerosol_ukca_code( nlayers,                                         &
     end select
   end do
 
+  ! Photolysis rates driving field with full height and no. photol reactions
+  if ( chem_scheme == chem_scheme_strattrop ) then  ! Should be l_use_photol
+
+    m_fields = size(env_names_fullhtphot_real)
+    allocate(environ_fullhtphot_real( seg_len, 1, nlayers, jppj, m_fields ))
+    environ_fullhtphot_real = 0.0_r_um
+
+    ! Expand the single base rate profile to all the photolytic species
+    ! (num=jppj) involved in this chemistry scheme by scaling the values using
+    ! a different factor for each species (as derived from a sample UM run)
+    allocate(photol_rates( seg_len, nlayers, jppj ))
+    loop_1 : do jp2 = 1, jppj
+      loop_2 : do jp1 = 1, jppj
+        if ( ratj_varnames(jp2) == trim(jp_names(jp1)) ) then
+          do k = 1, nlayers
+            do i = 1, seg_len
+              photol_rates(i, k, jp2) = jrate_fac(jp1) *                       &
+                real(photol_rates_single(map_wth(1,i) + k ), r_um)
+            end do
+          end do
+          exit loop_2
+        end if
+      end do loop_2
+    end do loop_1
+
+    do m = 1, m_fields
+      if ( env_names_fullhtphot_real(m) == fldname_photol_rates ) then
+        ! Photol rates
+        do jp1 = 1, jppj
+          do k = 1, nlayers
+            do i = 1, seg_len
+              environ_fullhtphot_real(i,1,k,jp1,m) = photol_rates(i,k,jp1)
+            end do
+          end do
+        end do
+      else
+        write( log_scratch_space, '(A,A)' )                                    &
+          'Missing required UKCA photolysis rates field: ',                    &
+          env_names_fullhtphot_real(m)
+        call log_event( log_scratch_space, LOG_LEVEL_ERROR )
+      end if
+    end do    ! m_fields
+    deallocate(photol_rates)
+  else
+    ! Allocate to minimal size and initialise
+    allocate(environ_fullhtphot_real( 1, 1, 1, 1, 0 ))
+    environ_fullhtphot_real = 0.0_r_um
+
+  end if     ! chem_scheme_strattrop / photol_rates reqd
   !-----------------------------------------------------------------------
   ! Do UKCA time step
   !-----------------------------------------------------------------------
@@ -3913,6 +4232,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                           envgroup_bllev_real=environ_bllev_real,              &
                           envgroup_entlev_real=environ_entlev_real,            &
                           emissions_fullht=emissions_fullht,                   &
+                          envgroup_fullhtphot_real=environ_fullhtphot_real,    &
                           ! 5d
                           !
                           ! Optional in out arguments
@@ -3932,6 +4252,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   deallocate(emissions_flat)
 
   ! Clear environmental driver fields
+  deallocate(environ_fullhtphot_real)
   deallocate(environ_landpft_real)
   deallocate(environ_landtile_logical)
   deallocate(environ_landtile_real)
