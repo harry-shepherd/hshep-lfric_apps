@@ -17,7 +17,8 @@
                         threads=1,
                         xios_nodes=0,
                         ocean_nodes=0,
-                        river_nodes=0) %}
+                        river_nodes=0,
+                        ranks_per_node=0) %}
 
     {% set lfric_nodes = ((mpi_ranks|float * threads|float) /
                           (128|float))|round(0, 'ceil')|int %}

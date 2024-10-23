@@ -21,6 +21,7 @@ WORKING_CONFIGS = {
     ],
     "nci": ["all"],
     "niwa" : ["all"],
+    "ncas" : ["archer2_atm"],
 }
 
 
@@ -37,6 +38,11 @@ def generate_validate_command(source, site, group):
     Generate the cylc validate command for this site and group
     """
 
+    fncas = ""
+    if site == 'ncas':
+        fncas = ("-S HPC_ACCOUNT='hpc_account' "
+                 "-S HPC_USERNAME='hpc_username' ")
+
     command = (
         "cylc validate --debug --check-circular "
         f"-S RUN_NAMES=['{group}'] "
@@ -44,6 +50,7 @@ def generate_validate_command(source, site, group):
         f"-S HOST_SOURCE_LFRIC_APPS='{source}/apps' "
         f"-S SOURCE_LFRIC_APPS='{source}/apps' "
         f"-S SOURCE_LFRIC_APPS_REV=1 "
+        f"{fncas}"
         f"{source}/apps/rose-stem"
     )
 
