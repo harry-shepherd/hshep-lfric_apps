@@ -5,56 +5,6 @@
 {# ########################################################################### #}
 {% do LOG.debug("Entered site/meto/gungho_model/tasks_gungho_model_xc40.cylc") %}
 
-{% if task_ns.conf_name == "deep-hot-jupiter-C24_MG" %}
-
-    {% do task_dict.update({
-        "wallclock": 30,
-    }) %}
-
-{% elif task_ns.conf_name == "dcmip301-C24" %}
-
-    {% do task_dict.update({
-        "wallclock": 15,
-    }) %}
-
-{% elif task_ns.conf_name == "lfric-real-domain-C48_MG" %}
-
-    {% do task_dict.update({
-        "wallclock": 15,
-    }) %}
-
-{% elif task_ns.conf_name == "rk-dcmip301-C24" %}
-
-    {% do task_dict.update({
-        "wallclock": 30,
-    }) %}
-
-{% elif task_ns.conf_name == "robert-moist-lam-BiP100x4-10x10" %}
-
-    {% do task_dict.update({
-        "wallclock": 25,
-    }) %}
-
-{% elif task_ns.conf_name == "robert-moist-smag-BiP100x4-10x10" %}
-
-    {% do task_dict.update({
-        "wallclock": 20,
-    }) %}
-
-{% elif task_ns.conf_name == "sbr-alt2-C24s_MG" %}
-
-    {% do task_dict.update({
-        "wallclock": 15,
-    }) %}
-
-{% elif task_ns.conf_name == "shallow-hot-jupiter-C24_MG" %}
-
-    {% do task_dict.update({
-        "wallclock": 20,
-    }) %}
-
-{% endif %}
-
 {# Set default values #}
 {% if task_dict %}
     {% if "full-debug" in task %}

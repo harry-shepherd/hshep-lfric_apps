@@ -179,7 +179,7 @@ if __name__ == "__main__":
                 print(f"[FAIL] {application} with app {app} failed to validate")
                 failures = True
             else:
-                print(f"[PASS] {application} with app{app} "
+                print(f"[PASS] {application} with app {app} "
                       "validated successfully")
 
     if failures:

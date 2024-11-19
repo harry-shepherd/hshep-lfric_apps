@@ -410,7 +410,8 @@ contains
     !=======================================================================
     ! 0.0 Extract configuration variables
     !=======================================================================
-    call check_configuration()
+
+    call check_configuration(modeldb)
 
     base_mesh_nml   => modeldb%configuration%get_namelist('base_mesh')
     formulation_nml => modeldb%configuration%get_namelist('formulation')

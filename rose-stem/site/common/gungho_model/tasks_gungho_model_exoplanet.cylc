@@ -12,7 +12,7 @@
 {% if task_ns.conf_name == "exo-hs-C24_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["held-suarez"],
+        "opt_confs": ["held-suarez", "io_clim"],
         "resolution": "C24_MG",
         "DT": 3600,
         "mpi_parts": 54,
@@ -20,13 +20,13 @@
         "crun": 30,
         "crun_compare": false,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR held-suarez dcmip 30 31"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR held-suarez earth dcmip 30 31"
     }) %}
 
 {% elif task_ns.conf_name == "exo-hs-C48_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["held-suarez"],
+        "opt_confs": ["held-suarez", "io_clim"],
         "resolution": "C48_MG",
         "DT": 1800,
         "mpi_parts": 216,
@@ -34,13 +34,13 @@
         "crun": 30,
         "crun_compare": false,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR held-suarez dcmip 30 31"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR held-suarez earth dcmip 30 31"
     }) %}
 
 {% elif task_ns.conf_name == "exo-el-C24_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["earth-like"],
+        "opt_confs": ["earth-like", "io_clim"],
         "resolution": "C24_MG",
         "DT": 3600,
         "mpi_parts": 54,
@@ -48,13 +48,13 @@
         "crun": 40,
         "crun_compare": false,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR earth-like uniform 32 33"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR earth-like earth uniform 32 33"
     }) %}
 
 {% elif task_ns.conf_name == "exo-el-C48_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["earth-like"],
+        "opt_confs": ["earth-like", "io_clim"],
         "resolution": "C48_MG",
         "DT": 1800,
         "mpi_parts": 216,
@@ -62,13 +62,13 @@
         "crun": 40,
         "crun_compare": false,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR earth-like uniform 32 33"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR earth-like earth uniform 32 33"
     }) %}
 
 {% elif task_ns.conf_name == "exo-tle-C24_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["tidally-locked-earth"],
+        "opt_confs": ["tidally-locked-earth", "io_clim"],
         "resolution": "C24_MG",
         "DT": 3600,
         "mpi_parts": 54,
@@ -76,13 +76,13 @@
         "crun": 40,
         "crun_compare": false,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR tidally-locked-earth uniform 32 33"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR tidally-locked-earth earth uniform 32 33"
     }) %}
 
 {% elif task_ns.conf_name == "exo-tle-C48_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["tidally-locked-earth"],
+        "opt_confs": ["tidally-locked-earth", "io_clim"],
         "resolution": "C48_MG",
         "DT": 1800,
         "mpi_parts": 216,
@@ -90,13 +90,13 @@
         "crun": 40,
         "crun_compare": false,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR tidally-locked-earth uniform 32 33"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR tidally-locked-earth earth uniform 32 33"
     }) %}
 
 {% elif task_ns.conf_name == "exo-shj-C24_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["shallow-hot-jupiter"],
+        "opt_confs": ["shallow-hot-jupiter", "io_clim"],
         "resolution": "C24_MG",
         "DT": 2400,
         "mpi_parts": 54,
@@ -104,13 +104,13 @@
         "crun": 40,
         "crun_compare": false,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR shallow-hot-jupiter uniform 32 33"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR shallow-hot-jupiter shallow-hot-jupiter uniform 32 33"
     }) %}
 
 {% elif task_ns.conf_name == "exo-shj-C48_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["shallow-hot-jupiter"],
+        "opt_confs": ["shallow-hot-jupiter", "io_clim"],
         "resolution": "C48_MG",
         "DT": 1200,
         "mpi_parts": 216,
@@ -119,13 +119,13 @@
         "crun_compare": false,
         "wallclock": 20,
         "kgo_checks": [],
-        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR shallow-hot-jupiter uniform 32 33"
+        "plot_str": "plot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR shallow-hot-jupiter shallow-hot-jupiter uniform 32 33"
     }) %}
 
 {% elif task_ns.conf_name == "exo-dhj-C24_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["deep-hot-jupiter"],
+        "opt_confs": ["deep-hot-jupiter", "io_clim"],
         "resolution": "C24_MG",
         "DT": 30,
         "mpi_parts": 54,
@@ -134,13 +134,13 @@
         "crun_compare": false,
         "wallclock": 180,
         "kgo_checks": [],
-        "plot_str": "pplot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR deep-hot-jupiter uniform 32 33"
+        "plot_str": "pplot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR deep-hot-jupiter deep-hot-jupiter uniform 32 33"
     }) %}
 
 {% elif task_ns.conf_name == "exo-dhj-C48_MG" %}
 
     {% do task_dict.update({
-        "opt_confs": ["deep-hot-jupiter"],
+        "opt_confs": ["deep-hot-jupiter", "io_clim"],
         "resolution": "C48_MG",
         "DT": 30,
         "mpi_parts": 216,
@@ -149,7 +149,7 @@
         "crun_compare": false,
         "wallclock": 180,
         "kgo_checks": [],
-        "plot_str": "pplot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR deep-hot-jupiter uniform 32 33"
+        "plot_str": "pplot_zonal.py $NODAL_DATA_DIR/lfric_averages.nc $PLOT_DIR deep-hot-jupiter deep-hot-jupiter uniform 32 33"
     }) %}
 
 {% endif %}

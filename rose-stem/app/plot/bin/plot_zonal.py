@@ -22,17 +22,18 @@ import matplotlib.cm as cm
 # Size of regular grid
 ny, nx = 360, 720
 
-def make_figures(filein, plotpath, fields, vertical_spacing, lid, n_full, figname):
+def make_figures(filein, plotpath, fields, vertical_spacing,
+                 lid, n_full, planetary_case, figname):
 
     if vertical_spacing=='um':
         # um L38 set
-        zi_f = np.array([.0, .0005095,  .0020380,  .0045854,  .0081519,  .0127373, 
+        zi_f = np.array([.0, .0005095,  .0020380,  .0045854,  .0081519,  .0127373,
                          .0183417,  .0249651,  .0326074,  .0412688,  .0509491,
-                         .0616485,  .0733668,  .0861040,  .0998603,  .1146356, 
-                         .1304298,  .1472430,  .1650752,  .1839264,  .2037966, 
-                         .2246857,  .2465938,  .2695209,  .2934670,  .3184321, 
-                         .3444162,  .3714396,  .3998142,  .4298913,  .4620737, 
-                         .4968308,  .5347160,  .5763897,  .6230643,  .6772068, 
+                         .0616485,  .0733668,  .0861040,  .0998603,  .1146356,
+                         .1304298,  .1472430,  .1650752,  .1839264,  .2037966,
+                         .2246857,  .2465938,  .2695209,  .2934670,  .3184321,
+                         .3444162,  .3714396,  .3998142,  .4298913,  .4620737,
+                         .4968308,  .5347160,  .5763897,  .6230643,  .6772068,
                          .7443435,  .8383348, 1.000000])*lid
 
     elif vertical_spacing=='dcmip':
@@ -53,27 +54,37 @@ def make_figures(filein, plotpath, fields, vertical_spacing, lid, n_full, fignam
     directions = ['yz']
 
     if fields is None:
-      fields = ['theta', 'u_in_w2h']
+        fields = ['theta', 'u_in_w2h']
+
     for field in fields:
 
         cube = read_ugrid_data(filein, field)
         time = np.around(cube.coord('time').points, decimals=1)
 
         levels_name = cube.dim_coords[-1].name()
-        #Set some levels for contours:
-        levels=None
-        if field=='theta':
-            levels = np.linspace(200, 800, 31)
-        if field=='u1':
+        # Set some levels for contours:
+        levels = None
+        if field == 'theta':
+            # Determine contours based on planetary case
+            if planetary_case == 'earth':
+                levels = np.linspace(200, 800, 31)
+            elif planetary_case == 'shallow-hot-jupiter':
+                levels = np.linspace(1200, 5400, 22)
+            elif planetary_case == 'deep-hot-jupiter':
+                levels = np.linspace(0, 160000, 33)
+            else:
+                raise ValueError('contours for planetary_case '+planetary_case+' not implemented')
+
+        elif field == 'u1':
             levels = np.arange(-20,36,4.)
-        if field == 'u2':
+        elif field == 'u2':
             levels = np.linspace(-1.0, 1.0, 11)
-        if field == 'u3':
-            levels = np.linspace(-0.003, 0.003, 11) 
-        if field == 'exner':
+        elif field == 'u3':
+            levels = np.linspace(-0.003, 0.003, 11)
+        elif field == 'exner':
             levels = np.linspace(916, 1020, 14) # exner will be converted to hPa
-        if field == 'rho':
-            levels = np.arange(0,1.4,0.05)    
+        elif field == 'rho':
+            levels = np.arange(0,1.4,0.05)
 
         n_levs = len(cube.coord(levels_name).points)
         plot_data=np.zeros((ny,nx,n_levs))
@@ -99,12 +110,12 @@ def make_figures(filein, plotpath, fields, vertical_spacing, lid, n_full, fignam
         else:
             zi = zi_h
 
-        # Interpolate using delaunay triangularization 
-        for p,l in enumerate(range(n_levs)):                   
+        # Interpolate using delaunay triangularization
+        for p,l in enumerate(range(n_levs)):
             data = cube.data[0,l]
             fi = griddata((x, y), data, (xf, yf), method='linear')
             fi_n = griddata((x, y), data, (xf, yf), method='nearest')
-            fi[np.isnan(fi)] = fi_n[np.isnan(fi)] 
+            fi[np.isnan(fi)] = fi_n[np.isnan(fi)]
 
             if field == 'exner':
                 # Convert to hPa
@@ -173,11 +184,11 @@ if __name__ == "__main__":
 
   try:
      args=sys.argv[:]
-     filein, plotpath, figname, vertical_grid, lid, n_full = args[1:7]
+     filein, plotpath, figname, planetary_case, vertical_grid, lid, n_full = args[1:8]
      field_list=None
-     if len(args[:])>7: field_list=args[6].split(':')
+     if len(args[:]) > 8: field_list=args[7].split(':')
   except ValueError:
-     print("Usage: {0} <filein> <plotpath> <figname> <vertical_grid> <lid> <n_full> [<fields_list>]".format(sys.argv[0]))
+     print("Usage: {0} <filein> <plotpath> <figname> <planetary_case> <vertical_grid> <lid> <n_full> [<fields_list>]".format(sys.argv[0]))
      exit(1)
 
-  make_figures(filein, plotpath, field_list, vertical_grid, int(lid), int(n_full), figname)
+  make_figures(filein, plotpath, field_list, vertical_grid, int(lid), int(n_full), planetary_case, figname)

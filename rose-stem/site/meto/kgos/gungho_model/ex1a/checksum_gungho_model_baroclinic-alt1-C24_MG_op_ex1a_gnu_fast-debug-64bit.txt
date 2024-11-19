@@ -1,3 +1,0 @@
-Inner product checksum rho = 40E2F54C05ED2F83
-Inner product checksum theta = 42103F1483E2F299
-Inner product checksum u = 450183F9A2A0248C

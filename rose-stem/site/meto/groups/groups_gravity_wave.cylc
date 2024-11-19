@@ -72,7 +72,6 @@
         "gravity_wave_multigrid-C24_MG_ex1a_gnu_fast-debug-64bit",
         "gravity_wave_limited_300x4-BiP300x4-1000x2000_ex1a_gnu_fast-debug-64bit",
         "gravity_wave_limited_spherical_50x50_LAM50x50-2x2_ex1a_gnu_fast-debug-64bit",
-        "gravity_wave_limited_c24-C24_ex1a_gnu_fast-debug-64bit",
         "gravity_wave_limited_c24_rec-C24_ex1a_gnu_fast-debug-64bit",
         "gravity_wave_ex1a_canned",
     ],

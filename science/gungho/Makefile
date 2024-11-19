@@ -117,6 +117,7 @@ unit-tests: unit-tests/run
 integration-tests/%: export BIN_DIR      ?= $(PROJECT_DIR)/test
 integration-tests/%: export IMPORT_PARTS  = $(CORE_ROOT_DIR)/infrastructure \
                                             $(CORE_ROOT_DIR)/components/science \
+                                            $(CORE_ROOT_DIR)/components/lfric-xios \
                                             $(CORE_ROOT_DIR)/components/driver
 integration-tests/%: export META_FILE_DIR = rose-meta/lfric-gungho/HEAD
 integration-tests/%: export PROJECT       = gungho

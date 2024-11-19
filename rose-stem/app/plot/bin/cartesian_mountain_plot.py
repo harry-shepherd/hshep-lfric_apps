@@ -54,7 +54,7 @@ data0 = None
 
 
 def make_figure(plotpath, field, component, timestep, plotlevel_x,
-                plotlevel_y, case, zoom, cntrs):
+                plotlevel_y, ny, case, zoom, cntrs):
 
     val_col = 'c' + str(component)
 
@@ -101,31 +101,7 @@ def make_figure(plotpath, field, component, timestep, plotlevel_x,
             zmax = 16.0
 
     val_col = 'c' + str(component)
-    if(case == 'schar3d'):
-        # Hard-coded for vertical-slice-like runs
-        if(field == 'u' and (component == '1' or component == '2')):
-            nx = len(data.loc[data['level'] == min_lev])//400
-            ny = 400
-        else:
-            nx = len(data.loc[data['level'] == min_lev])//200
-            ny = 200
-    elif(case == 'bell'):
-        # Hard-coded for vertical-slice-like runs
-        if(field == 'u' and (component == '1' or component == '2')):
-            nx = len(data.loc[data['level'] == min_lev])//600
-            ny = 600
-        else:
-            nx = len(data.loc[data['level'] == min_lev])//200
-            ny = 200
-    else:
-        # Hard-coded for vertical-slice-like runs
-        if(field == 'u' and (component == '1' or component == '2')):
-            nx = len(data.loc[data['level'] == min_lev])//8
-            ny = 8
-        else:
-            nx = len(data.loc[data['level'] == min_lev])//4
-            ny = 4
-
+    nx = len(data.loc[data['level'] == min_lev])//ny
     nl = len(levels)
 
     # Create 2D plot
@@ -589,10 +565,10 @@ if __name__ == "__main__":
 
     try:
          config, datapath, fields, component, timesteps, plotlevel_x, plotlevel_y, \
-            case, zoom, cntrs, plotpath = sys.argv[1:12]
+            ny, case, zoom, cntrs, plotpath = sys.argv[1:13]
     except ValueError:
         print("Usage: {0} <file_stem_name> <datapath> <field_names> <component> "
-              "<timestep_list> <plotlevel_x> <plotlevel_y> <case> "
+              "<timestep_list> <plotlevel_x> <plotlevel_y> <ny> <case> "
               "<zoom> <cntrs> <plotpath>".format(sys.argv[0]))
         exit(1)
 
@@ -644,4 +620,4 @@ if __name__ == "__main__":
                 # Only try to plot if we found some files for this timestep
                 if len(levels) > 0:
                     make_figure(plotpath, field, component, ts,
-                                plotlevel_x, plotlevel_y, case, zoom, cntrs)
+                                plotlevel_x, plotlevel_y, int(ny), case, zoom, cntrs)

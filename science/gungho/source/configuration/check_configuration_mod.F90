@@ -86,6 +86,7 @@ module check_configuration_mod
   public :: check_any_scheme_split_ffsl
   public :: check_any_scheme_slice
   public :: check_any_hori_scheme_sl
+  public :: check_any_hori_scheme_ffsl
   public :: check_any_vert_scheme_sl
   public :: check_any_reversible_sl
   public :: check_any_splitting_hvh
@@ -107,7 +108,10 @@ contains
 
   !> @brief Check the namelist configuration for unsupported combinations
   !>        of options and flag up errors and warnings
-  subroutine check_configuration()
+  !> @param[in] modeldb  The model database object to check
+  subroutine check_configuration(modeldb)
+
+    use gungho_modeldb_mod,          only: modeldb_type
     use log_mod,                     only: log_event,                          &
                                            log_scratch_space,                  &
                                            LOG_LEVEL_ERROR,                    &
@@ -157,6 +161,8 @@ contains
                             helmholtz_solver_preconditioner => preconditioner, &
                             preconditioner_tridiagonal
     implicit none
+
+      class(modeldb_type),  intent(in) :: modeldb
 
       logical(kind=l_def) :: any_scheme_mol, any_horz_dep_pts
       integer(kind=i_def) :: i, dry_field_splitting
@@ -563,6 +569,22 @@ contains
         end if
       end if
 
+      ! Throw error if using FFSL on the cubed-sphere without correct number of
+      ! ranks being used
+      if ( check_any_hori_scheme_ffsl()                                        &
+           .and. geometry == geometry_spherical                                &
+           .and. topology == topology_fully_periodic                           &
+           .and. MOD(modeldb%mpi%get_comm_size(), 6_i_def) /= 0_i_def ) then
+
+        call log_event(                                                        &
+          'Horizontal FFSL transport for the cubed-sphere currently requires ' &
+          // 'the number of MPI parts to be a multiple of 6, so that the '     &
+          // 'domain is partitioned separately for each panel of the mesh. '   &
+          // 'Please try again with an appropriate parallel decomposition.',   &
+          LOG_LEVEL_ERROR                                                      &
+        )
+      end if
+
       call log_event( '...Check gungho config done', LOG_LEVEL_INFO )
 
   end subroutine check_configuration
@@ -795,6 +817,30 @@ contains
     end do
 
   end function check_any_hori_scheme_sl
+
+  !> @brief   Determine whether any of the horizontal transport schemes are FFSL
+  !> @details Loops through the horizontal transport schemes specified for
+  !!          different variables and determines whether any are using the
+  !!          Flux-Form Semi-Lagrangian scheme.
+  !> @return  Logical for whether a horizontal scheme is FFSL
+  function check_any_hori_scheme_ffsl() result(any_hori_scheme_ffsl)
+
+    implicit none
+
+    logical(kind=l_def) :: any_hori_scheme_ffsl
+    integer(kind=i_def) :: i
+
+    any_hori_scheme_ffsl = .false.
+
+    do i = 1, profile_size
+      if ( scheme(i) == scheme_split .and. &
+           horizontal_method(i) == split_method_ffsl ) then
+        any_hori_scheme_ffsl = .true.
+        exit
+      end if
+    end do
+
+  end function check_any_hori_scheme_ffsl
 
   !> @brief   Determine whether any of the vertical transport schemes are SL
   !> @details Loops through the vertical transport schemes specified for different
