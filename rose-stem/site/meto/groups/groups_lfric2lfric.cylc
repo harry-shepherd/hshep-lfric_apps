@@ -103,12 +103,12 @@
 {# Spice Extends #}
 {% do site_groups.spice_developer.extend(site_groups.lfric2lfric_spice_developer) %}
 {% do site_groups.spice.extend(site_groups.lfric2lfric_spice) %}
-{% do site_groups.xc40_build.extend(site_groups.lfric2lfric_spice_build) %}
+{% do site_groups.spice_build.extend(site_groups.lfric2lfric_spice_build) %}
 
 {# Azspice Extends #}
 {% do site_groups.azspice_developer.extend(site_groups.lfric2lfric_azspice_developer) %}
 {% do site_groups.azspice.extend(site_groups.lfric2lfric_azspice) %}
-{% do site_groups.xc40_build.extend(site_groups.lfric2lfric_azspice_build) %}
+{% do site_groups.azspice_build.extend(site_groups.lfric2lfric_azspice_build) %}
 
 {# XC40 Extends #}
 {% do site_groups.xc40_developer.extend(site_groups.lfric2lfric_xc40_developer) %}

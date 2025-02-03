@@ -68,23 +68,25 @@
     "fcm_make_drivers", "fcm_make2_drivers"
     ]) %}
 {% do graph_sections.append([
-    "fcm_make2_drivers", application_run_task
-    ]) %}
-{% do graph_sections.append([
     remote_init_task~task_ns.platform, build_ocean_task
     ]) %}
 {% do graph_sections.append([
     build_ocean_task, build2_ocean_task
     ]) %}
 {% do graph_sections.append([
-    build2_ocean_task, application_run_task
-    ]) %}
-{% do graph_sections.append([
     remote_init_task~task_ns.platform, build_river_task
     ]) %}
-{% do graph_sections.append([
-    build_river_task, application_run_task
-    ]) %}
+{% if application_run_task %}
+    {% do graph_sections.append([
+        "fcm_make2_drivers", application_run_task
+        ]) %}
+    {% do graph_sections.append([
+        build2_ocean_task, application_run_task
+        ]) %}
+    {% do graph_sections.append([
+        build_river_task, application_run_task
+        ]) %}
+{% endif %}
 
 
 {% do LOG.debug("Finished in templates/graph/populate_graph_lfric_coupled.cylc") %}
