@@ -121,7 +121,7 @@ module create_lbcs_mod
           ! Mixing ratios
           call proc%apply(make_spec('lbc_m_v', main%lbc, Wtheta))
           call proc%apply(make_spec('lbc_m_cl', main%lbc, Wtheta))
-          call proc%apply(make_spec('lbc_m_ci', main%lbc, Wtheta))
+          call proc%apply(make_spec('lbc_m_s', main%lbc, Wtheta))
           call proc%apply(make_spec('lbc_m_r', main%lbc, Wtheta))
 
         case default

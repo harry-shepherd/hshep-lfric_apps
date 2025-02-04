@@ -170,7 +170,7 @@ contains
     call mcf_in_wtheta%initialise( vector_space =                         &
          function_space_collection%get_fs( mesh, element_order_h,         &
                                            element_order_v, Wtheta ),     &
-         name='m_ci')
+         name='m_s')
     call mcf_in_wtheta%set_read_behaviour(tmp_read_ptr)
     call mcf_in_wtheta%set_write_behaviour(tmp_write_ptr)
     call fd_field_collection%add_field(mcf_in_wtheta)

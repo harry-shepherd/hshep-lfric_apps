@@ -228,6 +228,7 @@ contains
       call dmv_pc2_inc%write_field('cloud__dmv_pc2_initiation'//trim(name_ext))
       call dmcl_pc2_inc%write_field('cloud__dmcl_pc2_initiation'//trim(name_ext))
       call dmci_pc2_inc%write_field('cloud__dmci_pc2_initiation'//trim(name_ext))
+      call dms_pc2_inc%write_field('cloud__dms_pc2_initiation'//trim(name_ext))
       call dcfl_pc2_inc%write_field('cloud__dcfl_pc2_initiation'//trim(name_ext))
       call dcff_pc2_inc%write_field('cloud__dcff_pc2_initiation'//trim(name_ext))
       call dbcf_pc2_inc%write_field('cloud__dbcf_pc2_initiation'//trim(name_ext))

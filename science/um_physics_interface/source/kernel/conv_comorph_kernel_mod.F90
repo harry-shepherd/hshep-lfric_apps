@@ -53,7 +53,7 @@ module conv_comorph_kernel_mod
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dt_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dmv_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dmcl_conv
-         arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dmci_conv
+         arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dms_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, W3),                       &! du_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, W3),                       &! dv_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! conv_prog_dtheta
@@ -266,7 +266,7 @@ contains
   !> @param[in,out] dt_conv              Convection temperature increment
   !> @param[in,out] dmv_conv             Convection vapour increment
   !> @param[in,out] dmcl_conv            Convection cloud liquid increment
-  !> @param[in,out] dmci_conv            Convection cloud ice increment
+  !> @param[in,out] dms_conv             Convection cloud frozen increment
   !> @param[in,out] du_conv              Convection 'zonal' wind increment
   !> @param[in,out] dv_conv              Convection 'meridional' wind increment
   !> @param[in,out] conv_prog_dtheta     Time smoothed convective theta inc
@@ -472,7 +472,7 @@ contains
                           dt_conv,                           &
                           dmv_conv,                          &
                           dmcl_conv,                         &
-                          dmci_conv,                         &
+                          dms_conv,                          &
                           du_conv,                           &
                           dv_conv,                           &
                           conv_prog_dtheta,                  &
@@ -855,7 +855,7 @@ contains
                                                          cf_liq, cf_bulk,   &
                                                          mv_n, mcl_n, mci_n,&
                                                          mr_n, mg_n, ms_n,  &
-                                                         m_v, m_cl, m_ci,   &
+                                                         m_v, m_cl, m_s,    &
                                                          rho_in_wth,        &
                                                          wetrho_in_wth,     &
                                                          exner_in_wth,      &
@@ -868,11 +868,11 @@ contains
                                                          cf_bulk_n
 
     real(kind=r_def), dimension(undf_wth), intent(inout) :: dt_conv, dmv_conv, &
-                                          dmcl_conv, dmci_conv, cca, ccw,      &
+                                          dmcl_conv, dms_conv, cca, ccw,       &
                                           massflux_up, massflux_down,          &
                                           tke_bl, pressure_inc_env,            &
                                           conv_prog_dtheta, conv_prog_dmv,     &
-                                          precfrac, m_r, m_g, m_s
+                                          precfrac, m_r, m_g, m_ci
 
     real(kind=r_def), dimension(undf_w3), intent(inout) :: du_conv, dv_conv
 
@@ -1316,21 +1316,19 @@ contains
         bulk_cf_n(i,1,k)   = cf_bulk_n(map_wth(1,i) + k)
       end do
     end do
+
+    do i = 1, row_length
+      do k = 1, nlayers
+        qcf_conv(i,1,k) = m_s(map_wth(1,i) + k)
+        qcf_n(i,1,k) = ms_n(map_wth(1,i) + k)
+        ! no 2nd ice prognostic without casim
+      end do
+    end do
     if (microphysics_casim) then
       do i = 1, row_length
         do k = 1, nlayers
-          qcf_conv(i,1,k) = m_s(map_wth(1,i) + k)
-          qcf_n(i,1,k) = ms_n(map_wth(1,i) + k)
           qcf2_conv(i,1,k) = m_ci(map_wth(1,i) + k)
           qcf2_n(i,1,k) = mci_n(map_wth(1,i) + k)
-        end do
-      end do
-    else
-      do i = 1, row_length
-        do k = 1, nlayers
-          qcf_conv(i,1,k) = m_ci(map_wth(1,i) + k)
-          qcf_n(i,1,k) = mci_n(map_wth(1,i) + k)
-          ! no 2nd ice prognostic without casim
         end do
       end do
     end if
@@ -2489,21 +2487,15 @@ contains
                                     * exner_theta_levels(i,1,k)
         dmv_conv(map_wth(1,i) + k)  = q_inc(i,1,k)
         dmcl_conv(map_wth(1,i) + k) = qcl_inc(i,1,k)
+        dms_conv(map_wth(1,i) + k) = qcf_inc(i,1,k)
       end do
     end do
     if (microphysics_casim) then
       do i = 1, row_length
         do k = 1, nlayers
-          m_s(map_wth(1,i) + k) = qcf_conv(i,1,k)
-          dmci_conv(map_wth(1,i) + k) = qcf2_inc(i,1,k)
+          m_ci(map_wth(1,i) + k) = qcf2_conv(i,1,k)
         end do
-        m_s(map_wth(1,i) + 0) = m_s(map_wth(1,i) + 1)
-      end do
-    else
-      do k = 1, nlayers
-        do i = 1, row_length
-          dmci_conv(map_wth(1,i) + k) = qcf_inc(i,1,k)
-        end do
+        m_ci(map_wth(1,i) + 0) = m_ci(map_wth(1,i) + 1)
       end do
     end if
     if (l_mcr_qrain) then
@@ -2675,7 +2667,7 @@ contains
                              / exner_in_wth(map_wth(1,i) + 1)
       dmv_conv (map_wth(1,i) + 0) = dmv_conv (map_wth(1,i) + 1)
       dmcl_conv(map_wth(1,i) + 0) = dmcl_conv(map_wth(1,i) + 1)
-      dmci_conv(map_wth(1,i) + 0) = dmci_conv(map_wth(1,i) + 1)
+      dms_conv(map_wth(1,i) + 0) = dms_conv(map_wth(1,i) + 1)
     end do
 
     ! Store convective downdraught mass fluxes at cloud base

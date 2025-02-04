@@ -60,24 +60,24 @@ contains
   !! @param[in,out] mr_v_inc      Water vapour mixing ratio
   !! @param[in,out] mr_cl_inc     Liquid cloud mixing ratio
   !! @param[in,out] mr_r_inc      Rain mixing ratio
-  !! @param[in,out] mr_ci_inc     Ice cloud mixing ratio
   !! @param[in,out] mr_s_inc      Snow mixing ratio
   !! @param[in,out] mr_g_inc      Graupel mixing ratio
+  !! @param[in,out] mr_ci_inc     Ice cloud mixing ratio
   !! @param[in]     mr_v_n        Water vapour mixing ratio
   !! @param[in]     mr_cl_n       Liquid cloud mixing ratio
   !! @param[in]     mr_r_n        Rain mixing ratio
-  !! @param[in]     mr_ci_n       Ice cloud mixing ratio
   !! @param[in]     mr_s_n        Snow mixing ratio
   !! @param[in]     mr_g_n        Graupel mixing ratio
+  !! @param[in]     mr_ci_n       Ice cloud mixing ratio
   !! @param[in]     exner_at_wth  Exner pressure at Wtheta points
   !! @param[in]     ndf_wtheta    Number of DoFs per cell for Wtheta
   !! @param[in]     undf_wtheta   Universal number of DoFs for wtheta
   !! @param[in]     map_wtheta    Integers mapping DoFs to columns for Wtheta
   subroutine evap_condense_code(nlayers, theta_inc, theta_n,           &
                                 mr_v_inc, mr_cl_inc, mr_r_inc,         &
-                                mr_ci_inc, mr_s_inc, mr_g_inc,         &
+                                mr_s_inc, mr_g_inc, mr_ci_inc,         &
                                 mr_v_n, mr_cl_n, mr_r_n,               &
-                                mr_ci_n, mr_s_n, mr_g_n, exner_at_wth, &
+                                mr_s_n, mr_g_n, mr_ci_n, exner_at_wth, &
                                 ndf_wtheta, undf_wtheta, map_wtheta    )
 
     implicit none

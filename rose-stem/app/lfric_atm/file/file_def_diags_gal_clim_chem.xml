@@ -8,11 +8,11 @@
       <field field_ref="theta"/>
       <field field_ref="m_v"/>
       <field field_ref="m_cl"/>
-      <field field_ref="m_ci"/>
+      <field field_ref="m_cf"/>
       <field field_ref="m_r"/>
       <field field_ref="processed__qv"/>
       <field field_ref="processed__qcl"/>
-      <field field_ref="processed__qci"/>
+      <field field_ref="processed__qcf"/>
       <field field_ref="cloud__area_fraction"/>
       <field field_ref="cloud__frozen_fraction"/>
       <field field_ref="cloud__liquid_fraction"/>
@@ -158,6 +158,7 @@
       <field field_ref="processed__tot_col_m_cl"/>
       <field field_ref="processed__tot_col_m_r"/>
       <field field_ref="processed__tot_col_m_ci"/>
+      <field field_ref="processed__tot_col_m_cf"/>
       <field field_ref="processed__tot_col_m_s"/>
       <field field_ref="processed__tot_col_m_g"/>
       <field field_ref="processed__tot_col_wetplusdry_mass"/>

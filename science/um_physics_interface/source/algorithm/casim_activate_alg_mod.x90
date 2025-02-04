@@ -62,7 +62,7 @@ contains
     type( field_type ), pointer :: height_wth
     type( field_type ), pointer :: exner_wth
     type( field_type ), pointer :: rho_wth
-    type( field_type ), pointer :: dmci_conv
+    type( field_type ), pointer :: dms_conv
 
     type( mesh_type ), pointer :: mesh
 
@@ -91,10 +91,10 @@ contains
       call derived_fields%get_field('exner_in_wth', exner_wth)
       call derived_fields%get_field('rho_in_wth', rho_wth)
       call microphysics_fields%get_field('ni_mphys', ni_mphys)
-      call convection_fields%get_field('dmci_conv', dmci_conv)
+      call convection_fields%get_field('dms_conv', dms_conv)
       call cloud_fields%get_field('frozen_fraction', cf_fro)
 
-      call invoke(casim_ice_act_kernel_type( dmci_conv, ni_mphys, theta,      &
+      call invoke(casim_ice_act_kernel_type( dms_conv, ni_mphys, theta,      &
                                              exner_wth, rho_wth, cf_fro) )
 
       if (write_diag .and. use_xios_io) then

@@ -24,8 +24,8 @@
 +  public :: atl_moist_dyn_mass_code
  
    contains
--  subroutine adj_moist_dyn_mass_code(nlayers, moist_dyn_tot, mr_v, mr_cl, mr_r, mr_ci, mr_s, mr_g, ndf_wtheta, undf_wtheta, &
-+  subroutine atl_moist_dyn_mass_code(nlayers, moist_dyn_tot, mr_v, mr_cl, mr_r, mr_ci, mr_s, mr_g, ndf_wtheta, undf_wtheta, &
+-  subroutine adj_moist_dyn_mass_code(nlayers, moist_dyn_tot, mr_v, mr_cl, mr_r, mr_s, mr_g, mr_ci, ndf_wtheta, undf_wtheta, &
++  subroutine atl_moist_dyn_mass_code(nlayers, moist_dyn_tot, mr_v, mr_cl, mr_r, mr_s, mr_g, mr_ci, ndf_wtheta, undf_wtheta, &
  &map_wtheta)
      integer(kind=i_def), intent(in) :: nlayers
      integer(kind=i_def), intent(in) :: ndf_wtheta

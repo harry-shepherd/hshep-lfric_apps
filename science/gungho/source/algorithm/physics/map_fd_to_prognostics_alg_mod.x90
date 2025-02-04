@@ -158,9 +158,9 @@ contains
                  setval_x(rho, dry_rho_in_w3),        &
                  setval_x(mr(imr_v), mv_in_wtheta),   &
                  setval_x(mr(imr_cl), mcl_in_wtheta), &
-                 setval_x(mr(imr_ci), mcf_in_wtheta), &
+                 setval_x(mr(imr_s), mcf_in_wtheta),  &
                  setval_x(mr(imr_r), mr_in_wtheta),   &
-                 setval_c(mr(imr_s), 0.0_r_def),      &
+                 setval_c(mr(imr_ci), 0.0_r_def),     &
                  setval_c(mr(imr_g), 0.0_r_def),      &
                  setval_c(exner, 0.0_r_def),          &
                  setval_c(upward_wind_in_wtheta, 0.0_r_def))

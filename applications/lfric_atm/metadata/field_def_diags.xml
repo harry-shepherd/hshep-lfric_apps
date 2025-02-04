@@ -12,6 +12,7 @@
   <!-- field id="m_r" name="m_r" long_name="m_r" unit="kg kg-1" grid_ref="full_level_face_grid" /-->
   <!-- field id="m_ci" name="m_ci" long_name="m_ci" unit="kg kg-1" grid_ref="full_level_face_grid" /-->
   <!-- field id="m_s" name="m_s" long_name="m_s" unit="kg kg-1" grid_ref="full_level_face_grid" /-->
+  <field id="m_cf" name="m_cf" long_name="m_cf" unit="kg kg-1" grid_ref="full_level_face_grid">m_ci+m_s</field>
   <!-- field id="m_g" name="m_g" long_name="m_g" unit="kg kg-1" grid_ref="full_level_face_grid" /-->
   <!-- field id="ageofair" name="ageofair" long_name="ageofair" unit="s" grid_ref="half_level_face_grid" /-->
   <!-- field id="temp_correction_field" name="temp_correction_field" long_name="temperature_rate_for_energy_correction" unit="K s-1" domain_ref="face" /-->
@@ -265,9 +266,12 @@
   <field id="cloud__dmcl_pc2_initiation" name="dmcl_pc2_initiation" long_name="tendency_of_atmosphere_cloud_liquid_water_content_due_to_pc2_initiation" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="cloud__dmcl_pc2_initiation_b4_conv" name="dmcl_pc2_initiation_b4_conv" long_name="tendency_of_atmosphere_cloud_liquid_water_content_due_to_pc2_initiation_b4_conv" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="cloud__dmci_pc2_checks" name="dmci_pc2_checks" long_name="tendency_of_atmosphere_cloud_ice_water_content_due_to_pc2_checks" unit="kg kg-1" grid_ref="full_level_face_grid" />
-  <field id="cloud__dmci_pc2_conv_coupling" name="dmci_pc2_conv_coupling" long_name="tendency_of_atmosphere_cloud_ice_water_content_due_to_pc2_conv_coupling" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="cloud__dms_pc2_checks" name="dms_pc2_checks" long_name="tendency_of_atmosphere_cloud_snow_water_content_due_to_pc2_checks" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="cloud__dms_pc2_conv_coupling" name="dms_pc2_conv_coupling" long_name="tendency_of_atmosphere_cloud_snow_water_content_due_to_pc2_conv_coupling" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="cloud__dmci_pc2_initiation" name="dmci_pc2_initiation" long_name="tendency_of_atmosphere_cloud_ice_water_content_due_to_pc2_initiation" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="cloud__dms_pc2_initiation" name="dms_pc2_initiation" long_name="tendency_of_atmosphere_cloud_snow_water_content_due_to_pc2_initiation" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="cloud__dmci_pc2_initiation_b4_conv" name="dmci_pc2_initiation_b4_conv" long_name="tendency_of_atmosphere_cloud_ice_water_content_due_to_pc2_initiation_b4_conv" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="cloud__dms_pc2_initiation_b4_conv" name="dms_pc2_initiation_b4_conv" long_name="tendency_of_atmosphere_cloud_snow_water_content_due_to_pc2_initiation_b4_conv" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="cloud__dbcf_pc2_rad" name="dbcf_pc2_rad" long_name="tendency_of_cloud_amount_in_atmosphere_layer_due_to_pc2_response_to_radiative_heating" unit="1" grid_ref="full_level_face_grid" />
   <field id="cloud__dbcf_pc2_checks" name="dbcf_pc2_checks" long_name="tendency_of_cloud_amount_in_atmosphere_layer_due_to_pc2_checks" unit="1" grid_ref="full_level_face_grid" />
   <field id="cloud__dbcf_pc2_pressure_change" name="dbcf_pc2_pressure_change" long_name="tendency_of_cloud_amount_in_atmosphere_layer_due_to_pc2_pressure_change" unit="1" grid_ref="full_level_face_grid" />
@@ -307,7 +311,7 @@
   <field id="convection__dmv_conv" name="dmv_conv" long_name="water_vapour_increment_from_convection" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="convection__dmv_conv_noshal" name="dmv_conv_noshal" long_name="water_vapour_increment_from_convection_excluding_shallow_convection" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="convection__dmcl_conv" name="dmcl_conv" long_name="cloud_liquid_water_increment_from_convection" unit="kg kg-1" grid_ref="full_level_face_grid" />
-  <field id="convection__dmci_conv" name="dmci_conv" long_name="cloud_ice_water_increment_from_convection" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="convection__dms_conv" name="dms_conv" long_name="cloud_snow_water_increment_from_convection" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="convection__dbcf_conv" name="dbcf_conv" long_name="bulk_cloud_volume_increment_from_convection" unit="1" grid_ref="full_level_face_grid" />
   <field id="convection__dcfl_conv" name="dcfl_conv" long_name="liquid_cloud_volume_increment_from_convection" unit="1" grid_ref="full_level_face_grid" />
   <field id="convection__dcff_conv" name="dcff_conv" long_name="frozen_cloud_volume_increment_from_convection" unit="1" grid_ref="full_level_face_grid" />
@@ -592,7 +596,7 @@
   <field id="turbulence__dt_bl" name="dt_bl" long_name="temperature_increment_from_bl_scheme" unit="K" grid_ref="full_level_face_grid" />
   <field id="turbulence__dmv_bl" name="dmv_bl" long_name="vapour_increment_from_bl_scheme" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="turbulence__dmcl_bl" name="dmcl_bl" long_name="liquid_water_increment_from_bl_scheme" unit="kg kg-1" grid_ref="full_level_face_grid" />
-  <field id="turbulence__dmci_bl" name="dmci_bl" long_name="frozen_water_increment_from_bl_scheme" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="turbulence__dms_bl" name="dms_bl" long_name="snow_water_increment_from_bl_scheme" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="turbulence__dbcf_bl" name="dbcf_bl" long_name="bulk_cloud_fraction_increment_from_bl_scheme" unit="1" grid_ref="full_level_face_grid" />
   <field id="turbulence__dacf_bl" name="dacf_bl" long_name="area_cloud_fraction_increment_from_bl_scheme" unit="1" grid_ref="full_level_face_grid" />
   <field id="turbulence__dcfl_bl" name="dcfl_bl" long_name="liquid_cloud_fraction_increment_from_bl_scheme" unit="1" grid_ref="full_level_face_grid" />
@@ -821,7 +825,8 @@
   <field id="advection__dw_adv" name="dw_adv" long_name="vertical_air_velocity_increment_from_advection" unit="m s-1" grid_ref="half_level_face_grid" />
   <field id="advection__dmv_adv" name="dmv_adv" long_name="vapour_increment_from_advection" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="advection__dmcl_adv" name="dmcl_adv" long_name="liquid_water_increment_from_advection" unit="kg kg-1" grid_ref="full_level_face_grid" />
-  <field id="advection__dmci_adv" name="dmci_adv" long_name="frozen_water_increment_from_advection" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="advection__dms_adv" name="dms_adv" long_name="snow_water_increment_from_advection" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="advection__dmci_adv" name="dmci_adv" long_name="ice_water_increment_from_advection" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="advection__dbcf_adv" name="dbcf_adv" long_name="bulk_cloud_fraction_increment_from_advection" unit="1" grid_ref="full_level_face_grid" />
   <field id="advection__dcfl_adv" name="dcfl_adv" long_name="liquid_cloud_fraction_increment_from_advection" unit="1" grid_ref="full_level_face_grid" />
   <field id="advection__dcff_adv" name="dcff_adv" long_name="frozen_cloud_fraction_increment_from_advection" unit="1" grid_ref="full_level_face_grid" />
@@ -842,7 +847,8 @@
   <field id="processed__dmv_methox" name="dmv_methox" long_name="vapour_increment_from_methane_oxidation" unit="kg/kg" grid_ref="full_level_face_grid" />
   <field id="processed__dmv_tot" name="dmv_tot" long_name="total_vapour_increment" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="processed__dmcl_tot" name="dmcl_tot" long_name="total_liquid_water_increment" unit="kg kg-1" grid_ref="full_level_face_grid" />
-  <field id="processed__dmci_tot" name="dmci_tot" long_name="total_frozen_water_increment" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="processed__dms_tot" name="dms_tot" long_name="total_snow_water_increment" unit="kg kg-1" grid_ref="full_level_face_grid" />
+  <field id="processed__dmci_tot" name="dmci_tot" long_name="total_ice_water_increment" unit="kg kg-1" grid_ref="full_level_face_grid" />
   <field id="processed__du_tot" name="du_tot" long_name="total_eastward_wind_increment" unit="m s-1" grid_ref="half_level_face_grid" />
   <field id="processed__dv_tot" name="dv_tot" long_name="total_northward_wind_increment" unit="m s-1" grid_ref="half_level_face_grid" />
   <field id="processed__dw_tot" name="dw_tot" long_name="total_vertical_air_velocity_increment" unit="m s-1" grid_ref="half_level_face_grid" />
@@ -852,6 +858,7 @@
   <field id="processed__tot_col_m_r" name="tot_col_m_r" long_name="atmosphere_mass_content_of_liquid_precipitation" standard_name="atmosphere_mass_content_of_liquid_precipitation" unit="kg m-2" domain_ref="face" />
   <field id="processed__tot_col_m_ci" name="tot_col_m_ci" long_name="atmosphere_mass_content_of_cloud_ice" standard_name="atmosphere_mass_content_of_cloud_ice" unit="kg m-2" domain_ref="face" />
   <field id="processed__tot_col_m_s" name="tot_col_m_s" long_name="atmosphere_mass_content_of_snow" standard_name="atmosphere_mass_content_of_snow" unit="kg m-2" domain_ref="face" />
+  <field id="processed__tot_col_m_cf" name="tot_col_m_cf" long_name="atmosphere_mass_content_of_frozen_water" standard_name="atmosphere_mass_content_of_frozen_water" unit="kg m-2" domain_ref="face">processed__tot_col_m_ci+processed__tot_col_m_s</field>
   <field id="processed__tot_col_m_g" name="tot_col_m_g" long_name="atmosphere_mass_content_of_graupel" standard_name="atmosphere_mass_content_of_graupel" unit="kg m-2" domain_ref="face" />
   <field id="processed__tot_col_wetplusdry_mass" name="tot_col_wetplusdry_mass" long_name="atmosphere_wetplusdry_mass_per_unit_area" standard_name="atmosphere_mass_per_unit_area" unit="kg m-2" domain_ref="face" />
   <field id="processed__tot_col_int_energy" name="tot_col_int_energy" long_name="atmosphere_energy_content" unit="J m-2" domain_ref="face" />
@@ -865,6 +872,7 @@
   <field id="processed__qv" name="qv" long_name="specific_humidity" standard_name="specific_humidity" unit="kg kg-1" grid_ref="full_level_face_grid"> m_v / (1+processed__m_tot) </field>
   <field id="processed__qcl" name="qcl" long_name="specific_cloud_liquid_water" standard_name="mass_fraction_of_cloud_liquid_water_in_air" unit="kg kg-1" grid_ref="full_level_face_grid"> m_cl / (1+processed__m_tot) </field>
   <field id="processed__qci" name="qci" long_name="specific_cloud_ice" standard_name="mass_fraction_of_cloud_ice_in_air" unit="kg kg-1" grid_ref="full_level_face_grid"> m_ci / (1+processed__m_tot) </field>
+  <field id="processed__qcf" name="qcf" long_name="specific_cloud_frozen_water" standard_name="mass_fraction_of_frozen_water_in_air" unit="kg kg-1" grid_ref="full_level_face_grid"> (m_ci+m_s) / (1+processed__m_tot) </field>
   <field id="processed__qrain" name="qrain" long_name="specific_rain" standard_name="mass_fraction_of_rain_in_air" unit="kg kg-1" grid_ref="full_level_face_grid"> m_r / processed__m_tot </field>
   <field id="processed__qsnow" name="qsnow" long_name="specific_snow" standard_name="mass_fraction_of_snow_in_air" unit="kg kg-1" grid_ref="full_level_face_grid"> m_s / processed__m_tot </field>
   <field id="processed__qgraup" name="qgraup" long_name="specific_graupel" standard_name="mass_fraction_of_graupel_in_air" unit="kg kg-1" grid_ref="full_level_face_grid"> m_g / processed__m_tot </field>

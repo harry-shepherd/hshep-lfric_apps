@@ -148,21 +148,19 @@ contains
     real(r_um), dimension(seg_len,1,0:nlayers) :: p_theta_levels, icenumber, &
          snownumber
 
+    do i = 1, seg_len
+      do k = 1, nlayers
+        ! Only single ice, no numbers required
+        qcf(i,1,k) = m_s(map_wth(1,i) + k)
+      end do
+    end do
     if (microphysics_casim) then
       do i = 1, seg_len
         do k = 1, nlayers
-          ! Set ice and snow number, and qcf/qcf2 the right way around
+          ! Set ice and snow number, and qcf2
           snownumber(i,1,k) = ns_mphys(map_wth(1,i) + k)
           icenumber(i,1,k) = ni_mphys(map_wth(1,i) + k)
-          qcf(i,1,k) = m_s(map_wth(1,i) + k)
           qcf2(i,1,k) = m_ci(map_wth(1,i) + k)
-        end do
-      end do
-    else
-      do i = 1, seg_len
-        do k = 1, nlayers
-          ! Only single ice, no numbers required
-          qcf(i,1,k) = m_ci(map_wth(1,i) + k)
         end do
       end do
     end if

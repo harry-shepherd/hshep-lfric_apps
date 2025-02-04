@@ -37,7 +37,7 @@ contains
     type( field_type ), pointer :: dt_conv   => null()
     type( field_type ), pointer :: dmv_conv  => null()
     type( field_type ), pointer :: dmcl_conv => null()
-    type( field_type ), pointer :: dmci_conv => null()
+    type( field_type ), pointer :: dms_conv
     type( field_type ), pointer :: dcfl_conv => null()
     type( field_type ), pointer :: dcff_conv => null()
     type( field_type ), pointer :: dbcf_conv => null()
@@ -62,7 +62,7 @@ contains
     call convection_fields%get_field('dt_conv', dt_conv)
     call convection_fields%get_field('dmv_conv', dmv_conv)
     call convection_fields%get_field('dmcl_conv', dmcl_conv)
-    call convection_fields%get_field('dmci_conv', dmci_conv)
+    call convection_fields%get_field('dms_conv', dms_conv)
     call convection_fields%get_field('dcfl_conv', dcfl_conv)
     call convection_fields%get_field('dcff_conv', dcff_conv)
     call convection_fields%get_field('dbcf_conv', dbcf_conv)
@@ -87,7 +87,7 @@ contains
     call invoke( setval_c(dt_conv,      0.0_r_def), &
                  setval_c(dmv_conv,     0.0_r_def), &
                  setval_c(dmcl_conv,    0.0_r_def), &
-                 setval_c(dmci_conv,    0.0_r_def), &
+                 setval_c(dms_conv,     0.0_r_def), &
                  setval_c(dcfl_conv,    0.0_r_def), &
                  setval_c(dcff_conv,    0.0_r_def), &
                  setval_c(dbcf_conv,    0.0_r_def), &

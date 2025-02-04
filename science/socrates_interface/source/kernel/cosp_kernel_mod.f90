@@ -26,7 +26,7 @@ private
 
 type, public, extends(kernel_type) :: cosp_kernel_type
   private
-  type(arg_type) :: meta_args(47) = (/ &
+  type(arg_type) :: meta_args(48) = (/ &
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! pressure_in_wth
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! temperature_in_wth
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! rho_in_wth
@@ -35,7 +35,8 @@ type, public, extends(kernel_type) :: cosp_kernel_type
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  W3),                        & ! height_w3
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! mv
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! mcl
-    arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! mci
+    arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! mcf
+    arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! n_ice
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! radiative_cloud_fraction
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! liquid_fraction
     arg_type(GH_FIELD,  GH_REAL,    GH_READ,  Wtheta),                    & ! frozen_fraction
@@ -97,7 +98,7 @@ contains
 !> @param[in]    height_w3                  Height in W3 space
 !> @param[in]    mv                         Water vapour field
 !> @param[in]    mcl                        Large scale cloud liquid gridbox MMR
-!> @param[in]    mci                        Large scale cloud frozen gridbox MMR
+!> @param[in]    mcf                        Large scale cloud frozen gridbox MMR
 !> @param[in]    radiative_cloud_fraction   Large scale cloud fraction
 !> @param[in]    liquid_fraction            Large scale liquid cloud fraction
 !> @param[in]    frozen_fraction            Large scale frozen cloud fraction
@@ -160,7 +161,7 @@ contains
 subroutine cosp_code(nlayers, n_profile, &
                      pressure_in_wth, temperature_in_wth, rho_in_wth, height_wth, &
                      pressure_in_w3, height_w3, &
-                     mv, mcl, mci, &
+                     mv, mcl, mcf, n_ice, &
                      radiative_cloud_fraction, &
                      liquid_fraction, frozen_fraction, &
                      radiative_conv_fraction, &
@@ -216,7 +217,7 @@ subroutine cosp_code(nlayers, n_profile, &
   integer(i_def), intent(in), dimension(ndf_wtheta, n_profile) :: map_wtheta
   real(r_def), intent(in), dimension(undf_wtheta), target :: &
     pressure_in_wth, temperature_in_wth, rho_in_wth, height_wth, &
-    mv, mcl, mci, &
+    mv, mcl, mcf, n_ice, &
     radiative_cloud_fraction, liquid_fraction, frozen_fraction, &
     radiative_conv_fraction, conv_liquid_fraction, conv_frozen_fraction, &
     conv_liquid_mmr, conv_frozen_mmr, sigma_mc, cloud_drop_no_conc, &
@@ -347,7 +348,8 @@ subroutine cosp_code(nlayers, n_profile, &
         liq_frac_1d            = liquid_fraction(wth_1:wth_last),            &
         ice_frac_1d            = frozen_fraction(wth_1:wth_last),            &
         liq_mmr_1d             = mcl(wth_1:wth_last),                        &
-        ice_mmr_1d             = mci(wth_1:wth_last),                        &
+        ice_mmr_1d             = mcf(wth_1:wth_last),                        &
+        ice_nc_1d              = n_ice(wth_1:wth_last),                      &
         liq_dim_constant       = constant_droplet_effective_radius,          &
         liq_nc_1d              = cloud_drop_no_conc(wth_1:wth_last),         &
         conv_frac_1d           = radiative_conv_fraction(wth_1:wth_last),    &
@@ -405,7 +407,8 @@ subroutine cosp_code(nlayers, n_profile, &
         liq_frac_1d            = liquid_fraction(wth_1:wth_last),            &
         ice_frac_1d            = frozen_fraction(wth_1:wth_last),            &
         liq_mmr_1d             = mcl(wth_1:wth_last),                        &
-        ice_mmr_1d             = mci(wth_1:wth_last),                        &
+        ice_mmr_1d             = mcf(wth_1:wth_last),                        &
+        ice_nc_1d              = n_ice(wth_1:wth_last),                      &
         liq_dim_constant       = constant_droplet_effective_radius,          &
         liq_nc_1d              = cloud_drop_no_conc(wth_1:wth_last),         &
         conv_frac_1d           = radiative_conv_fraction(wth_1:wth_last),    &

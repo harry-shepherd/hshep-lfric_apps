@@ -101,9 +101,9 @@ contains
     ! q_x^n+1 = q_x^n + q_x_inc
                  inc_X_plus_bY( q_v, iau_weight, q_inc ),       &
                  inc_X_plus_bY( q_cl, iau_weight, qcl_inc ),    &
-                 inc_X_plus_bY( q_ci, iau_weight, qcf_inc ),    &
+                 inc_X_plus_bY( q_s, iau_weight, qcf_inc ),     &
     ! Step 3: Apply the lower limits to the updated qv, qcl and qci
-                 q_limit_test_kernel_type( q_v, q_cl, q_ci,        &
+                 q_limit_test_kernel_type( q_v, q_cl, q_s,         &
                                            area_fraction,          &
                                            bcf,                    &
                                            cff,                    &

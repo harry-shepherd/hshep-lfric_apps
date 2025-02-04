@@ -17,7 +17,7 @@
 !>               are not stored on the W2 function space.
 !>            2. Some moist fields are omitted from the list because in the
 !>               linear model they are computed analytically including:
-!>               i)  mixing ratios, namely "m_g" and "m_s".
+!>               i)  mixing ratios, namely "m_g" and "m_ci".
 !>               ii) all three "moist_dyn" fields.
 !>
 module jedi_lfric_linear_fields_mod
@@ -43,7 +43,7 @@ module jedi_lfric_linear_fields_mod
                                                                 'm_v     ', &
                                                                 'm_cl    ', &
                                                                 'm_r     ', &
-                                                                'm_ci    '/)
+                                                                'm_s     '/)
 
   integer( kind=i_def ), parameter, public :: &
                             variable_function_spaces(nvars) = (/Wtheta, &

@@ -47,15 +47,15 @@ contains
     !! @param[in] mr_v Water vapour mixing ratio
     !! @param[in] mr_cl Liquid cloud mixing ratio
     !! @param[in] mr_r Rain mixing ratio
-    !! @param[in] mr_ci Ice cloud mixing ratio
     !! @param[in] mr_s Snow mixing ratio
     !! @param[in] mr_g Graupel mixing ratio
+    !! @param[in] mr_ci Cloud ice mixing ratio
     !! @param[in] ndf_wtheta The number of degrees of freedom per cell for wtheta
     !! @param[in] udf_wtheta The number of total degrees of freedom for wtheta
     !! @param[in] map_wtheta Integer array holding the dofmap for the cell at the base of the column
 
     subroutine moist_dyn_mass_code(nlayers, moist_dyn_tot,               &
-                                   mr_v, mr_cl, mr_r, mr_ci, mr_s, mr_g, &
+                                   mr_v, mr_cl, mr_r, mr_s, mr_g, mr_ci, &
                                    ndf_wtheta, undf_wtheta, map_wtheta )
 
         implicit none
@@ -87,9 +87,9 @@ contains
             moist_dyn_tot(map_wtheta(df) + k) = 1.0_r_def + mr_v_at_dof  +  &
                                                             mr_cl_at_dof +  &
                                                             mr_r_at_dof  +  &
-                                                            mr_ci_at_dof +  &
                                                             mr_s_at_dof  +  &
-                                                            mr_g_at_dof
+                                                            mr_g_at_dof  +  &
+                                                            mr_ci_at_dof
           end do
 
         end do

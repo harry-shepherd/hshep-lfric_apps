@@ -335,7 +335,7 @@ module init_gungho_lbcs_alg_mod
     type(field_type), pointer :: lbc_qrain
     type(field_type), pointer :: lbc_m_v
     type(field_type), pointer :: lbc_m_cl
-    type(field_type), pointer :: lbc_m_ci
+    type(field_type), pointer :: lbc_m_s
     type(field_type), pointer :: lbc_m_r
     type(field_type)          :: lbc_moist_dyn(num_moist_factors)
     type(field_type), pointer :: lbc_theta
@@ -360,7 +360,7 @@ module init_gungho_lbcs_alg_mod
     type(namelist_type), pointer :: boundaries_nml
 
     nullify( lbc_rho_r2, lbc_rho, lbc_q, lbc_qcl, lbc_qcf, lbc_qrain,    &
-             lbc_m_v, lbc_m_cl, lbc_m_ci, lbc_m_r, lbc_theta, lbc_exner, &
+             lbc_m_v, lbc_m_cl, lbc_m_s, lbc_m_r, lbc_theta, lbc_exner,  &
              lbc_u, mesh, w3_lbc_mask )
 
     boundaries_nml => configuration%get_namelist('boundaries')
@@ -379,7 +379,7 @@ module init_gungho_lbcs_alg_mod
     call lbc_fields%get_field( 'lbc_qcf', lbc_qcf )
     call lbc_fields%get_field( 'lbc_qrain', lbc_qrain )
     call lbc_fields%get_field( 'lbc_m_v', lbc_m_v )
-    call lbc_fields%get_field( 'lbc_m_ci', lbc_m_ci )
+    call lbc_fields%get_field( 'lbc_m_s', lbc_m_s )
     call lbc_fields%get_field( 'lbc_m_cl', lbc_m_cl )
     call lbc_fields%get_field( 'lbc_m_r', lbc_m_r )
     call lbc_fields%get_field( 'lbc_theta', lbc_theta )
@@ -397,7 +397,7 @@ module init_gungho_lbcs_alg_mod
                                   lbc_q, wtheta_lbc_mask )
 
     call map_um_lbc_inputs(lbc_q, lbc_qcl, lbc_qcf, lbc_qrain, lbc_rho_r2, &
-                           lbc_m_v, lbc_m_cl, lbc_m_ci, lbc_m_r, lbc_rho   &
+                           lbc_m_v, lbc_m_cl, lbc_m_s, lbc_m_r, lbc_rho    &
                            )
 
     ! Update factors for moist dynamics.
@@ -435,8 +435,8 @@ module init_gungho_lbcs_alg_mod
     call log_field_masked_minmax( LOG_LEVEL_DEBUG, 'lbc_m_cl',  &
                                   lbc_m_cl, wtheta_lbc_mask )
 
-    call log_field_masked_minmax( LOG_LEVEL_DEBUG, 'lbc_m_ci',  &
-                                  lbc_m_ci, wtheta_lbc_mask )
+    call log_field_masked_minmax( LOG_LEVEL_DEBUG, 'lbc_m_s',   &
+                                  lbc_m_s, wtheta_lbc_mask )
 
     call log_field_masked_minmax( LOG_LEVEL_DEBUG, 'lbc_m_r',   &
                                   lbc_m_r, wtheta_lbc_mask )

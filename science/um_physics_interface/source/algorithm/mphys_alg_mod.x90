@@ -217,7 +217,7 @@ contains
                                                      tnuc)  )
     end if
 
-    call invoke( mphys_kernel_type ( mr_n(imr_v), mr_n(imr_cl), mr_n(imr_ci),  &
+    call invoke( mphys_kernel_type ( mr_n(imr_v), mr_n(imr_cl), mr_n(imr_s),   &
                                      mr_n(imr_r), mr_n(imr_g),                 &
                                      bcf_in, cfl_in, cff_in,                   &
                                      u_in_w3, v_in_w3,                         &
@@ -227,7 +227,7 @@ contains
                                      cloud_drop_no_conc, murk,                 &
                                      sd_orog,                                  &
                                      dmr_mphys(imr_v),  dmr_mphys(imr_cl),     &
-                                     dmr_mphys(imr_ci), dmr_mphys(imr_r),      &
+                                     dmr_mphys(imr_s), dmr_mphys(imr_r),       &
                                      dmr_mphys(imr_g), ls_rain, ls_snow,       &
                                      ls_graup, lsca_2d, precfrac,              &
                                      ls_rain_3d, ls_snow_3d,                   &

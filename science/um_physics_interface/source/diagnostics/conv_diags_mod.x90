@@ -312,7 +312,7 @@ contains
                                     dt_conv,                & ! increments
                                     dmv_conv,               &
                                     dmcl_conv,              &
-                                    dmci_conv,              &
+                                    dms_conv,               &
                                     du_conv,                &
                                     dv_conv,                &
                                     dbcf_conv,              &
@@ -377,7 +377,7 @@ contains
     type( field_type ), intent(in)  :: dt_conv,   &
                                        dmv_conv,  &
                                        dmcl_conv, &
-                                       dmci_conv, &
+                                       dms_conv,  &
                                        du_conv,   &
                                        dv_conv,   &
                                        dbcf_conv, &
@@ -445,7 +445,7 @@ contains
     call dt_conv%write_field('convection__dt_conv')
     call dmv_conv%write_field('convection__dmv_conv')
     call dmcl_conv%write_field('convection__dmcl_conv')
-    call dmci_conv%write_field('convection__dmci_conv')
+    call dms_conv%write_field('convection__dms_conv')
     call du_conv%write_field('convection__du_conv')
     call dv_conv%write_field('convection__dv_conv')
     call dbcf_conv%write_field('convection__dbcf_conv')

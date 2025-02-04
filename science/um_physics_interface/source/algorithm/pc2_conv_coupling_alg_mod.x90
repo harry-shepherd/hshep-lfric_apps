@@ -15,6 +15,7 @@ module pc2_conv_coupling_alg_mod
    use mr_indices_mod,       only: nummr, imr_v, imr_cl, imr_ci, imr_s
    use um_sizes_init_mod,    only: um_sizes_init
    use microphysics_config_mod, only: microphysics_casim
+   use convection_config_mod,only: cv_scheme, cv_scheme_comorph
 
    implicit none
 
@@ -64,7 +65,7 @@ contains
     type( field_type ), pointer :: dt_conv         => null()
     type( field_type ), pointer :: dmv_conv        => null()
     type( field_type ), pointer :: dmcl_conv       => null()
-    type( field_type ), pointer :: dmci_conv       => null()
+    type( field_type ), pointer :: dms_conv
     type( field_type ), pointer :: dcfl_conv       => null()
     type( field_type ), pointer :: dcff_conv       => null()
     type( field_type ), pointer :: dbcf_conv       => null()
@@ -85,7 +86,7 @@ contains
     call convection_fields%get_field('dt_conv', dt_conv)
     call convection_fields%get_field('dmv_conv', dmv_conv)
     call convection_fields%get_field('dmcl_conv', dmcl_conv)
-    call convection_fields%get_field('dmci_conv', dmci_conv)
+    call convection_fields%get_field('dms_conv', dms_conv)
     call convection_fields%get_field('dcfl_conv', dcfl_conv)
     call convection_fields%get_field('dcff_conv', dcff_conv)
     call convection_fields%get_field('dbcf_conv', dbcf_conv)
@@ -116,7 +117,6 @@ contains
                   ! All variables are being updated apart from theta
                   inc_X_plus_Y(mr(imr_v),       dmv_conv),         &
                   inc_X_plus_Y(mr(imr_cl),      dmcl_conv),        &
-                  inc_X_plus_Y(mr(imr_ci),      dmci_conv),        &
                   inc_X_plus_Y(liquid_fraction, dcfl_conv),        &
                   inc_X_plus_Y(frozen_fraction, dcff_conv),        &
                   inc_X_plus_Y(bulk_fraction,   dbcf_conv)         )
@@ -124,9 +124,13 @@ contains
     ! Re-initialise UM back to columns
     call um_sizes_init(1_i_def)
 
-    ! If Casim, distribute any negative ice into snow
-    if (microphysics_casim) then
-      call invoke(casim_conv_inc_kernel_type(mr(imr_ci), mr(imr_s)))
+    if (microphysics_casim .and. (.not. cv_scheme == cv_scheme_comorph)) then
+      ! If Casim and WB, add any convective source to the ice cloud, but
+      ! subtract any sink from the snow
+      call invoke(inc_X_plus_Y(mr(imr_ci), dms_conv),              &
+                  casim_conv_inc_kernel_type(mr(imr_ci), mr(imr_s)))
+    else
+      call invoke(inc_X_plus_Y(mr(imr_s), dms_conv))
     end if
 
     if ( subroutine_timers ) call timer ("pc2_conv_coupling_alg")
@@ -136,7 +140,7 @@ contains
       call dt_conv%write_field('cloud__dtheta_pc2_conv_coupling')
       call dmv_conv%write_field('cloud__dmv_pc2_conv_coupling')
       call dmcl_conv%write_field('cloud__dmcl_pc2_conv_coupling')
-      call dmci_conv%write_field('cloud__dmci_pc2_conv_coupling')
+      call dms_conv%write_field('cloud__dms_pc2_conv_coupling')
       call dcfl_conv%write_field('cloud__dcfl_pc2_conv_coupling')
       call dcff_conv%write_field('cloud__dcff_pc2_conv_coupling')
       call dbcf_conv%write_field('cloud__dbcf_pc2_conv_coupling')

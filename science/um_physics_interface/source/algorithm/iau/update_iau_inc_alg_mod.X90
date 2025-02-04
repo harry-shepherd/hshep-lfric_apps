@@ -246,11 +246,11 @@ module update_iau_inc_alg_mod
     call log_event( '- After iau_humidity_inc -', log_level_debug )
     call log_field_minmax( log_level_debug, 'm_v', m_v )
     call log_field_minmax( log_level_debug, 'm_cl', m_cl )
-    call log_field_minmax( log_level_debug, 'm_ci', m_ci )
+    call log_field_minmax( log_level_debug, 'm_s', m_s )
     call log_field_minmax( log_level_debug, 'm_r', m_r )
     call print_meanrms_field( m_v, log_level_debug )
     call print_meanrms_field( m_cl, log_level_debug )
-    call print_meanrms_field( m_ci, log_level_debug )
+    call print_meanrms_field( m_s, log_level_debug )
     call print_meanrms_field( m_r, log_level_debug )
 
     ! PC2 cloud and humidity adjustments

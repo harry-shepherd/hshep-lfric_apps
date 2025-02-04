@@ -19,10 +19,10 @@ all: export ACTIVE_tl_hydrostatic_kernel_mod               := r_u exner theta \
                                                               exner_at_quad theta_v_at_quad \
                                                               grad_term res_dot_product
 all: export ACTIVE_tl_moist_dyn_mass_kernel_mod            := moist_dyn_tot mr_v mr_cl mr_r \
-                                                              mr_ci mr_s mr_g \
+                                                              mr_s mr_g mr_ci \
                                                               mr_v_at_dof mr_cl_at_dof \
-                                                              mr_r_at_dof mr_ci_at_dof \
-                                                              mr_s_at_dof mr_g_at_dof
+                                                              mr_r_at_dof mr_s_at_dof \
+                                                              mr_g_at_dof mr_ci_at_dof
 all: export ACTIVE_tl_kinetic_energy_gradient_kernel_mod   := r_u u ru_e u_e \
                                                               u_at_quad ke_at_quad \
                                                               res_dot_product mul2

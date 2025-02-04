@@ -48,7 +48,7 @@
 	<field field_ref="m_v" />
 	<field field_ref="m_cl" />
 	<field field_ref="processed__tot_col_m_cl" />
-	<field field_ref="m_ci" />
+	<field field_ref="m_cf" />
 	<field field_ref="m_r" />
 	<field field_ref="rho" />
 	<field field_ref="wetrho_in_w3" />
@@ -107,7 +107,7 @@
 	  <field field_ref="init_theta" />
 	  <field field_ref="init_m_v" />
 	  <field field_ref="init_m_cl" />
-	  <field field_ref="init_m_ci" />
+	  <field field_ref="init_m_s" />
 	  <field field_ref="init_m_r" />
 	  <field field_ref="init_w_in_wth" />
 	  <field field_ref="init_rho" />

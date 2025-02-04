@@ -80,7 +80,7 @@ if __name__ == "__main__":
     do_plot(datapath, 'theta', plotpath)
     do_plot(datapath, 'm_v',   plotpath)
     do_plot(datapath, 'm_cl',  plotpath)
-    do_plot(datapath, 'm_ci',  plotpath)
+    do_plot(datapath, 'm_cf',  plotpath)
     do_plot(datapath, 'u_in_w3', plotpath)
     do_plot(datapath, 'combined_cloud_amount', plotpath)
     do_time_plot(datapath, 'sw_down_surf', plotpath)

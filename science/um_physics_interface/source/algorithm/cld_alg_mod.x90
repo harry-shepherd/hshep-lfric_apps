@@ -188,12 +188,12 @@ contains
       ncells = mesh%get_last_edge_cell()
       call um_sizes_init(ncells)
 
-      call mr(imr_ci)%copy_field_properties(mr_ice)
-      call invoke( setval_X(mr_ice, mr(imr_ci)) )
+      call mr(imr_s)%copy_field_properties(mr_ice)
+      call invoke( setval_X(mr_ice, mr(imr_s)) )
       if (microphysics_casim) then
         ! Temporary value of ice to be updated with to
         ! be total ice including any snow.
-        call invoke( inc_X_plus_Y(mr_ice, mr(imr_s) ) )
+        call invoke( inc_X_plus_Y(mr_ice, mr(imr_ci) ) )
       end if ! microphysics_casim
 
       call invoke( smith_kernel_type( theta, exner , exner_wth, rh_crit,       &
@@ -226,12 +226,12 @@ contains
       ncells = mesh%get_last_edge_cell()
       call um_sizes_init(ncells)
 
-     call mr(imr_ci)%copy_field_properties(mr_ice)
-     call invoke( setval_X(mr_ice, mr(imr_ci)) )
+     call mr(imr_s)%copy_field_properties(mr_ice)
+     call invoke( setval_X(mr_ice, mr(imr_s)) )
       if (microphysics_casim) then
         ! Temporary value of ice to be updated with to
         ! be total ice including any snow.
-        call invoke( inc_X_plus_Y(mr_ice, mr(imr_s) ) )
+        call invoke( inc_X_plus_Y(mr_ice, mr(imr_ci) ) )
       end if ! microphysics_casim
 
       call invoke( bm_kernel_type(  theta, exner , exner_wth, dsldzm,          &

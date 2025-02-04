@@ -10,7 +10,7 @@ module leonard_term_alg_mod
   use constants_mod,              only: i_def, r_def
   use field_mod,                  only: field_type
   use field_collection_mod,       only: field_collection_type
-  use mr_indices_mod,             only: nummr, imr_v, imr_cl, imr_ci
+  use mr_indices_mod,             only: nummr, imr_v, imr_cl
 
   use formulation_config_mod,     only: moisture_formulation,    &
                                         moisture_formulation_dry
@@ -180,10 +180,9 @@ subroutine leonard_term_alg(mt_inc_leonard, thetal_inc_leonard, &
     ! Flux of liquid + ice water potential temperature:
     !--------------------------------------------------------------------
                  ! Calculate thetaL =
-                 ! theta - ((lc/cp)*mcl + ((lc+lf)/cp)*mci) / exner
+                 ! theta - ((lc/cp)*mcl) / exner
                       X_times_Y(thetal, theta, exner_in_wth),           &
                  inc_X_minus_bY(thetal, lcrcp, mr(imr_cl)),             &
-                 inc_X_minus_bY(thetal, lsrcp, mr(imr_ci)),             &
                  inc_X_divideby_Y(thetal, exner_in_wth),                &
                  ! Call Leonard term code for scalars
                  leonard_term_th_kernel_type( thetal_inc_leonard,       &
@@ -202,9 +201,8 @@ subroutine leonard_term_alg(mt_inc_leonard, thetal_inc_leonard, &
     ! Flux of total water content:
     !--------------------------------------------------------------------
     if ( moisture_formulation /= moisture_formulation_dry ) then
-                 ! Calculate mt = mv+mcl+mci
+                 ! Calculate mt = mv+mcl
       call invoke(     X_plus_Y(mt, mr(imr_v), mr(imr_cl)),             &
-                   inc_X_plus_Y(mt, mr(imr_ci)),                        &
                    ! Call Leonard term code for scalars
                    leonard_term_th_kernel_type( mt_inc_leonard,         &
                                                 mt,                     &

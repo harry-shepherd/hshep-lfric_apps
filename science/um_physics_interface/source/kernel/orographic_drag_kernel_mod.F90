@@ -57,7 +57,7 @@ module orographic_drag_kernel_mod
          arg_type(GH_FIELD, GH_REAL, GH_READ,  ANY_DISCONTINUOUS_SPACE_1), & ! grad_yy_orog
          arg_type(GH_FIELD, GH_REAL, GH_READ,  Wtheta),                    & ! mr_v
          arg_type(GH_FIELD, GH_REAL, GH_READ,  Wtheta),                    & ! mr_cl
-         arg_type(GH_FIELD, GH_REAL, GH_READ,  Wtheta),                    & ! mr_ci
+         arg_type(GH_FIELD, GH_REAL, GH_READ,  Wtheta),                    & ! mr_cf
          arg_type(GH_FIELD, GH_REAL, GH_READ,  W3),                        & ! height_w3
          arg_type(GH_FIELD, GH_REAL, GH_READ,  Wtheta),                    & ! height_wth
          arg_type(GH_FIELD, GH_REAL, GH_WRITE, Wtheta),                    & ! taux_orog_blk
@@ -99,7 +99,7 @@ contains
   !! @param[in]     grad_yy_orog   (dh/dy)**2
   !! @param[in]     mr_v           Water vapour mixing ratio
   !! @param[in]     mr_cl          Cloud liquid mixing ratio
-  !! @param[in]     mr_ci          Cloud ice mixing ratio
+  !! @param[in]     mr_cf          Cloud frozen mixing ratio
   !! @param[in]     height_w3      Height at rho levels
   !! @param[in]     height_wth     Height at theta levels
   !! @param[in,out] taux_orog_blk  x-stress from blocking
@@ -122,7 +122,7 @@ contains
                         dtemp_orog_blk, dtemp_orog_gwd, u_in_w3, v_in_w3,  &
                         wetrho_in_w3, theta_in_wth, exner_in_wth, sd_orog, &
                         grad_xx_orog, grad_xy_orog, grad_yy_orog,          &
-                        mr_v, mr_cl, mr_ci,                                &
+                        mr_v, mr_cl, mr_cf,                                &
                         height_w3, height_wth,                             &
                         ! Diagnostics
                         taux_orog_blk, tauy_orog_blk,                      &
@@ -158,7 +158,7 @@ contains
     real(r_def), intent(in), dimension(undf_w3)     :: u_in_w3, v_in_w3, &
                                                        wetrho_in_w3
     real(r_def), intent(in), dimension(undf_wth)  :: theta_in_wth, exner_in_wth
-    real(r_def), intent(in), dimension(undf_wth)  :: mr_v, mr_cl, mr_ci
+    real(r_def), intent(in), dimension(undf_wth)  :: mr_v, mr_cl, mr_cf
     real(r_def), intent(in), dimension(undf_2d)   :: sd_orog,      &
                                                      grad_xx_orog, &
                                                      grad_xy_orog, &
@@ -306,7 +306,7 @@ contains
       ! cloud liquid mixing ratio
       qcl(1,k) = mr_cl(map_wth(1) + k)
       ! cloud ice mixing ratio
-      qcf(1,k) = mr_ci(map_wth(1) + k)
+      qcf(1,k) = mr_cf(map_wth(1) + k)
 
       l_lapse(1,k) = .false.
 

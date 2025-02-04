@@ -54,7 +54,7 @@ module conv_gr_kernel_mod
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dt_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dmv_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dmcl_conv
-         arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dmci_conv
+         arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! dms_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, W3),                       &! du_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, W3),                       &! dv_conv
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! conv_prog_precip
@@ -62,7 +62,7 @@ module conv_gr_kernel_mod
          arg_type(GH_FIELD,  GH_REAL,    GH_READWRITE, WTHETA),                   &! conv_prog_dmv
          arg_type(GH_FIELD,  GH_REAL,    GH_READ,      WTHETA),                   &! m_v
          arg_type(GH_FIELD,  GH_REAL,    GH_READ,      WTHETA),                   &! m_cl
-         arg_type(GH_FIELD,  GH_REAL,    GH_READ,      WTHETA),                   &! m_ci
+         arg_type(GH_FIELD,  GH_REAL,    GH_READ,      WTHETA),                   &! m_cf
          arg_type(GH_FIELD,  GH_REAL,    GH_READ,      WTHETA),                   &! cf_ice
          arg_type(GH_FIELD,  GH_REAL,    GH_READ,      WTHETA),                   &! cf_liq
          arg_type(GH_FIELD,  GH_REAL,    GH_READ,      WTHETA),                   &! cf_bulk
@@ -281,7 +281,7 @@ contains
   !> @param[in,out] dt_conv              Convection temperature increment
   !> @param[in,out] dmv_conv             Convection vapour increment
   !> @param[in,out] dmcl_conv            Convection cloud liquid increment
-  !> @param[in,out] dmci_conv            Convection cloud ice increment
+  !> @param[in,out] dms_conv             Convection cloud snow increment
   !> @param[in,out] du_conv              Convection 'zonal' wind increment
   !> @param[in,out] dv_conv              Convection 'meridional' wind increment
   !> @param[in,out] conv_prog_precip     Surface precipitation based 3d convective prognostic (kg/m2/s)
@@ -289,7 +289,7 @@ contains
   !> @param[in,out] conv_prog_dmv        Time smoothed convective humidity increment
   !> @param[in]     m_v                  Vapour mixing ratio after advection
   !> @param[in]     m_cl                 Cloud liq mixing ratio after advection
-  !> @param[in]     m_ci                 Cloud ice mixing ratio after advection
+  !> @param[in]     m_cf                 Cloud fro mixing ratio after advection
   !> @param[in]     cf_ice               Ice cloud fraction
   !> @param[in]     cf_liq               Liquid cloud fraction
   !> @param[in]     cf_bulk              Bulk cloud fraction
@@ -506,7 +506,7 @@ contains
                           dt_conv,                           &
                           dmv_conv,                          &
                           dmcl_conv,                         &
-                          dmci_conv,                         &
+                          dms_conv,                          &
                           du_conv,                           &
                           dv_conv,                           &
                           conv_prog_precip,                  &
@@ -514,7 +514,7 @@ contains
                           conv_prog_dmv,                     &
                           m_v,                               &
                           m_cl,                              &
-                          m_ci,                              &
+                          m_cf,                              &
                           cf_ice,                            &
                           cf_liq,                            &
                           cf_bulk,                           &
@@ -887,7 +887,7 @@ contains
                                                         height_w3
     real(kind=r_def), dimension(undf_wth), intent(in) :: cf_ice,            &
                                                          cf_liq, cf_bulk,   &
-                                                         m_v, m_cl, m_ci,   &
+                                                         m_v, m_cl, m_cf,   &
                                                          rho_in_wth,        &
                                                          wetrho_in_wth,     &
                                                          exner_in_wth,      &
@@ -897,7 +897,7 @@ contains
                                                          delta
 
     real(kind=r_def), dimension(undf_wth), intent(inout) :: dt_conv, dmv_conv, &
-                                          dmcl_conv, dmci_conv, cca, ccw,      &
+                                          dmcl_conv, dms_conv, cca, ccw,       &
                                           massflux_up, massflux_down,          &
                                           conv_rain_3d, conv_snow_3d, tke_bl,  &
                                           conv_prog_precip,                    &
@@ -1321,7 +1321,7 @@ contains
       theta_conv(1,1,k) = theta_star(map_wth(1) + k)
       q_conv(1,1,k)   = m_v(map_wth(1) + k)
       qcl_conv(1,1,k) = m_cl(map_wth(1) + k)
-      qcf_conv(1,1,k) = m_ci(map_wth(1) + k)
+      qcf_conv(1,1,k) = m_cf(map_wth(1) + k)
 
       cf_liquid_conv(1,1,k) = cf_liq(map_wth(1) + k)
       cf_frozen_conv(1,1,k) = cf_ice(map_wth(1) + k)
@@ -2011,7 +2011,7 @@ contains
                                      + dqbydt(1,1,k) * timestep_conv
         dmcl_conv(map_wth(1) + k) =  dmcl_conv(map_wth(1) + k)            &
                                      + dqclbydt(1,1,k) * timestep_conv
-        dmci_conv(map_wth(1) + k) =  dmci_conv(map_wth(1) + k)            &
+        dms_conv(map_wth(1) + k) =  dms_conv(map_wth(1) + k)              &
                                      + dqcfbydt(1,1,k) * timestep_conv
 
         ! Update diagnostics
@@ -2250,7 +2250,7 @@ contains
                              / exner_in_wth(map_wth(1) + 1)
     dmv_conv (map_wth(1) + 0) = dmv_conv (map_wth(1) + 1)
     dmcl_conv(map_wth(1) + 0) = dmcl_conv(map_wth(1) + 1)
-    dmci_conv(map_wth(1) + 0) = dmci_conv(map_wth(1) + 1)
+    dms_conv(map_wth(1) + 0) = dms_conv(map_wth(1) + 1)
 
     ! Store convective downdraught mass fluxes at cloud base
     ! if required for surface exchange.

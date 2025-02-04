@@ -26,7 +26,7 @@ module bl_imp_diags_mod
   logical( l_def ) :: dt_bl_flag
   logical( l_def ) :: dmv_bl_flag
   logical( l_def ) :: dmcl_bl_flag
-  logical( l_def ) :: dmci_bl_flag
+  logical( l_def ) :: dms_bl_flag
   logical( l_def ) :: dbcf_bl_flag
   logical( l_def ) :: dacf_bl_flag
   logical( l_def ) :: dcfl_bl_flag
@@ -101,7 +101,7 @@ contains
   !> @param[in]     tile_fraction      Surface tile fractions
   !> @param[in,out] dmv_bl             BL increment to vapour mixing ratio
   !> @param[in,out] dmcl_bl            BL increment to cloud liq mixing ratio
-  !> @param[in,out] dmci_bl            BL increment to cloud ice mixing ratio
+  !> @param[in,out] dms_bl             BL increment to snow mixing ratio
   !> @param[in,out] dbcf_bl            BL increment to bulk cloud fraction
   !> @param[in,out] dacf_bl            BL increment to area cloud fraction
   !> @param[in,out] dcfl_bl            BL increment to liquid cloud fraction
@@ -157,7 +157,7 @@ contains
   subroutine initialise_diags_for_bl_imp(mv, mcl, mci, cf_bulk,          &
                                          cf_area, cf_liq, cf_fro,        &
                                          exner, zh, tile_fraction,       &
-                                         dmv_bl, dmcl_bl, dmci_bl,       &
+                                         dmv_bl, dmcl_bl, dms_bl,        &
                                          dbcf_bl, dacf_bl,               &
                                          dcfl_bl, dcff_bl,               &
                                          t1p5m_surft, q1p5m_surft,       &
@@ -194,7 +194,7 @@ contains
     type( field_type ), intent(in)    :: exner, zh, tile_fraction
 
     ! Diagnostic fields to initialise
-    type( field_type ), intent(inout) :: dmv_bl, dmcl_bl, dmci_bl
+    type( field_type ), intent(inout) :: dmv_bl, dmcl_bl, dms_bl
     type( field_type ), intent(inout) :: dbcf_bl, dacf_bl
     type( field_type ), intent(inout) :: dcfl_bl, dcff_bl
     type( field_type ), intent(inout) :: t1p5m_surft, q1p5m_surft
@@ -231,8 +231,8 @@ contains
     dmcl_bl_flag = init_diag(dmcl_bl, 'turbulence__dmcl_bl')
     if (dmcl_bl_flag) call invoke(a_times_X(dmcl_bl, -1.0_r_def, mcl))
 
-    dmci_bl_flag = init_diag(dmci_bl, 'turbulence__dmci_bl')
-    if (dmci_bl_flag) call invoke(a_times_X(dmci_bl, -1.0_r_def, mci))
+    dms_bl_flag = init_diag(dms_bl, 'turbulence__dms_bl')
+    if (dms_bl_flag) call invoke(a_times_X(dms_bl, -1.0_r_def, mci))
 
     dbcf_bl_flag = init_diag(dbcf_bl, 'turbulence__dbcf_bl')
     if (dbcf_bl_flag) call invoke(a_times_X(dbcf_bl, -1.0_r_def, cf_bulk))
@@ -431,7 +431,7 @@ contains
   !> @param[in]     cca_2d                   2D convective cloud fraction
   !> @param[in,out] dmv_bl                   BL increment to vapour mixing ratio
   !> @param[in,out] dmcl_bl                  BL increment to cloud liq mixing ratio
-  !> @param[in,out] dmci_bl                  BL increment to cloud ice mixing ratio
+  !> @param[in,out] dms_bl                   BL increment to cloud ice mixing ratio
   !> @param[in,out] dbcf_bl                  BL increment to bulk cloud fraction
   !> @param[in,out] dacf_bl                  BL increment to area cloud fraction
   !> @param[in,out] dcfl_bl                  BL increment to liquid cloud fraction
@@ -477,7 +477,7 @@ contains
                                      heat_flux_bl, moist_flux_bl,              &
                                      bl_weight_1dbl, ls_rain, ls_snow, lsca_2d,&
                                      conv_rain, conv_snow, cca_2d,             &
-                                     dmv_bl, dmcl_bl, dmci_bl, dbcf_bl,        &
+                                     dmv_bl, dmcl_bl, dms_bl, dbcf_bl,         &
                                      dacf_bl, dcfl_bl, dcff_bl,                &
                                      fog_fraction, fog_fraction_ssi,           &
                                      fog_fraction_land, vis_prob_5km,          &
@@ -526,7 +526,7 @@ contains
     ! Diagnostics locally computed here from other fields
     type( field_type ), intent(inout) :: dmv_bl
     type( field_type ), intent(inout) :: dmcl_bl
-    type( field_type ), intent(inout) :: dmci_bl
+    type( field_type ), intent(inout) :: dms_bl
     type( field_type ), intent(inout) :: dbcf_bl
     type( field_type ), intent(inout) :: dacf_bl
     type( field_type ), intent(inout) :: dcfl_bl
@@ -597,9 +597,9 @@ contains
       call invoke(inc_X_plus_Y(dmcl_bl, mcl))
       call dmcl_bl%write_field()
     end if
-    if (dmci_bl_flag) then
-      call invoke(inc_X_plus_Y(dmci_bl, mci))
-      call dmci_bl%write_field()
+    if (dms_bl_flag) then
+      call invoke(inc_X_plus_Y(dms_bl, mci))
+      call dms_bl%write_field()
     end if
     if (dbcf_bl_flag) then
       call invoke(inc_X_plus_Y(dbcf_bl, cf_bulk))

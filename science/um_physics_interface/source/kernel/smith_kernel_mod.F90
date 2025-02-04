@@ -34,7 +34,7 @@ module smith_kernel_mod
          arg_type(GH_FIELD, GH_INTEGER, GH_READ,   ANY_DISCONTINUOUS_SPACE_1), & ! cumulus_2d
          arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                    & ! m_v
          arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                    & ! m_cl
-         arg_type(GH_FIELD, GH_REAL, GH_READ,      WTHETA),                    & ! m_ci
+         arg_type(GH_FIELD, GH_REAL, GH_READ,      WTHETA),                    & ! m_cf
          arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                    & ! cf_area
          arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                    & ! cf_ice
          arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                    & ! cf_liq
@@ -65,7 +65,7 @@ contains
   !> @param[in]     cumulus_2d    Cumulus flag
   !> @param[in,out] m_v           Vapour mixing ratio in wth
   !> @param[in,out] m_cl          Cloud liquid mixing ratio in wth
-  !> @param[in]     m_ci          Total ice mixing ratio incl snow in wth
+  !> @param[in]     m_cf          Total frozen mixing ratio incl snow in wth
   !> @param[in,out] cf_area       Area cloud fraction
   !> @param[in,out] cf_ice        Ice cloud fraction
   !> @param[in,out] cf_liq        Liquid cloud fraction
@@ -91,7 +91,7 @@ contains
                         cumulus_2d,   &
                         m_v,          &
                         m_cl,         &
-                        m_ci,         &
+                        m_cf,         &
                         cf_area,      &
                         cf_ice,       &
                         cf_liq,       &
@@ -138,7 +138,7 @@ contains
     integer(kind=i_def), intent(in),    dimension(undf_2d)  :: ntml_2d, cumulus_2d
     real(kind=r_def),    intent(inout), dimension(undf_wth) :: m_v
     real(kind=r_def),    intent(inout), dimension(undf_wth) :: m_cl
-    real(kind=r_def),    intent(in),    dimension(undf_wth) :: m_ci
+    real(kind=r_def),    intent(in),    dimension(undf_wth) :: m_cf
     real(kind=r_def),    intent(inout), dimension(undf_wth) :: cf_area
     real(kind=r_def),    intent(inout), dimension(undf_wth) :: cf_ice
     real(kind=r_def),    intent(inout), dimension(undf_wth) :: cf_liq
@@ -187,7 +187,7 @@ contains
                     (lc * m_cl(map_wth(1,i) + k)) / cp
         ! total water and ice water on theta levels
         qt(i,1,k) =  m_v(map_wth(1,i) + k) + m_cl(map_wth(1,i) + k)
-        qcf_in(i,1,k) = m_ci(map_wth(1,i) + k)
+        qcf_in(i,1,k) = m_cf(map_wth(1,i) + k)
         ! cloud fields
         cf_inout(i,1,k) = cf_bulk(map_wth(1,i) + k)
         cff_inout(i,1,k) = cf_ice(map_wth(1,i) + k)

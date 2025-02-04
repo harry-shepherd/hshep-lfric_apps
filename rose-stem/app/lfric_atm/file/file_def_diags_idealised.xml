@@ -24,7 +24,7 @@
     <field field_ref="m_v" />
     <field field_ref="m_cl" />
     <field field_ref="processed__tot_col_m_cl" />
-    <field field_ref="m_ci" />
+    <field field_ref="m_cf" />
     <field field_ref="m_r" />
     <field field_ref="rho" />
     <field field_ref="wetrho_in_w3" />

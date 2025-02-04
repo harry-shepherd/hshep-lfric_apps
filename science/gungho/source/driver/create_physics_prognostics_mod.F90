@@ -667,7 +667,7 @@ contains
     call processor%apply(make_spec('dt_conv', main%convection, Wtheta))
     call processor%apply(make_spec('dmv_conv', main%convection, Wtheta))
     call processor%apply(make_spec('dmcl_conv', main%convection, Wtheta))
-    call processor%apply(make_spec('dmci_conv', main%convection, Wtheta))
+    call processor%apply(make_spec('dms_conv', main%convection, Wtheta))
     call processor%apply(make_spec('dcfl_conv', main%convection, Wtheta))
     call processor%apply(make_spec('dcff_conv', main%convection, Wtheta))
     call processor%apply(make_spec('dbcf_conv', main%convection, Wtheta))

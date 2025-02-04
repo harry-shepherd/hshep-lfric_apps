@@ -194,12 +194,12 @@ subroutine electric_main_code(nlayers, mi_wth, ms_wth, mg_wth, temp_in_wth,    &
     if (l_mcr_qcf2) then
       ! Two ice prognostics in use
       do k = 1, nlayers
-        qcf_tot_work(1,1,k) = mi_wth(map_wth(1) + k) + ms_wth(map_wth(1) + k)
+        qcf_tot_work(1,1,k) = ms_wth(map_wth(1) + k) + mi_wth(map_wth(1) + k)
       end do
     else
       ! One ice prognostic
       do k = 1, nlayers
-        qcf_tot_work(1,1,k) = mi_wth(map_wth(1) + k)
+        qcf_tot_work(1,1,k) = ms_wth(map_wth(1) + k)
       end do
     end if ! l_mcr_qcf2
 

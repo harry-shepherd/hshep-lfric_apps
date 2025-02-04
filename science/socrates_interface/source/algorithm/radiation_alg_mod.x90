@@ -455,14 +455,13 @@ subroutine radiation_alg(dtheta_rad, theta, exner, mr, moist_dyn,             &
                    t_layer_boundaries, p_zero, kappa, gravity, cp ), &
                  name="set_thermodynamics_fields" )
 
-    call mr(imr_ci)%copy_field_properties(mr_ice)
+    ! Set total ice mass and number fields
+    call mr(imr_s)%copy_field_properties(mr_ice)
     call ni_mphys%copy_field_properties(n_ice)
-    call invoke( setval_X(mr_ice, mr(imr_ci)), &
-                 setval_X(n_ice, ni_mphys) )
+    call invoke( setval_X(mr_ice, mr(imr_s)) )
     if (microphysics_casim) then
-      ! Temporary value of ice to be updated with to
-      ! be total ice including any snow.
-      call invoke( inc_X_plus_Y(mr_ice, mr(imr_s) ), &
+      call invoke( inc_X_plus_Y(mr_ice, mr(imr_ci) ), &
+                       setval_X(n_ice, ni_mphys), &
                    inc_X_plus_Y(n_ice, ns_mphys) )
     end if ! microphysics_casim
 

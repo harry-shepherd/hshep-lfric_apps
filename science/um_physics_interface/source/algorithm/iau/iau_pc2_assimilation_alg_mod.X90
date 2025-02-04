@@ -87,7 +87,7 @@ module iau_pc2_assimilation_alg_mod
     type( field_type )      :: theta_forcing_wth
     type( field_type )      :: mv_forcing_wth
     type( field_type )      :: mcl_forcing_wth
-    type( field_type )      :: mci_forcing_wth
+    type( field_type )      :: ms_forcing_wth
 
     ! Various responses
     type( field_type )      :: theta_inc_wth ! theta response from iau_pc2_check
@@ -109,7 +109,7 @@ module iau_pc2_assimilation_alg_mod
     call theta % copy_field_properties( theta_forcing_wth )
     call m_v % copy_field_properties( mv_forcing_wth )
     call m_v % copy_field_properties( mcl_forcing_wth )
-    call m_v % copy_field_properties( mci_forcing_wth )
+    call m_v % copy_field_properties( ms_forcing_wth )
     call theta % copy_field_properties( theta_inc_wth )
     call m_v % copy_field_properties( mv_inc_wth )
     call m_cl % copy_field_properties( mcl_inc_wth )
@@ -153,9 +153,9 @@ module iau_pc2_assimilation_alg_mod
                  inc_X_plus_Y( bcf, bcf_inc_wth ),  &
 
                  ! Calculate changes to ice cloud fraction
-                 X_minus_Y ( mci_forcing_wth, m_ci, mci_earlier ),      &
-                 iau_pc2_cff_kernel_type( mci_earlier, mci_forcing_wth, &
-                                           bcf, cfl, cff ),             &
+                 X_minus_Y ( ms_forcing_wth, m_s, ms_earlier ),       &
+                 iau_pc2_cff_kernel_type( ms_earlier, ms_forcing_wth, &
+                                           bcf, cfl, cff ),           &
 
                  ! Call the pc2_check
                  pc2_checks_kernel_type( m_v,                   &

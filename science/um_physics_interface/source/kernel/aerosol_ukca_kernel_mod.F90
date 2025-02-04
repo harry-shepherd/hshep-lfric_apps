@@ -229,7 +229,7 @@ type, public, extends(kernel_type) :: aerosol_ukca_kernel_type
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! u3_in_wth
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! m_v_n
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! m_cl_n
-       arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! m_ci_n
+       arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! m_cf_n
        arg_type( GH_FIELD, GH_REAL, GH_READ, W3 ),          & ! height_w3
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! wetrho_in_wth
        arg_type( GH_FIELD, GH_REAL, GH_READ, WTHETA ),      & ! detj_shifted
@@ -537,7 +537,7 @@ contains
 !> @param[in]     u3_in_wth           'Vertical' wind in theta space
 !> @param[in]     m_v_n               Vapour mixing ratio at time level n
 !> @param[in]     m_cl_n              Cloud liq mixing ratio at time level n
-!> @param[in]     m_ci_n              Cloud ice mixing ratio at time level n
+!> @param[in]     m_cf_n              Cloud frozen mixing ratio at time level n
 !> @param[in]     height_w3           Height of density space above surface (m)
 !> @param[in]     wetrho_in_w3        Wet density in Wtheta space(kg m-3)
 !> @param[in]     detj_shifted        det(J) on Wtheta mesh (for volume)
@@ -848,7 +848,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               u3_in_wth,                                       &
                               m_v_n,                                           &
                               m_cl_n,                                          &
-                              m_ci_n,                                          &
+                              m_cf_n,                                          &
                               height_w3,                                       &
                               wetrho_in_wth,                                   &
                               detj_shifted,                                    &
@@ -1490,7 +1490,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   real(kind=r_def), intent(in), dimension(undf_wth) :: u3_in_wth
   real(kind=r_def), intent(in), dimension(undf_wth) :: m_v_n
   real(kind=r_def), intent(in), dimension(undf_wth) :: m_cl_n
-  real(kind=r_def), intent(in), dimension(undf_wth) :: m_ci_n
+  real(kind=r_def), intent(in), dimension(undf_wth) :: m_cf_n
   real(kind=r_def), intent(in), dimension(undf_w3) :: height_w3
   real(kind=r_def), intent(in), dimension(undf_wth) :: wetrho_in_wth
   real(kind=r_def), intent(in), dimension(undf_wth) :: detj_shifted
@@ -3510,7 +3510,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
       do i = 1, seg_len
         do k = 1, nlayers
           environ_fullht_real( i, 1, k, m ) =                                  &
-            real( m_ci_n( map_wth(1,i) + k ), r_um )
+            real( m_cf_n( map_wth(1,i) + k ), r_um )
         end do
       end do
     case(fldname_bulk_cloud_frac)

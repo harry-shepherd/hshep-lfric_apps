@@ -965,10 +965,10 @@ contains
     call um_sizes_init( ncells )
 
     ! Calculate total ice field
-    call mr(imr_ci)%copy_field_properties(mr_ice)
-    call invoke(setval_X(mr_ice, mr(imr_ci)))
+    call mr(imr_s)%copy_field_properties(mr_ice)
+    call invoke(setval_X(mr_ice, mr(imr_s)))
     if (microphysics_casim) then
-      call invoke(inc_X_plus_Y(mr_ice, mr(imr_s)))
+      call invoke(inc_X_plus_Y(mr_ice, mr(imr_ci)))
     end if
 
     ! Pseudo / specified photolysis rates array

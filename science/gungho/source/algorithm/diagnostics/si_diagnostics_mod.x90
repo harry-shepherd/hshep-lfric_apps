@@ -21,7 +21,7 @@ module si_diagnostics_mod
                                       stochastic_physics_placement,     &
                                       stochastic_physics_placement_fast
   use physics_mappings_alg_mod, only: map_physics_winds
-  use mr_indices_mod,           only: nummr, imr_v, imr_cl, imr_ci
+  use mr_indices_mod,           only: nummr, imr_v, imr_cl, imr_ci, imr_s
   use io_config_mod,            only: subroutine_timers
   use timer_mod,                only: timer
 
@@ -71,7 +71,8 @@ contains
                         dmv_tot, dmcl_tot, dmci_tot, dtheta_adv, dtheta_slow, &
                         du_w2_adv, du_adv, dv_adv, dw_adv, dmv_adv,           &
                         dmcl_adv, dmci_adv, dbcf_adv, dcfl_adv, dcff_adv,     &
-                        dtheta_solv, du_w2_solv, du_solv, dv_solv, dw_solv
+                        dtheta_solv, du_w2_solv, du_solv, dv_solv, dw_solv,   &
+                        dms_tot, dms_adv
 
     type(field_type), pointer :: u_star => null()
     type(field_type), pointer :: theta_star => null()
@@ -130,6 +131,11 @@ contains
       call dmci_tot%write_field()
     end if
 
+    if (init_diag(dms_tot, 'processed__dms_tot')) then
+      call invoke(X_minus_Y(dms_tot,mr(imr_s),mr_n(imr_s)))
+      call dms_tot%write_field()
+    end if
+
     ! These diagnostics use the predictor values, hence only make sense with
     ! physics on
     if (use_physics .and.                                                       &
@@ -177,6 +183,11 @@ contains
         if (init_diag(dmci_adv, 'advection__dmci_adv')) then
           call invoke(X_minus_Y(dmci_adv,mr_after_adv(imr_ci),mr_after_slow(imr_ci)))
           call dmci_adv%write_field()
+        end if
+
+        if (init_diag(dms_adv, 'advection__dms_adv')) then
+          call invoke(X_minus_Y(dms_adv,mr_after_adv(imr_s),mr_after_slow(imr_s)))
+          call dms_adv%write_field()
         end if
       end if
 

@@ -91,9 +91,9 @@ contains
 !! @param[in] mr_v  Water vapour mixing ratio
 !! @param[in] mr_cl Liquid cloud mixing ratio
 !! @param[in] mr_r  Rain mixing ratio
-!! @param[in] mr_ci Ice cloud mixing ratio
 !! @param[in] mr_s  Snow mixing ratio
 !! @param[in] mr_g  Graupel mixing ratio
+!! @param[in] mr_ci Ice cloud mixing ratio
 !! @param[in] phi The geopotential
 !! @param[in] phi0 Surface geopotential
 !! @param[in] chi_1 1st coordinate field in Wchi
@@ -130,7 +130,7 @@ subroutine compute_energetics_code(                                           &
                                    kinetic_uv, kinetic_w, potential,          &
                                    internal, moist_int,                       &
                                    u, rho, exner, theta,                      &
-                                   mr_v, mr_cl, mr_r, mr_ci, mr_s, mr_g, phi, &
+                                   mr_v, mr_cl, mr_r, mr_s, mr_g, mr_ci, phi, &
                                    phi0, chi_1, chi_2, chi_3, panel_id,       &
                                    cv,                                        &
                                    ndf_w3, undf_w3, map_w3, w3_basis,         &

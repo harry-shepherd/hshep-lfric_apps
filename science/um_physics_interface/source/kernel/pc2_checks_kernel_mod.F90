@@ -180,8 +180,8 @@ subroutine pc2_checks_code( nlayers,                   &
       ! Moist prognostics
       qv_work(1,1,k)  = mv_wth(map_wth(1) + k)
       qcl_work(1,1,k) = ml_wth(map_wth(1) + k)
-      qcf_work(1,1,k) = mi_wth(map_wth(1) + k)
-      qcf2_work(1,1,k) = ms_wth(map_wth(1) + k)
+      qcf_work(1,1,k) = ms_wth(map_wth(1) + k)
+      qcf2_work(1,1,k) = mi_wth(map_wth(1) + k)
 
       ! Cast LFRic cloud fractions onto cloud fraction work arrays.
       bcf_work(1,1,k) = bcf_wth(map_wth(1) + k)
@@ -212,8 +212,8 @@ subroutine pc2_checks_code( nlayers,                   &
       !
       dmv_response_wth (map_wth(1)+k) = qv_work (1,1,k) - mv_wth (map_wth(1) + k)
       dmcl_response_wth(map_wth(1)+k) = qcl_work(1,1,k) - ml_wth (map_wth(1) + k)
-      dmci_response_wth(map_wth(1)+k) = qcf_work(1,1,k) - mi_wth (map_wth(1) + k)
-      dms_response_wth(map_wth(1)+k) = qcf2_work(1,1,k) - ms_wth (map_wth(1) + k)
+      dmci_response_wth(map_wth(1)+k) = qcf2_work(1,1,k) - mi_wth (map_wth(1) + k)
+      dms_response_wth(map_wth(1)+k) = qcf_work(1,1,k) - ms_wth (map_wth(1) + k)
       dcfl_response_wth(map_wth(1)+k) = cfl_work(1,1,k) - cfl_wth(map_wth(1) + k)
       dcff_response_wth(map_wth(1)+k) = cff_work(1,1,k) - cff_wth(map_wth(1) + k)
       dbcf_response_wth(map_wth(1)+k) = bcf_work(1,1,k) - bcf_wth(map_wth(1) + k)

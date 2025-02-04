@@ -30,7 +30,7 @@ theta           = ['theta',           265,  300]
 grid_surface_temperature = ['grid_surface_temperature',265,300]
 m_v             = ['m_v',             1e-3, 15e-3]
 m_cl            = ['m_cl',            0,    5e-5]
-m_ci            = ['m_ci',            0,    1e-4]
+m_cf            = ['m_cf',            0,    1e-4]
 u_in_w3         = ['u_in_w3',        -15,  15]
 sw_temperature_incr = ['sw_temperature_incr', 0, 0.1]
 lw_temperature_incr = ['lw_temperature_incr', -2, 1]
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     do_plot(datapath, theta,           plotpath)
     do_plot(datapath, m_v,             plotpath)
     do_plot(datapath, m_cl,            plotpath)
-    do_plot(datapath, m_ci,            plotpath)
+    do_plot(datapath, m_cf,            plotpath)
     do_plot(datapath, u_in_w3,         plotpath)
     do_plot(datapath, cloud_amount_maxrnd, plotpath)
     do_plot(datapath, grid_surface_temperature, plotpath)

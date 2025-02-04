@@ -35,7 +35,7 @@ type, public, extends(kernel_type) :: mphys_kernel_type
   type(arg_type) :: meta_args(48) = (/                                      &
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),                       & ! mv_wth
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),                       & ! ml_wth
-       arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),                       & ! mi_wth
+       arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),                       & ! ms_wth
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),                       & ! mr_wth
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),                       & ! mg_wth
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),                       & ! cf_wth
@@ -54,7 +54,7 @@ type, public, extends(kernel_type) :: mphys_kernel_type
        arg_type(GH_FIELD, GH_REAL, GH_READ,  ANY_DISCONTINUOUS_SPACE_1),    & ! sd_orog
        arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                   & ! dmv_wth
        arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                   & ! dml_wth
-       arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                   & ! dmi_wth
+       arg_type(GH_FIELD, GH_REAL, GH_READWRITE, WTHETA),                   & ! dms_wth
        arg_type(GH_FIELD, GH_REAL, GH_WRITE, WTHETA),                       & ! dmr_wth
        arg_type(GH_FIELD, GH_REAL, GH_WRITE, WTHETA),                       & ! dmg_wth
        arg_type(GH_FIELD, GH_REAL, GH_WRITE, ANY_DISCONTINUOUS_SPACE_1),    & ! ls_rain_2d
@@ -96,7 +96,7 @@ contains
 !> @param[in]     seg_len             Number of horizontal cells in segment
 !> @param[in]     mv_wth              Vapour mass mixing ratio
 !> @param[in]     ml_wth              Liquid cloud mass mixing ratio
-!> @param[in]     mi_wth              Ice cloud mass mixing ratio
+!> @param[in]     ms_wth              Snow cloud mass mixing ratio
 !> @param[in]     mr_wth              Rain mass mixing ratio
 !> @param[in]     mg_wth              Graupel mass mixing ratio
 !> @param[in]     cf_wth              Bulk cloud fraction
@@ -115,7 +115,7 @@ contains
 !> @param[in]     sd_orog             Standard deviation of sub-grid orog
 !> @param[in,out] dmv_wth             Increment to vapour mass mixing ratio
 !> @param[in,out] dml_wth             Increment to liquid cloud mass mixing ratio
-!> @param[in,out] dmi_wth             Increment to ice cloud mass mixing ratio
+!> @param[in,out] dms_wth             Increment to snow cloud mass mixing ratio
 !> @param[in,out] dmr_wth             Increment to rain mass mixing ratio
 !> @param[in,out] dmg_wth             Increment to graupel mass mixing ratio
 !> @param[in,out] ls_rain_2d          Large scale rain from twod_fields
@@ -163,7 +163,7 @@ contains
 !> @param[in]     map_farr            Dofmap for a segment of the fsd array field
 
 subroutine mphys_code( nlayers, seg_len,            &
-                       mv_wth,   ml_wth,   mi_wth,  &
+                       mv_wth,   ml_wth,   ms_wth,  &
                        mr_wth,   mg_wth,            &
                        cf_wth,   cfl_wth,  cff_wth, &
                        u_in_w3, v_in_w3,            &
@@ -173,7 +173,7 @@ subroutine mphys_code( nlayers, seg_len,            &
                        height_w3, height_wth,       &
                        cloud_drop_no_conc, murk,    &
                        sd_orog,                     &
-                       dmv_wth,  dml_wth,  dmi_wth, &
+                       dmv_wth,  dml_wth,  dms_wth, &
                        dmr_wth,  dmg_wth,           &
                        ls_rain_2d, ls_snow_2d,      &
                        ls_graup_2d, lsca_2d,        &
@@ -248,7 +248,7 @@ subroutine mphys_code( nlayers, seg_len,            &
 
     real(kind=r_def), intent(in),  dimension(undf_wth) :: mv_wth
     real(kind=r_def), intent(in),  dimension(undf_wth) :: ml_wth
-    real(kind=r_def), intent(in),  dimension(undf_wth) :: mi_wth
+    real(kind=r_def), intent(in),  dimension(undf_wth) :: ms_wth
     real(kind=r_def), intent(in),  dimension(undf_wth) :: mr_wth
     real(kind=r_def), intent(in),  dimension(undf_wth) :: mg_wth
     real(kind=r_def), intent(in),  dimension(undf_wth) :: cf_wth
@@ -270,7 +270,7 @@ subroutine mphys_code( nlayers, seg_len,            &
 
     real(kind=r_def), intent(inout), dimension(undf_wth) :: dmv_wth
     real(kind=r_def), intent(inout), dimension(undf_wth) :: dml_wth
-    real(kind=r_def), intent(inout), dimension(undf_wth) :: dmi_wth
+    real(kind=r_def), intent(inout), dimension(undf_wth) :: dms_wth
     real(kind=r_def), intent(inout), dimension(undf_wth) :: dmr_wth
     real(kind=r_def), intent(inout), dimension(undf_wth) :: dmg_wth
     real(kind=r_def), intent(inout), dimension(undf_2d)  :: ls_rain_2d
@@ -476,7 +476,7 @@ subroutine mphys_code( nlayers, seg_len,            &
         ! Compulsory moist prognostics
         q_work(i,j,k)    = mv_wth(map_wth(1,i) + k) + dmv_wth(map_wth(1,i) + k )
         qcl_work(i,j,k)  = ml_wth(map_wth(1,i) + k) + dml_wth(map_wth(1,i) + k )
-        qcf_work(i,j,k)  = mi_wth(map_wth(1,i) + k) + dmi_wth(map_wth(1,i) + k )
+        qcf_work(i,j,k)  = ms_wth(map_wth(1,i) + k) + dms_wth(map_wth(1,i) + k )
 
       end do ! i
     end do ! k
@@ -734,7 +734,7 @@ subroutine mphys_code( nlayers, seg_len,            &
 
       dmv_wth(map_wth(1,i) + k ) = q_work(i,j,k)   - mv_wth( map_wth(1,i) + k )
       dml_wth(map_wth(1,i) + k ) = qcl_work(i,j,k) - ml_wth( map_wth(1,i) + k )
-      dmi_wth(map_wth(1,i) + k ) = qcf_work(i,j,k) - mi_wth( map_wth(1,i) + k )
+      dms_wth(map_wth(1,i) + k ) = qcf_work(i,j,k) - ms_wth( map_wth(1,i) + k )
     end do
   end do ! k (nlayers)
 
@@ -744,11 +744,11 @@ subroutine mphys_code( nlayers, seg_len,            &
     dtheta(map_wth(1,i) + 0)    = dtheta(map_wth(1,i) + 1)
     dmv_wth(map_wth(1,i) + 0)   = dmv_wth(map_wth(1,i) + 1)
     dml_wth(map_wth(1,i) + 0)   = dml_wth(map_wth(1,i) + 1)
-    dmi_wth(map_wth(1,i) + 0)   = dmi_wth(map_wth(1,i) + 1)
+    dms_wth(map_wth(1,i) + 0)   = dms_wth(map_wth(1,i) + 1)
   end do
 
   ! Update optional additional prognostic variables
-  ! No need for else statements here as dmi_wth and associated variables
+  ! No need for else statements here as dms_wth and associated variables
   ! should have already been initialised to zero.
 
   if (l_mcr_qrain) then

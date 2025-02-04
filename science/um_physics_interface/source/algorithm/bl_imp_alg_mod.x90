@@ -42,6 +42,7 @@ module bl_imp_alg_mod
   use aerosol_config_mod,            only: glomap_mode,               &
                                            glomap_mode_dust_and_clim, &
                                            glomap_mode_ukca
+  use microphysics_config_mod,       only: microphysics_casim
 
   implicit none
 
@@ -271,7 +272,7 @@ contains
     type( field_type ) :: grid_surface_temperature
     type( field_type ) :: dqw, dtl, dqw_nt, dtl_nt, qw, tl, ct_ctq,     &
                           dqw1, dtl1, ct_ctq1, ftl_star, fqw_star, ftl, fqw, &
-                          rhokh
+                          rhokh, mr_ice, mrn_ice
 
     type( mesh_type ), pointer :: mesh => null()
     integer(i_def) :: loop, ncells
@@ -431,7 +432,7 @@ contains
     call theta%copy_field_properties(dtheta_bl)
 
     ! Initialise the BL diagnostics
-    call initialise_diags_for_bl_imp(mr(imr_v), mr(imr_cl), mr(imr_ci),        &
+    call initialise_diags_for_bl_imp(mr(imr_v), mr(imr_cl), mr(imr_s),         &
                                      cf_bulk, cf_area, cf_liq, cf_fro,         &
                                      exner, zh, tile_fraction,                 &
                                      dmv_bl, dmcl_bl, dmci_bl,                 &
@@ -530,15 +531,25 @@ contains
                  setval_X(fqw, moist_flux_bl), &
                  setval_X(rhokh, rhokh_bl) )
 
+    ! Calculate total ice field
+    call mr_n(imr_s)%copy_field_properties(mrn_ice)
+    call mr(imr_s)%copy_field_properties(mr_ice)
+    call invoke(setval_X(mrn_ice, mr_n(imr_s)), &
+                setval_X(mr_ice, mr(imr_s)) )
+    if (microphysics_casim) then
+      call invoke(inc_X_plus_Y(mrn_ice, mr_n(imr_ci)), &
+                  inc_X_plus_Y(mr_ice, mr(imr_ci)))
+    end if
+
     ncells = mesh%get_last_edge_cell()
     call um_sizes_init(ncells)
 
     do loop = 1,2
                 ! Call the implicit scheme for scalars
       call invoke(bl_imp_kernel_type( loop, theta, exner_in_wth, mr_n(imr_v),  &
-                                      mr_n(imr_cl), mr_n(imr_ci), theta_star,  &
+                                      mr_n(imr_cl), mrn_ice, theta_star,       &
                                       height_w3, height_wth, dt_conv,          &
-                                      mr(imr_v), mr(imr_cl), mr(imr_ci),       &
+                                      mr(imr_v), mr(imr_cl), mr_ice,           &
                                       dtrdz_tq_bl, rdz_w3, blend_height_tq,    &
                                       bl_type_ind, rhokh, fqw, ftl, dqw, dtl,  &
                                       dqw_nt, dtl_nt, qw, tl, ct_ctq,          &
@@ -563,7 +574,7 @@ contains
                                          tile_lw_grey_albedo,                  &
                                          snowice_sublimation, surf_heat_flux,  &
                                          canopy_evap, water_extraction,        &
-                                         snowice_melt, mr(imr_ci), rh_crit,    &
+                                         snowice_melt, mr_ice, rh_crit,        &
                                          rhokh, fqw, ftl, dtrdz_tq_bl,         &
                                          alpha1_tile, ashtf_prime_tile,        &
                                          dtstar_tile, fracaero_t_tile,         &
@@ -653,7 +664,7 @@ contains
                                    taux, tauy, tau_w2, taux_ssi, tauy_ssi,     &
                                    pseudotaux, pseudotauy, pseudotau_w2,       &
                                    z0m_eff, rho, wetrho_in_w3, tile_fraction,  &
-                                   mr(imr_v), mr(imr_cl), mr(imr_ci),          &
+                                   mr(imr_v), mr(imr_cl), mr(imr_s),           &
                                    mr(imr_r),                                  &
                                    nr_mphys, ns_mphys, murk,                   &
                                    cf_bulk, cf_area, cf_liq, cf_fro,           &

@@ -16,13 +16,13 @@ io_time_step='P0DT1H0M0S',
 state_time='2018-04-14 21:00:00',
 use_pseudo_model=.true.,
 variables='theta','rho','u10m','exner','u_in_w3','v_in_w3','w_in_wth',
-'m_v','m_cl','m_r','m_ci',
+'m_v','m_cl','m_r','m_s',
 /
 &jedi_increment
 inc_time='2018-04-14 21:00:00',
 initialise_via_read=.false.,
 variables='theta','rho','exner','u_in_w3','v_in_w3','w_in_wth','m_v',
-'m_cl','m_r','m_ci',
+'m_cl','m_r','m_s',
 /
 &jedi_linear_model
 nl_time_step='P0DT1H0M0S',

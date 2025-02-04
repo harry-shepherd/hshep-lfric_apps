@@ -5,7 +5,7 @@
     <field field_ref="theta" />
     <field field_ref="m_v" />
     <field field_ref="m_cl" />
-    <field field_ref="m_ci" />
+    <field field_ref="m_cf" />
     <field field_ref="m_r" />
     <field field_ref="exner_in_wth" />
     <field field_ref="u_in_w3" />
@@ -66,7 +66,7 @@
     <field field_ref="processed__tot_col_dry_air_mass" />
     <field field_ref="processed__tot_col_wetplusdry_mass" />
     <field field_ref="processed__tot_col_m_v" />
-    <field field_ref="processed__tot_col_m_ci" />
+    <field field_ref="processed__tot_col_m_cf" />
     <field field_ref="processed__pmsl" />
     <field field_ref="aerosol__cloud_drop_no_conc" />
   </file>

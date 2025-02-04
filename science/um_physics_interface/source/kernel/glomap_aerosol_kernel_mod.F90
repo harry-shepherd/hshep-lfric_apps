@@ -43,7 +43,7 @@ type, public, extends(kernel_type) :: glomap_aerosol_kernel_type
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! cf_liquid
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! rh_crit
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! m_v
-       arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! m_ci
+       arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! m_cf
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! n_nuc_sol
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! nuc_sol_su
        arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA), & ! nuc_sol_om
@@ -126,7 +126,7 @@ contains
 !> @param[in]     cf_liquid           Liquid cloud fraction
 !> @param[in]     rh_crit             Critical rel humidity
 !> @param[in]     m_v                 aka q
-!> @param[in]     m_ci                aka qcf
+!> @param[in]     m_cf                aka qcf
 !> @param[in]     n_nuc_sol           Climatology aerosol field
 !> @param[in]     nuc_sol_su          Climatology aerosol field
 !> @param[in]     nuc_sol_om          Climatology aerosol field
@@ -205,7 +205,7 @@ subroutine glomap_aerosol_code( nlayers,                                       &
                                 cf_liquid,                                     &
                                 rh_crit,                                       &
                                 m_v,                                           &
-                                m_ci,                                          &
+                                m_cf,                                          &
                                 n_nuc_sol,                                     &
                                 nuc_sol_su,                                    &
                                 nuc_sol_om,                                    &
@@ -308,7 +308,7 @@ subroutine glomap_aerosol_code( nlayers,                                       &
   real(kind=r_def), intent(in),  dimension(undf_wth) :: cf_liquid
   real(kind=r_def), intent(in),  dimension(undf_wth) :: rh_crit
   real(kind=r_def), intent(in),  dimension(undf_wth) :: m_v
-  real(kind=r_def), intent(in),  dimension(undf_wth) :: m_ci
+  real(kind=r_def), intent(in),  dimension(undf_wth) :: m_cf
   real(kind=r_def), intent(in),  dimension(undf_wth) :: n_nuc_sol
   real(kind=r_def), intent(in),  dimension(undf_wth) :: nuc_sol_su
   real(kind=r_def), intent(in),  dimension(undf_wth) :: nuc_sol_om
@@ -488,7 +488,7 @@ subroutine glomap_aerosol_code( nlayers,                                       &
 
   do k = 1, nlayers
     q_um(k)              = m_v(map_wth(1) + k)
-    qcf_um(k)            = m_ci(map_wth(1) + k)
+    qcf_um(k)            = m_cf(map_wth(1) + k)
     cloud_blk_frac_um(k) = cf_bulk(map_wth(1) + k)
     cloud_liq_frac_um(k) = cf_liquid(map_wth(1) + k)
     rh_crit_um(k)        = rh_crit(map_wth(1) + k)

@@ -9,7 +9,7 @@
 module cld_diags_mod
   use clock_mod,               only: clock_type
   use constants_mod,           only: l_def, i_def, r_def, str_def
-  use mr_indices_mod,          only: nummr, imr_cl, imr_ci, imr_r
+  use mr_indices_mod,          only: nummr, imr_cl, imr_ci, imr_r, imr_s
   use mesh_mod,                only: mesh_type
   use field_mod,               only: field_type
   use field_parent_mod,        only: field_parent_type
@@ -24,6 +24,7 @@ module cld_diags_mod
   use fs_continuity_mod,       only: Wtheta, W3
   use cld_diags_kernel_mod,    only: cld_diags_kernel_type
   use icing_diags_kernel_mod,  only: icing_diags_kernel_type
+  use microphysics_config_mod, only: microphysics_casim
 
   use initialise_diagnostics_mod,     only : init_diag &
                                              => init_diagnostic_field
@@ -213,6 +214,7 @@ contains
     type( field_type ) :: theta_updated
     type( field_type ) :: icing_condensate
     type( field_type ) :: conv_cond
+    type( field_type ) :: mr_ice
     ! Iterator for field collection
     type(field_collection_iterator_type)  :: iterator
     ! A pointer used for retrieving fields from collections
@@ -250,6 +252,14 @@ contains
                       inc_X_times_Y(ls_fraction, cf_area),    &
                       ! Calculate combined_cld_amount.
                       X_plus_Y(combined_cld_amount, ls_fraction, cca) )
+
+        ! Calculate total ice field
+        call mr(imr_s)%copy_field_properties(mr_ice)
+        call invoke(setval_X(mr_ice, mr(imr_s)))
+        if (microphysics_casim) then
+          call invoke(inc_X_plus_Y(mr_ice, mr(imr_ci)))
+        end if
+
       end if
 
       if (cld_amount_max_flag         .or. &
@@ -285,7 +295,7 @@ contains
                                             high_cld_amount,                   &
                                             very_high_cld_amount,              &
                                             cloud_fraction_below_1000feet_asl, &
-                                            mr(imr_ci),                        &
+                                            mr_ice,                            &
                                             cf_frozen,                         &
                                             height_wth,                        &
                                             rho_in_wth,                        &
@@ -305,7 +315,7 @@ contains
       call invoke( setval_X(theta_updated, theta),                             &
                    inc_X_plus_Y( theta_updated, theta_inc ),                   &
                    ! Having found the current value of theta
-                   X_plus_Y( icing_condensate, mr(imr_cl), mr(imr_ci) ) )
+                   X_plus_Y( icing_condensate, mr(imr_cl), mr_ice ) )
                    ! add the cloud liquid and ice water contents together.
 
       ! Need to know height to remove any spurious icing index in stratosphere

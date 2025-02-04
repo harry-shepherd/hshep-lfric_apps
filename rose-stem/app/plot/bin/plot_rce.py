@@ -24,7 +24,7 @@ colbar_max=2
 theta           = ['theta',           292,  295]
 m_v             = ['m_v',             6e-3, 8e-3]
 m_cl            = ['m_cl',            0,    1e-3]
-m_ci            = ['m_ci',            0,    2e-3]
+m_cf            = ['m_cf',            0,    2e-3]
 ls_prec         = ['ls_prec',         1,    25]
 w_in_wth        = ['w_in_wth',        -1,    3]
 u_in_w3         = ['u_in_w3',         -5,    5]
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     do_plot(datapath, theta,           plotpath, plotlevel=20)
     do_plot(datapath, m_v,             plotpath, plotlevel=20)
     do_plot(datapath, m_cl,            plotpath, plotlevel=20)
-    do_plot(datapath, m_ci,            plotpath, plotlevel=20)
+    do_plot(datapath, m_cf,            plotpath, plotlevel=20)
     do_plot(datapath, ls_prec,         plotpath)
     do_plot(datapath, w_in_wth,        plotpath, plotlevel=20)
     do_plot(datapath, u_in_w3,         plotpath, plotlevel=20)

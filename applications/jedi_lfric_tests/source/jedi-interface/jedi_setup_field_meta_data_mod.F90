@@ -102,7 +102,7 @@ module jedi_setup_field_meta_data_mod
       case ( "m_r" )
         function_space = Wtheta
         is_2d = .false.
-      case ( "m_ci" )
+      case ( "m_s" )
         function_space = Wtheta
         is_2d = .false.
       case ( "u10m" )

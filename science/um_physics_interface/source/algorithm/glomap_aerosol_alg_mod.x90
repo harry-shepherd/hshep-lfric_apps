@@ -246,10 +246,10 @@ contains
     end if
 
     ! Calculate total ice field
-    call mr_n(imr_ci)%copy_field_properties(mr_ice)
-    call invoke(setval_X(mr_ice, mr_n(imr_ci)))
+    call mr_n(imr_s)%copy_field_properties(mr_ice)
+    call invoke(setval_X(mr_ice, mr_n(imr_s)))
     if (microphysics_casim) then
-      call invoke(inc_X_plus_Y(mr_ice, mr_n(imr_s)))
+      call invoke(inc_X_plus_Y(mr_ice, mr_n(imr_ci)))
     end if
 
     ! Remove any negative values in these fields

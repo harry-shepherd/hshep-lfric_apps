@@ -8,7 +8,7 @@
       <field field_ref="v_in_w3"/>
       <field field_ref="theta"/>
       <field field_ref="processed__qv"/>
-      <field field_ref="processed__qci"/>
+      <field field_ref="processed__qcf"/>
       <field field_ref="orography"/>
       <field field_ref="w_in_wth"/>
       <field field_ref="processed__r2rho"/>
@@ -50,7 +50,7 @@
       <field field_ref="m_v"/>
       <field field_ref="m_cl"/>
       <field field_ref="m_r"/>
-      <field field_ref="m_ci"/>
+      <field field_ref="m_cf"/>
       <field field_ref="exner"/>
       <field field_ref="exner_in_wth"/>
       <field field_ref="processed__pressure_in_wth"/>
@@ -61,7 +61,7 @@
       <field field_ref="theta"/>
       <field field_ref="height_wth"/>
       <field field_ref="processed__qv"/>
-      <field field_ref="processed__qci"/>
+      <field field_ref="processed__qcf"/>
       <field field_ref="surface__grid_surface_temperature"/>
       <field field_ref="turbulence__zh"/>
       <field field_ref="surface__sea_ice_fraction"/>

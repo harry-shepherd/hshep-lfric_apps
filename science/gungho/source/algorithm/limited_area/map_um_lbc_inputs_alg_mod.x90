@@ -36,17 +36,17 @@ contains
   !> @param[in]     rho_r2 wet density multiplied by radius squared
   !> @param[in,out] m_v    vapour mixing ratio
   !> @param[in,out] m_cl   liquid mixing ratio
-  !> @param[in,out] m_ci   frozen mixing ratio
+  !> @param[in,out] m_s    frozen mixing ratio
   !> @param[in,out] m_r    rain mixing ratio
   !> @param[in,out] rho    dry density
   subroutine map_um_lbc_inputs( q, qcl, qcf, qrain, rho_r2, &
-                                m_v, m_cl, m_ci, m_r, rho   &
+                                m_v, m_cl, m_s, m_r, rho    &
                                 )
 
     implicit none
 
     type(field_type), intent(in)    :: q, qcl, qcf, qrain, rho_r2
-    type(field_type), intent(inout) :: m_v, m_cl, m_ci, m_r, rho
+    type(field_type), intent(inout) :: m_v, m_cl, m_s, m_r, rho
     type(field_type), pointer       :: height_w3 => null()
     type(field_type)                :: radius_w3
     type(field_type)                :: qsum
@@ -83,7 +83,7 @@ contains
                  inc_X_minus_Y( qsum, qrain ),     &
                  X_divideby_Y( m_v, q, qsum ),     &
                  X_divideby_Y( m_cl, qcl, qsum ),  &
-                 X_divideby_Y( m_ci, qcf, qsum ),  &
+                 X_divideby_Y( m_s, qcf, qsum ),   &
                  X_divideby_Y( m_r, qrain, qsum ), &
                  sample_wtheta_to_w3_kernel_type( qsum_w3, qsum ), &
                  inc_X_times_Y( rho, qsum_w3 )     &

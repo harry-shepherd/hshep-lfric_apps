@@ -25,7 +25,7 @@ module casim_ice_act_kernel_mod
   type, public, extends(kernel_type) :: casim_ice_act_kernel_type
     private
     type(arg_type) :: meta_args(6) = (/                   &
-         arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),   & ! dmci_conv
+         arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),   & ! dms_conv
          arg_type(GH_FIELD, GH_REAL, GH_WRITE, WTHETA),   & ! ni_mphys
          arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),   & ! theta
          arg_type(GH_FIELD, GH_REAL, GH_READ,  WTHETA),   & ! exner
@@ -47,7 +47,7 @@ contains
   !>          Meteor. Monogr. (1986) 43: 29-32.
   !>          https://doi.org/10.1175/0065-9401-21.43.29
   !> @param[in]     nlayers       Number of layers
-  !> @param[in]     dmci_conv     Cloud ice increment from convection
+  !> @param[in]     dms_conv      Cloud snow increment from convection
   !> @param[in,out] ni_mphys      CASIM cloud-ice number concentration
   !> @param[in]     theta         Potential temperature
   !> @param[in]     exner         Exner pressure
@@ -57,7 +57,7 @@ contains
   !> @param[in]     undf_wth      Number unique of degrees of freedom for potential temperature space
   !> @param[in]     map_wth       Dofmap for the cell at the base of the column for potential temperature space
   subroutine casim_ice_act_code(nlayers,      &
-                                dmci_conv,    &
+                                dms_conv,     &
                                 ni_mphys,     &
                                 theta,        &
                                 exner,        &
@@ -82,7 +82,7 @@ contains
 
     integer(kind=i_def), intent(in),    dimension(ndf_wth)  :: map_wth
 
-    real(kind=r_def),    intent(in), dimension(undf_wth) :: dmci_conv
+    real(kind=r_def),    intent(in), dimension(undf_wth) :: dms_conv
     real(kind=r_def),    intent(inout), dimension(undf_wth) :: ni_mphys
     real(kind=r_def),    intent(in), dimension(undf_wth) :: theta
     real(kind=r_def),    intent(in), dimension(undf_wth) :: exner
@@ -105,7 +105,7 @@ contains
       if (temperature < tm) then
 
         ! If there is ice but no number
-        if (dmci_conv(map_wth(1) + k) > 0.0_r_def .and. &
+        if (dms_conv(map_wth(1) + k) > 0.0_r_def .and. &
              ni_mphys(map_wth(1) + k) <= ni_tidy) then
 
           ! Use Cooper relation for ice number

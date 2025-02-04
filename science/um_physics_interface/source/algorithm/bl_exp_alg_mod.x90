@@ -543,10 +543,10 @@ contains
     day_of_year = int(xios_date_get_day_of_year(datetime), i_def) + 1_i_def
 
     ! Calculate total ice field
-    call mr_n(imr_ci)%copy_field_properties(mr_ice)
-    call invoke(setval_X(mr_ice, mr_n(imr_ci)))
+    call mr_n(imr_s)%copy_field_properties(mr_ice)
+    call invoke(setval_X(mr_ice, mr_n(imr_s)))
     if (microphysics_casim) then
-      call invoke(inc_X_plus_Y(mr_ice, mr_n(imr_s)))
+      call invoke(inc_X_plus_Y(mr_ice, mr_n(imr_ci)))
     end if
 
                 ! Calculate TL = T - (lc/cp)*mcl
@@ -556,10 +556,10 @@ contains
                     X_plus_Y(dmt_mphys, dmr_mphys(imr_v), dmr_mphys(imr_cl)) )
     if (.not. l_noice_in_turb) then
       ! Add in ice increments
-      call invoke(inc_X_minus_bY(dtl_mphys, lsrcp, dmr_mphys(imr_ci)),         &
-                  inc_X_minus_bY(dtl_mphys, lsrcp, dmr_mphys(imr_s)),          &
-                  inc_X_plus_Y(dmt_mphys, dmr_mphys(imr_ci)),                  &
-                  inc_X_plus_Y(dmt_mphys, dmr_mphys(imr_s)) )
+      call invoke(inc_X_minus_bY(dtl_mphys, lsrcp, dmr_mphys(imr_s)),          &
+                  inc_X_minus_bY(dtl_mphys, lsrcp, dmr_mphys(imr_ci)),         &
+                  inc_X_plus_Y(dmt_mphys, dmr_mphys(imr_s)),                   &
+                  inc_X_plus_Y(dmt_mphys, dmr_mphys(imr_ci)) )
     end if
 
     ! Switch UM to running i-first on whole domain

@@ -14,7 +14,7 @@
     <field id="lbc_qrain_data" name="qrain" long_name="mass_fraction_of_rain_in_air" unit="1" grid_ref="full_level_face_time_grid" operation="once" />
     <field id="lbc_m_v_data" name="m_v" long_name="humidity_mixing_ratio" unit="1" grid_ref="full_level_face_time_grid" operation="once" />
     <field id="lbc_m_cl_data" name="m_cl" long_name="cloud_liquid_water_mixing_ratio" unit="1" grid_ref="full_level_face_time_grid" operation="once" />
-    <field id="lbc_m_ci_data" name="m_cf" long_name="cloud_ice_mixing_ratio" unit="1" grid_ref="full_level_face_time_grid" operation="once" />
+    <field id="lbc_m_s_data" name="m_cf" long_name="cloud_snow_mixing_ratio" unit="1" grid_ref="full_level_face_time_grid" operation="once" />
     <field id="lbc_m_r_data" name="m_r" long_name="rain_mixing_ratio" unit="1" grid_ref="full_level_face_time_grid" operation="once" />
   </file>
 

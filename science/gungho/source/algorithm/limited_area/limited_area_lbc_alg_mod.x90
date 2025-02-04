@@ -17,7 +17,7 @@ module limited_area_lbc_alg_mod
                                             moisture_formulation_dry
   use mesh_mod,                       only: mesh_type
   use mr_indices_mod,                 only: nummr, mr_names, imr_v, &
-                                            imr_cl, imr_ci, imr_r
+                                            imr_cl, imr_s, imr_r
   use mesh_mod,                       only: mesh_type
   use limited_area_constants_mod,     only: get_boundary_mask, &
                                             get_blend_mask,    &
@@ -111,7 +111,7 @@ contains
                                                   name_t    = 'lbc_theta', &
                                                   name_m_v  = 'lbc_m_v',   &
                                                   name_m_cl = 'lbc_m_cl',  &
-                                                  name_m_ci = 'lbc_m_ci',  &
+                                                  name_m_s  = 'lbc_m_s',   &
                                                   name_m_r  = 'lbc_m_r'
     character(str_def)                         :: name_mr
     integer(i_def)                             :: imr
@@ -146,7 +146,7 @@ contains
 
       call blend_field( mr(imr_v), lbc_fields, name_m_v )
       call blend_field( mr(imr_cl), lbc_fields, name_m_cl )
-      call blend_field( mr(imr_ci), lbc_fields, name_m_ci )
+      call blend_field( mr(imr_s), lbc_fields, name_m_s )
       call blend_field( mr(imr_r), lbc_fields, name_m_r )
     end select
 

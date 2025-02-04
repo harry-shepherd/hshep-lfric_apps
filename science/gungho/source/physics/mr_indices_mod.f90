@@ -21,16 +21,16 @@ module mr_indices_mod
   integer, parameter :: imr_v  = 1  ! vapour
   integer, parameter :: imr_cl = 2  ! liquid cloud mass
   integer, parameter :: imr_r  = 3  ! rain mass
-  integer, parameter :: imr_ci = 4  ! ice cloud mass
+  integer, parameter :: imr_s  = 4  ! snow mass
   integer, parameter :: imr_g  = 5  ! graupel mass
-  integer, parameter :: imr_s  = 6  ! snow mass
+  integer, parameter :: imr_ci = 6  ! ice crystal mass
   integer, parameter :: nummr  = 6  ! Total number of mixing ratio variables
 
   character(str_short), parameter :: mr_names(nummr) = &
-     [ 'm_v ', 'm_cl', 'm_r ', 'm_ci', 'm_g ', 'm_s ' ]
+     [ 'm_v ', 'm_cl', 'm_r ', 'm_s ', 'm_g ', 'm_ci' ]
   ! Set number of mixing ratio species to transport
   ! Default is to only transport first four species of moisture
-  ! (and not graupel or snow)
+  ! (and not graupel or ice)
 
   integer :: nummr_to_transport = 4 ! Number of mixing ratios to transport
 

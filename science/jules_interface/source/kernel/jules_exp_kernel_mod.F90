@@ -53,7 +53,7 @@ module jules_exp_kernel_mod
          arg_type(GH_FIELD, GH_REAL,  GH_READ,      W3, STENCIL(REGION)),      &! v_in_w3
          arg_type(GH_FIELD, GH_REAL,  GH_READ,      WTHETA),                   &! m_v_n
          arg_type(GH_FIELD, GH_REAL,  GH_READ,      WTHETA),                   &! m_cl_n
-         arg_type(GH_FIELD, GH_REAL,  GH_READ,      WTHETA),                   &! m_ci_n
+         arg_type(GH_FIELD, GH_REAL,  GH_READ,      WTHETA),                   &! m_cf_n
          arg_type(GH_FIELD, GH_REAL,  GH_READ,      W3),                       &! height_w3
          arg_type(GH_FIELD, GH_REAL,  GH_READ,      WTHETA),                   &! height_wth
          arg_type(GH_FIELD, GH_REAL,  GH_READ,      ANY_DISCONTINUOUS_SPACE_1),&! zh_2d
@@ -177,7 +177,7 @@ contains
   !> @param[in]     v_in_w3                'Meridional' wind in density space
   !> @param[in]     m_v_n                  Vapour mixing ratio at time level n
   !> @param[in]     m_cl_n                 Cloud liquid mixing ratio at time level n
-  !> @param[in]     m_ci_n                 Cloud ice mixing ratio at time level n
+  !> @param[in]     m_cf_n                 Cloud frozen mixing ratio at time level n
   !> @param[in]     height_w3              Height of density space above surface
   !> @param[in]     height_wth             Height of theta space above surface
   !> @param[in]     zh_2d                  Boundary layer depth
@@ -326,7 +326,7 @@ contains
                            v_w3_stencil_size, v_w3_stencil,       &
                            m_v_n,                                 &
                            m_cl_n,                                &
-                           m_ci_n,                                &
+                           m_cf_n,                                &
                            height_w3,                             &
                            height_wth,                            &
                            zh_2d,                                 &
@@ -595,7 +595,7 @@ contains
     real(kind=r_def), dimension(undf_wth), intent(in)   :: theta_in_wth,       &
                                                            exner_in_wth,       &
                                                            m_v_n, m_cl_n,      &
-                                                           m_ci_n,             &
+                                                           m_cf_n,             &
                                                            height_wth,         &
                                                            cf_bulk, cf_liquid, &
                                                            ozone
@@ -1357,7 +1357,7 @@ contains
         qcf(i,1,1) = 0.0_r_um
         bulk_cloud_fraction(i,1,1) = cf_liquid(map_wth(1,i)+k_blend_tq(i,1))
       else
-        qcf(i,1,1) = m_ci_n(map_wth(1,i)+k_blend_tq(i,1))
+        qcf(i,1,1) = m_cf_n(map_wth(1,i)+k_blend_tq(i,1))
         bulk_cloud_fraction(i,1,1) = cf_bulk(map_wth(1,i)+k_blend_tq(i,1))
       end if
       forcing%qw_1_ij(i,1) = q(i,1,1) + qcl(i,1,1) + qcf(i,1,1)

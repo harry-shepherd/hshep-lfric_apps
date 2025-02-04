@@ -131,7 +131,7 @@ def make_figures(filein, plotpath, fields, lid, figname, idx_list):
                     levels = np.linspace(-0.0004, 0.0004, 11)
                 if field == 'm_cl':
                     levels = np.linspace(-0.0006, 0.0006, 11)
-                if field == 'm_ci':
+                if field == 'm_s':
                     levels = np.linspace(-0.0003, 0.0003, 11)
 
             # Vertical levels will be last entry in dimension coords

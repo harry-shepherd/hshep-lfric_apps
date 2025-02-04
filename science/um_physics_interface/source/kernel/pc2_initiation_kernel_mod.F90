@@ -335,8 +335,8 @@ subroutine pc2_initiation_code( nlayers, seg_len,                  &
         ! Moist prognostics
         qv_work(i,1,k)   = mv_wth(map_wth(1,i) + k)
         qcl_work(i,1,k)  = ml_wth(map_wth(1,i) + k)
-        qcf_work(i,1,k)  = mi_wth(map_wth(1,i) + k)
-        qcf2_work(i,1,k)  = ms_wth(map_wth(1,i) + k)
+        qcf_work(i,1,k)  = ms_wth(map_wth(1,i) + k)
+        qcf2_work(i,1,k)  = mi_wth(map_wth(1,i) + k)
 
         ! Critical relative humidity
         rhcpt(i,1,k)     = rh_crit_wth(map_wth(1,i) + k)
@@ -465,8 +465,8 @@ subroutine pc2_initiation_code( nlayers, seg_len,                  &
         !
         dmv_inc_wth (map_wth(1,i)+k) = qv_work(i,1,k)  - mv_wth(map_wth(1,i) + k)
         dmcl_inc_wth(map_wth(1,i)+k) = qcl_work(i,1,k) - ml_wth(map_wth(1,i) + k)
-        dmci_inc_wth(map_wth(1,i)+k) = qcf_work(i,1,k) - mi_wth(map_wth(1,i) + k)
-        dms_inc_wth(map_wth(1,i)+k) = qcf2_work(i,1,k) - ms_wth(map_wth(1,i) + k)
+        dmci_inc_wth(map_wth(1,i)+k) = qcf2_work(i,1,k) - mi_wth(map_wth(1,i) + k)
+        dms_inc_wth(map_wth(1,i)+k) = qcf_work(i,1,k) - ms_wth(map_wth(1,i) + k)
         dcfl_inc_wth(map_wth(1,i)+k) = cfl_work(i,1,k) - cfl_wth(map_wth(1,i) + k)
         dcff_inc_wth(map_wth(1,i)+k) = cff_work(i,1,k) - cff_wth(map_wth(1,i) + k)
         dbcf_inc_wth(map_wth(1,i)+k) = bcf_work(i,1,k) - bcf_wth(map_wth(1,i) + k)
