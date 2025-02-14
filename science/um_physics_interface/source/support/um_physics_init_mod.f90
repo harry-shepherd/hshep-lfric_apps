@@ -136,7 +136,9 @@ module um_physics_init_mod
                                         l_mcr_precfrac_in => l_mcr_precfrac, &
                                    i_update_precfrac_in => i_update_precfrac,&
                                    i_update_precfrac_homog,                  &
-                                   i_update_precfrac_correl
+                                   i_update_precfrac_correl,                 &
+                                        heavy_rain_evap_fac_in =>            &
+                                                heavy_rain_evap_fac
 
   use mixing_config_mod,         only : smagorinsky,                 &
                                         mixing_method => method,     &
@@ -375,7 +377,7 @@ contains
         l_orograin, l_orogrime, l_orograin_block,                            &
         fcrit, nsigmasf, nscalesf, l_progn_tnuc, mp_czero, mp_tau_lim,       &
         l_proc_fluxes, l_subgrid_graupel_frac, l_mcr_precfrac,               &
-        i_update_precfrac, i_homog_areas, i_sg_correl
+        i_update_precfrac, i_homog_areas, i_sg_correl, heavy_rain_evap_fac
     use mphys_psd_mod, only: x1g, x2g, x4g, x1gl, x2gl, x4gl
     use mphys_switches, only: set_mphys_switches,            &
         max_step_length, max_sed_length,                     &
@@ -1148,6 +1150,7 @@ contains
         di_input       = 0.416_r_um
         dic_input      = 1.0_r_um
         i_mcr_iter     = i_mcr_iter_tstep
+        heavy_rain_evap_fac = real(heavy_rain_evap_fac_in, r_um)
         l_diff_icevt   = .true.
         l_droplet_tpr  = droplet_tpr
         l_fsd_generator= cld_fsd_hill

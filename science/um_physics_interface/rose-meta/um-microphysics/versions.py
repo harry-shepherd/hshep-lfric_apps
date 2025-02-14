@@ -66,5 +66,18 @@ class vn20_t334(MacroUpgrade):
     def upgrade(self, config, meta_config=None):
         # Commands From: science/um_physics_interface/rose-meta/um-microphysics
         self.add_setting(config, ["namelist:microphysics", "mp_dz_scal"], "2.0")
+        return config, self.reports
+
+
+class vn20_t547(MacroUpgrade):
+    """Upgrade macro for ticket #547 by Adrian Lock."""
+
+    BEFORE_TAG = "vn2.0_t334"
+    AFTER_TAG = "vn2.0_t547"
+
+    def upgrade(self, config, meta_config=None):
+        # Commands From: rose-meta/um-microphysics
+        nml = "namelist:microphysics"
+        self.add_setting(config, [nml, "heavy_rain_evap_fac"], "0.0")
 
         return config, self.reports

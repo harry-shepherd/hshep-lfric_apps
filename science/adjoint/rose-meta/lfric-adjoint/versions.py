@@ -315,3 +315,17 @@ class vn20_t249(MacroUpgrade):
         self.add_setting(config, [nml, "internal_flux_ancil_path"], "''")
 
         return config, self.reports
+
+
+class vn20_t547(MacroUpgrade):
+    """Upgrade macro for ticket #547 by Adrian Lock."""
+
+    BEFORE_TAG = "vn2.0_t249"
+    AFTER_TAG = "vn2.0_t547"
+
+    def upgrade(self, config, meta_config=None):
+        # Commands From: rose-meta/um-microphysics
+        nml = "namelist:microphysics"
+        self.add_setting(config, [nml, "heavy_rain_evap_fac"], "0.0")
+
+        return config, self.reports
