@@ -9,7 +9,8 @@ $(info Coupling project configuration)
 export PRE_PROCESS_INCLUDE_DIRS = \
         $(WORKING_DIR)/science/um/src/atmosphere/atmosphere_service/include \
         $(WORKING_DIR)/science/um/src/atmosphere/boundary_layer/include \
-        $(WORKING_DIR)/science/um/src/atmosphere/large_scale_precipitation/include
+        $(WORKING_DIR)/science/um/src/atmosphere/large_scale_precipitation/include \
+        $(WORKING_DIR)/science/um/src/atmosphere/free_tracers/include
 
 export PRE_PROCESS_MACROS += UM_PHYSICS LFRIC USSPPREC_32B LSPREC_32B UM_JULES
 
