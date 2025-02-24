@@ -95,7 +95,6 @@ if __name__ == "__main__":
     dirty_list = []
 
     for app in VALID_APPS:
-        app = os.path.join("apps", app)
 
         source_path = os.path.join(arguments.directory, app, arguments.filename)
         file_objects: List[Path] = [Path(source_path)]
@@ -108,7 +107,6 @@ if __name__ == "__main__":
                 file=stderr,
             )
             sys_exit(2)
-
         dirty_list += app_dirty_list
 
         for report in app_dirty_list:

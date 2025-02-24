@@ -30,7 +30,7 @@ from fparser.two.Fortran2003 import (
     Type_Declaration_Stmt,
 )
 from fparser.two.parser import ParserFactory  # type: ignore
-from fparser.two.utils import get_child, walk  # type: ignore
+from fparser.two.utils import get_child, walk, FortranSyntaxError  # type: ignore
 
 
 # pylint: disable=too-few-public-methods
@@ -239,15 +239,19 @@ def entry(
             file_objects.extend(file_object.iterdir())
         else:  # Object is a file
             if __FORTRAN_EXTENSION_PATTERN.match(file_object.suffix):
-                getLogger("occupyfortran").debug("Processing %s", file_object)
-                report = __process_file(
-                    file_object,
-                    [
-                        __find_globals,
-                        __find_explicit_saved,
-                        __find_implicit_saved,
-                    ],
-                )
+                try:
+                    getLogger("occupyfortran").debug("Processing %s", file_object)
+                    report = __process_file(
+                        file_object,
+                        [
+                            __find_globals,
+                            __find_explicit_saved,
+                            __find_implicit_saved,
+                        ],
+                    )
+                except FortranSyntaxError:
+                    getLogger("occupyfortran").warning(f"Syntax error raised from fparser in {file_object}.")
+
                 if report is None:
                     clean_list.append(file_object)
                 else:  # File has dirt
