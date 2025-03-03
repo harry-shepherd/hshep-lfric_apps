@@ -3,59 +3,59 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE a_times_X_dep_alg_mod
+module a_times_X_dep_alg_mod
 !
 ! This module contains a generator to scale the data in a field by a constant.
 !
 
-USE dependency_graph_mod, ONLY: dependency_graph
+use dependency_graph_mod, only: dependency_graph
 
-IMPLICIT NONE
+implicit none
 
-CONTAINS
+contains
 
-SUBROUTINE a_times_X_dep_alg(dep_graph)
+subroutine a_times_X_dep_alg(dep_graph)
 !
 ! This generator multiplies the input field in a dependency graph by a constant
 ! value and save the result in the output field of the dependency graph.
 !
 
-USE gen_io_check_mod,       ONLY: gen_io_check
-USE field_mod,              ONLY: field_type
-USE log_mod,                ONLY: log_event, log_scratch_space, LOG_LEVEL_ERROR
-USE constants_def_mod,      ONLY: genpar_len, r_def
+use gen_io_check_mod,       only: gen_io_check
+use field_mod,              only: field_type
+use log_mod,                only: log_event, log_scratch_space, LOG_LEVEL_ERROR
+use constants_def_mod,      only: genpar_len, r_def
 
-IMPLICIT NONE
+implicit none
 
 !
 ! Argument definitions:
 !
 ! Dependency graph to be processed
-CLASS(dependency_graph), INTENT(IN OUT) :: dep_graph
+class(dependency_graph), intent(in out) :: dep_graph
 
 !
 ! Local variables
 !
 ! Field pointers to use
-TYPE(field_type), POINTER :: field_y => NULL(), field_x => NULL()
+type(field_type), pointer :: field_y => null(), field_x => null()
 !
 ! Scale factor
-REAL(KIND=r_def) :: scale_fac
+real(kind=r_def) :: scale_fac
 !
 ! Parameter list
-CHARACTER(LEN=genpar_len) :: parlist
+character(len=genpar_len) :: parlist
 !
 ! Dummy function space variable used in checks
-INTEGER :: fspace
+integer :: fspace
 !
 ! Error code for reading parameter list
-INTEGER :: ioerr
+integer :: ioerr
 
 !
 ! Perform some initial input checks
 !
 fspace = dep_graph % output_field(1) % field_ptr % which_function_space()
-CALL gen_io_check(                                                             &
+call gen_io_check(                                                             &
                   dep_graph=dep_graph,                                         &
                   input_field_no=1,                                            &
                   input_field_fs=[fspace],                                     &
@@ -69,22 +69,22 @@ CALL gen_io_check(                                                             &
 
 ! Read parameter list for scaling factor
 parlist = dep_graph % genpar
-READ(parlist,*,IOSTAT=ioerr) scale_fac
-IF (ioerr /= 0 ) THEN
-  WRITE(log_scratch_space,'(A)') 'Error occured when parsing parameter ' //    &
+read(parlist,*,iostat=ioerr) scale_fac
+if (ioerr /= 0 ) then
+  write(log_scratch_space,'(A)') 'Error occured when parsing parameter ' //    &
                                  'list in routine a_times_X_dep_alg. ' //              &
                                  'Input should be a single real/integer value.'
-  CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-END IF
+  call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+end if
 
 ! Scale the field data through a call to a Psyclone built-in kernel
 field_y => dep_graph % output_field(1) % field_ptr
 field_x => dep_graph % input_field(1) % field_ptr
-CALL invoke(a_times_X(field_y, scale_fac, field_x))
+call invoke(a_times_X(field_y, scale_fac, field_x))
 
 ! Nullify field pointers
-NULLIFY(field_y, field_x)
+nullify(field_y, field_x)
 
-END SUBROUTINE a_times_X_dep_alg
+end subroutine a_times_X_dep_alg
 
-END MODULE a_times_X_dep_alg_mod
+end module a_times_X_dep_alg_mod

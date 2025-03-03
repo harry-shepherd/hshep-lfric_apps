@@ -3,62 +3,62 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_unit_handler_mod
+module lfricinp_unit_handler_mod
 
-USE, INTRINSIC :: iso_fortran_env, ONLY : int32, int64
+use, intrinsic :: iso_fortran_env, only : int32, int64
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
-PUBLIC :: get_free_unit
+private
+public :: get_free_unit
 
-INTERFACE get_free_unit
-MODULE PROCEDURE :: get_free_unit_32, get_free_unit_64
-END INTERFACE get_free_unit
+interface get_free_unit
+module procedure :: get_free_unit_32, get_free_unit_64
+end interface get_free_unit
 
-CONTAINS
+contains
 !-------------------------------------------------------------------------------
 
-SUBROUTINE get_free_unit_32(new_unit)
+subroutine get_free_unit_32(new_unit)
 ! Description:
 !  Searches for a free unit number and returns first one it finds
-IMPLICIT NONE
-INTEGER(KIND=int32), INTENT(OUT) :: new_unit
-LOGICAL :: unit_already_open
-REAL :: rand
+implicit none
+integer(kind=int32), intent(out) :: new_unit
+logical :: unit_already_open
+real :: rand
 
-unit_already_open = .TRUE.
+unit_already_open = .true.
 
-DO WHILE (unit_already_open)
-  CALL RANDOM_NUMBER(rand)
-  new_unit = 24000 + FLOOR(rand*1000)
+do while (unit_already_open)
+  call random_number(rand)
+  new_unit = 24000 + floor(rand*1000)
   ! Check if unit already open, if true while loop will continue
-  INQUIRE(UNIT=new_unit, OPENED=unit_already_open)
-END DO
+  inquire(unit=new_unit, opened=unit_already_open)
+end do
 
-END SUBROUTINE get_free_unit_32
+end subroutine get_free_unit_32
 
 !-------------------------------------------------------------------------------
 
-SUBROUTINE get_free_unit_64(new_unit)
-IMPLICIT NONE
+subroutine get_free_unit_64(new_unit)
+implicit none
 ! Description:
 !  Searches for a free unit number and returns first one it finds
-INTEGER(KIND=int64), INTENT(OUT) :: new_unit
-LOGICAL :: unit_already_open
-REAL :: rand
+integer(kind=int64), intent(out) :: new_unit
+logical :: unit_already_open
+real :: rand
 
-unit_already_open = .TRUE.
+unit_already_open = .true.
 
-DO WHILE (unit_already_open)
-  CALL RANDOM_NUMBER(rand)
-  new_unit = 24000 + FLOOR(rand*1000)
+do while (unit_already_open)
+  call random_number(rand)
+  new_unit = 24000 + floor(rand*1000)
   ! Check if unit already open, if true while loop will continue
-  INQUIRE(UNIT=new_unit, OPENED=unit_already_open)
-END DO
+  inquire(unit=new_unit, opened=unit_already_open)
+end do
 
-END SUBROUTINE get_free_unit_64
+end subroutine get_free_unit_64
 !-------------------------------------------------------------------------------
 
-END MODULE lfricinp_unit_handler_mod
+end module lfricinp_unit_handler_mod
 

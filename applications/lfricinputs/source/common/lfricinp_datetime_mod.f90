@@ -4,51 +4,51 @@
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
 
-!> @brief     Module containing datetime TYPE
+!> @brief     Module containing datetime type
 !> @details   Holds details of dates and times required by input and output
 !!            files
 !>
 
-MODULE lfricinp_datetime_mod
+module lfricinp_datetime_mod
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY : int64, real64
+use, intrinsic :: iso_fortran_env, only : int64, real64
 
-USE constants_mod, ONLY: i_def, r_second
+use constants_mod, only: i_def, r_second
 
-IMPLICIT NONE
-PRIVATE
-PUBLIC :: datetime, datetime_type
+implicit none
+private
+public :: datetime, datetime_type
 
-TYPE :: datetime_type
+type :: datetime_type
 
-  INTEGER(KIND=int64) :: num_times
-  REAL(KIND=real64)   :: fctimes(99)
-  REAL(KIND=real64)   :: first_fctime
-  CHARACTER(LEN=19)   :: validity_times(99)
-  CHARACTER(LEN=19)   :: first_validity_time
-  CHARACTER(LEN=10)   :: calendar
+  integer(kind=int64) :: num_times
+  real(kind=real64)   :: fctimes(99)
+  real(kind=real64)   :: first_fctime
+  character(len=19)   :: validity_times(99)
+  character(len=19)   :: first_validity_time
+  character(len=10)   :: calendar
 
-  INTEGER(KIND=i_def) :: first_step
-  INTEGER(KIND=i_def) :: last_step
-  REAL(r_second)      :: spinup_period
-  REAL(r_second)      :: seconds_per_step
+  integer(kind=i_def) :: first_step
+  integer(kind=i_def) :: last_step
+  real(r_second)      :: spinup_period
+  real(r_second)      :: seconds_per_step
 
-CONTAINS
+contains
 
-  PROCEDURE :: initialise
+  procedure :: initialise
 
-END TYPE datetime_type
+end type datetime_type
 
-TYPE(datetime_type) :: datetime
+type(datetime_type) :: datetime
 
-CONTAINS
+contains
 
-SUBROUTINE initialise(self)
+subroutine initialise(self)
 
-IMPLICIT NONE
+implicit none
 
-CLASS(datetime_type) :: self
+class(datetime_type) :: self
 
 self % fctimes(:) = -1.0_real64
 self % validity_times(:) = 'XXXX-XX-XX XX:XX:XX'
@@ -66,6 +66,6 @@ self % last_step = 1
 self % spinup_period = 0.0_r_second
 self % seconds_per_step = 1.0_r_second
 
-END SUBROUTINE initialise
+end subroutine initialise
 
-END MODULE lfricinp_datetime_mod
+end module lfricinp_datetime_mod

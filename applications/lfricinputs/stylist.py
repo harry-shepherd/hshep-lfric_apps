@@ -48,7 +48,8 @@ allowed_mpi = (
 infrastructure = Style(
     TrailingWhitespace(),
     FortranCharacterset(),
-    NakedLiteral(integers=False, reals=True)
+    NakedLiteral(integers=False, reals=True),
+    IntrinsicModule(),
 )
 
 # Define additional file type processing pipelines

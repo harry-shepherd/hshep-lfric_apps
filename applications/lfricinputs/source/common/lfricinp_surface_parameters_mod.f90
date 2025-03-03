@@ -3,21 +3,21 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_surface_parameters_mod
+module lfricinp_surface_parameters_mod
 
-USE constants_mod, ONLY: r_def, i_def
+use constants_mod, only: r_def, i_def
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
-PUBLIC :: sm_levels, dzsoil
+public :: sm_levels, dzsoil
 
 ! Number of soil moisture levels - this corresponds to jules_physics_init
-INTEGER(KIND=i_def), PARAMETER :: sm_levels = 4
+integer(kind=i_def), parameter :: sm_levels = 4
 
 ! Soil moisture layer thickness - this corresponds to jules_physics_init
-REAL(KIND=r_def), PARAMETER    :: dzsoil(1:sm_levels) =                        &
+real(kind=r_def), parameter    :: dzsoil(1:sm_levels) =                        &
                             (/ 0.1_r_def, 0.25_r_def, 0.65_r_def, 2.0_r_def /)
 
-END MODULE lfricinp_surface_parameters_mod
+end module lfricinp_surface_parameters_mod

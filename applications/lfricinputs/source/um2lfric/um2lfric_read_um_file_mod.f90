@@ -5,32 +5,32 @@
 ! *****************************COPYRIGHT*******************************
 ! This module has an underlying dependency on LFRic's logging module
 
-MODULE um2lfric_read_um_file_mod
+module um2lfric_read_um_file_mod
 
 ! Intrinsic modules
-USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_BOOL
+use, intrinsic :: iso_c_binding, only: c_bool
 
 ! Shumlib modules
-USE f_shum_file_mod, ONLY: shum_file_type
-USE f_shum_field_mod, ONLY: shum_field_type
+use f_shum_file_mod, only: shum_file_type
+use f_shum_field_mod, only: shum_field_type
 
 ! UM2LFRic modules
-USE lfricinp_check_shumlib_status_mod, ONLY: shumlib
-USE lfricinp_um_parameters_mod, ONLY: fnamelen, um_integer64
+use lfricinp_check_shumlib_status_mod, only: shumlib
+use lfricinp_um_parameters_mod, only: fnamelen, um_integer64
 
 ! LFRic modules
-USE log_mod,     ONLY: log_event, LOG_LEVEL_INFO, LOG_LEVEL_ERROR,             &
+use log_mod,     only: log_event, LOG_LEVEL_INFO, LOG_LEVEL_ERROR,             &
                        log_scratch_space
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
-PUBLIC :: um2lfric_read_um_file, um2lfric_close_um_file, um_input_file
+public :: um2lfric_read_um_file, um2lfric_close_um_file, um_input_file
 
-TYPE(shum_file_type), SAVE :: um_input_file
+type(shum_file_type), save :: um_input_file
 
-CONTAINS
+contains
 
 ! DEPENDS ON: c_shum_byteswap.o
 ! This is required to force fcm-make to compile the C code; whilst the built-in
@@ -41,30 +41,30 @@ CONTAINS
 
 !-------------------------------------------------------------------------------
 
-SUBROUTINE um2lfric_read_um_file(fname)
+subroutine um2lfric_read_um_file(fname)
 
-  IMPLICIT NONE
+  implicit none
 
-  CHARACTER(LEN=fnamelen), INTENT(IN) :: fname
-  CHARACTER(LEN=*), PARAMETER :: routinename='um2lfric_read_um_file'
+  character(len=fnamelen), intent(in) :: fname
+  character(len=*), parameter :: routinename='um2lfric_read_um_file'
 
   ! Load the UM file
-  CALL log_event('Loading file '//TRIM(fname), LOG_LEVEL_INFO)
-  CALL shumlib(routinename//'::open_file', um_input_file%open_file(fname),&
-                print_on_success=.TRUE._C_BOOL)
+  call log_event('Loading file '//trim(fname), LOG_LEVEL_INFO)
+  call shumlib(routinename//'::open_file', um_input_file%open_file(fname),&
+                print_on_success=.true._C_BOOL)
 
-  CALL shumlib(routinename//'::open_file', um_input_file%read_header(),  &
-                print_on_success=.TRUE._C_BOOL)
+  call shumlib(routinename//'::open_file', um_input_file%read_header(),  &
+                print_on_success=.true._C_BOOL)
 
-END SUBROUTINE um2lfric_read_um_file
+end subroutine um2lfric_read_um_file
 
-SUBROUTINE um2lfric_close_um_file()
-  IMPLICIT NONE
-  CHARACTER(LEN=*), PARAMETER :: routinename='um2lfric_close_um_file'
+subroutine um2lfric_close_um_file()
+  implicit none
+  character(len=*), parameter :: routinename='um2lfric_close_um_file'
 
   ! Close file
-  CALL shumlib(routinename//'::close_file', um_input_file%close_file() )
+  call shumlib(routinename//'::close_file', um_input_file%close_file() )
 
-END SUBROUTINE um2lfric_close_um_file
+end subroutine um2lfric_close_um_file
 
-END MODULE um2lfric_read_um_file_mod
+end module um2lfric_read_um_file_mod

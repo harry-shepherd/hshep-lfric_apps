@@ -3,16 +3,16 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_check_shumlib_status_mod
+module lfricinp_check_shumlib_status_mod
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
-PUBLIC :: shumlib
+private
+public :: shumlib
 
-CONTAINS
+contains
 
-SUBROUTINE shumlib(routinename, status,                                        &
+subroutine shumlib(routinename, status,                                        &
                    print_on_success, ignore_warning, errorstatus)
 
 ! Each routine in the shumlib fieldsfile API returns a status object.
@@ -20,7 +20,7 @@ SUBROUTINE shumlib(routinename, status,                                        &
 ! as a wrapper routine if the shumlib function is called directly
 ! in the argument list, for example:
 !
-! CALL shumlib("my_shumlib_func", my_shumlib_func(var1, var2))
+! call shumlib("my_shumlib_func", my_shumlib_func(var1, var2))
 !
 ! Here my_shumlib_func is called first, the arguments var1 and
 ! var2 are passed to the routine. They remain in scope in the calling
@@ -29,60 +29,60 @@ SUBROUTINE shumlib(routinename, status,                                        &
 ! routine for checking.
 
 ! Intrinsic modules
-USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_BOOL
+use, intrinsic :: iso_c_binding, only: c_bool
 
 ! LFRic modules
-USE log_mod, ONLY: log_event, LOG_LEVEL_ERROR, LOG_LEVEL_INFO
+use log_mod, only: log_event, LOG_LEVEL_ERROR, LOG_LEVEL_INFO
 
 ! Shumlib modules
-USE f_shum_ff_status_mod, ONLY: shum_ff_status_type, OPERATOR(==),            &
-                                OPERATOR(<), SHUMLIB_SUCCESS
+use f_shum_ff_status_mod, only: shum_ff_status_type, operator(==),            &
+                                operator(<), SHUMLIB_SUCCESS
 
-IMPLICIT NONE
+implicit none
 
 ! Arguments
-TYPE(shum_ff_status_type), INTENT(IN) :: status
-CHARACTER(LEN=*),          INTENT(IN) :: routinename
-LOGICAL(KIND=C_BOOL), OPTIONAL,  INTENT(IN) :: print_on_success, ignore_warning
-INTEGER,              OPTIONAL, INTENT(OUT) :: errorstatus
+type(shum_ff_status_type), intent(in) :: status
+character(len=*),          intent(in) :: routinename
+logical(kind=c_bool), optional,  intent(in) :: print_on_success, ignore_warning
+integer,              optional, intent(out) :: errorstatus
 ! Internal variables
 
 ! Message - set to be the maximum SHUMlib message length (1024) plus a
 ! reasonable size for a routine name (128)
-CHARACTER(LEN=1152) :: message
+character(len=1152) :: message
 ! Set message
-WRITE(message, '(A,A,A,A)') '[', TRIM(routinename), '] ',TRIM(status%message)
+write(message, '(A,A,A,A)') '[', trim(routinename), '] ',trim(status%message)
 
-IF (status < SHUMLIB_SUCCESS) THEN
+if (status < SHUMLIB_SUCCESS) then
   ! This is potentially a warning
-  IF (PRESENT(errorstatus)) errorstatus = -1
-  IF (PRESENT(ignore_warning)) THEN
-    IF (ignore_warning) THEN
+  if (present(errorstatus)) errorstatus = -1
+  if (present(ignore_warning)) then
+    if (ignore_warning) then
       ! Ignore warning is true, print and carry on
-      CALL log_event(message, LOG_LEVEL_INFO)
-    ELSE
+      call log_event(message, LOG_LEVEL_INFO)
+    else
       ! Ignore warning is false, print and abort
-      CALL log_event(message, LOG_LEVEL_ERROR)
-    END IF
-  ELSE
+      call log_event(message, LOG_LEVEL_ERROR)
+    end if
+  else
     ! Ignore warning is not set, print and abort
-    CALL log_event(message, LOG_LEVEL_ERROR)
-  END IF
-ELSE IF (status == SHUMLIB_SUCCESS) THEN
+    call log_event(message, LOG_LEVEL_ERROR)
+  end if
+else if (status == SHUMLIB_SUCCESS) then
   ! This is a success; if print_on_success is provided, and true, print message
   ! otherwise carry on as normal
-  IF (PRESENT(errorstatus)) errorstatus = 0
-  IF (PRESENT(print_on_success)) THEN
-    IF (print_on_success) THEN
-      CALL log_event(message, LOG_LEVEL_INFO)
-    END IF
-  END IF
-ELSE
-  IF (PRESENT(errorstatus)) errorstatus = 1
+  if (present(errorstatus)) errorstatus = 0
+  if (present(print_on_success)) then
+    if (print_on_success) then
+      call log_event(message, LOG_LEVEL_INFO)
+    end if
+  end if
+else
+  if (present(errorstatus)) errorstatus = 1
   ! This is a definite failure, abort whatever else is provided
-  CALL log_event(message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(message, LOG_LEVEL_ERROR)
+end if
 
-END SUBROUTINE shumlib
+end subroutine shumlib
 
-END MODULE lfricinp_check_shumlib_status_mod
+end module lfricinp_check_shumlib_status_mod

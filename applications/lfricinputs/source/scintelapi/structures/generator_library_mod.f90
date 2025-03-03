@@ -3,54 +3,54 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE generator_library_mod
+module generator_library_mod
 !
 ! This module provides access to the generator library. It also contains
 ! routines that creates/defines the library and finds the position index in the
 ! library of a generator with a given identifier.
 !
 
-USE dependency_graph_mod, ONLY: field_generator
-USE log_mod,              ONLY: log_event, LOG_LEVEL_ERROR
+use dependency_graph_mod, only: field_generator
+use log_mod,              only: log_event, LOG_LEVEL_ERROR
 
-IMPLICIT NONE
+implicit none
 
 ! Number of generators
-INTEGER, PARAMETER :: no_generators = 14
+integer, parameter :: no_generators = 14
 
 ! Generator array containing all generators
-TYPE(field_generator), TARGET :: generator_list(no_generators)
+type(field_generator), target :: generator_list(no_generators)
 
-CONTAINS
+contains
 
-SUBROUTINE init_generator_lib()
+subroutine init_generator_lib()
 !
 ! This routine creates/defines the generator library
 !
 ! Basic tranforms
-USE init_field_mod,           ONLY: init_field
-USE read_from_file_mod,       ONLY: read_from_file
-USE copy_field_data_mod,      ONLY: copy_field_data
-USE a_times_X_dep_alg_mod,    ONLY: a_times_X_dep_alg
-USE X_plus_Y_dep_alg_mod,     ONLY: X_plus_Y_dep_alg
-USE aX_plus_bY_dep_alg_mod,   ONLY: aX_plus_bY_dep_alg
-USE X_minus_Y_dep_alg_mod,    ONLY: X_minus_Y_dep_alg
-USE X_times_Y_dep_alg_mod,    ONLY: X_times_Y_dep_alg
-USE X_divideby_Y_dep_alg_mod, ONLY: X_divideby_Y_dep_alg
-USE X_powint_n_mod,           ONLY: X_powint_n
-USE X_powreal_a_mod,          ONLY: X_powreal_a
+use init_field_mod,           only: init_field
+use read_from_file_mod,       only: read_from_file
+use copy_field_data_mod,      only: copy_field_data
+use a_times_X_dep_alg_mod,    only: a_times_X_dep_alg
+use X_plus_Y_dep_alg_mod,     only: X_plus_Y_dep_alg
+use aX_plus_bY_dep_alg_mod,   only: aX_plus_bY_dep_alg
+use X_minus_Y_dep_alg_mod,    only: X_minus_Y_dep_alg
+use X_times_Y_dep_alg_mod,    only: X_times_Y_dep_alg
+use X_divideby_Y_dep_alg_mod, only: X_divideby_Y_dep_alg
+use X_powint_n_mod,           only: X_powint_n
+use X_powreal_a_mod,          only: X_powreal_a
 ! Science transforms
-USE soil_moist_content_to_soil_moist_stress_mod, &
-                              ONLY: soil_moist_content_to_soil_moist_stress
-USE soil_moist_stress_to_soil_moist_content_mod, &
-                              ONLY: soil_moist_stress_to_soil_moist_content
-USE specific_humidity_to_mixing_ratio_mod, &
-                              ONLY: specific_humidity_to_mixing_ratio
+use soil_moist_content_to_soil_moist_stress_mod, &
+                              only: soil_moist_content_to_soil_moist_stress
+use soil_moist_stress_to_soil_moist_content_mod, &
+                              only: soil_moist_stress_to_soil_moist_content
+use specific_humidity_to_mixing_ratio_mod, &
+                              only: specific_humidity_to_mixing_ratio
 
-IMPLICIT NONE
+implicit none
 
 ! Iterable
-INTEGER :: l
+integer :: l
 
 !
 ! Basic transforms
@@ -130,46 +130,46 @@ l = 14
 generator_list(l)%identifier = 'spec_humidity_to_mixing_ratios'
 generator_list(l)%generator => specific_humidity_to_mixing_ratio
 
-END SUBROUTINE init_generator_lib
+end subroutine init_generator_lib
 
 
-FUNCTION generator_index(generator_id)
+function generator_index(generator_id)
 !
 ! This function returns the library position index of a generator with a given
 ! id.
 !
 
-IMPLICIT NONE
+implicit none
 
 !
 ! Arguments
 !
 ! Generator identifier
-CHARACTER(LEN=*), INTENT(IN) :: generator_id
+character(len=*), intent(in) :: generator_id
 
 !
 ! Local variables
 !
 ! Generator index
-INTEGER :: generator_index
+integer :: generator_index
 
 ! Iterable
-INTEGER :: l
+integer :: l
 
 ! Loop over generator library items to find generator index corresponding to id
 generator_index = 0
-DO l = 1, no_generators
-  IF (trim(generator_id) == trim(generator_list(l)%identifier)) THEN
+do l = 1, no_generators
+  if (trim(generator_id) == trim(generator_list(l)%identifier)) then
     generator_index = l
-    EXIT
-  END IF
-END DO
+    exit
+  end if
+end do
 
 ! Check if generator has been found, if not raise error.
-IF (generator_index == 0) THEN
-  CALL log_event('Generator not found in generator library', LOG_LEVEL_ERROR)
-END IF
+if (generator_index == 0) then
+  call log_event('Generator not found in generator library', LOG_LEVEL_ERROR)
+end if
 
-END FUNCTION generator_index
+end function generator_index
 
-END MODULE generator_library_mod
+end module generator_library_mod

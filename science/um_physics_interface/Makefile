@@ -72,11 +72,20 @@ unit-tests/%: export ADDITIONAL_EXTRACTION = $(CORE_ROOT_DIR)/components/science
 unit-tests/%: export BIN_DIR ?= $(PROJECT_DIR)/test
 unit-tests/%: export EXTERNAL_STATIC_LIBRARIES += pfunit
 unit-tests/%: export FFLAG_GROUPS = -D UNIT_TEST
+unit-tests/%: export PRE_PROCESS_INCLUDE_DIRS = \
+        $(WORKING_DIR)/atmosphere_service/include \
+        $(WORKING_DIR)/boundary_layer/include \
+		$(WORKING_DIR)/free_tracers/include \
+        $(WORKING_DIR)/large_scale_precipitation/include
+
+unit-tests/%: export PRE_PROCESS_MACROS += UM_PHYSICS LFRIC USSPPREC_32B LSPREC_32B UM_JULES
 unit-tests/%: export IMPORT_PARTS = $(CORE_ROOT_DIR)/infrastructure \
                                     $(CORE_ROOT_DIR)/components/science \
                                     $(APPS_ROOT_DIR)/science/jules_interface \
                                     $(APPS_ROOT_DIR)/science/gungho \
-                                    $(APPS_ROOT_DIR)/science/socrates_interface
+                                    $(APPS_ROOT_DIR)/science/socrates_interface \
+                                    $(APPS_ROOT_DIR)/science/um_physics_interface \
+                                    $(APPS_ROOT_DIR)/science/physics_schemes
 unit-tests/%: export META_FILE_DIR = $(PROJECT_DIR)/rose-meta/$(PROJECT_NAME)/$(META_VN)
 unit-tests/%: export PROGRAMS = um_physics_interface_unit_tests
 unit-tests/%: export PROJECT = um_physics_interface

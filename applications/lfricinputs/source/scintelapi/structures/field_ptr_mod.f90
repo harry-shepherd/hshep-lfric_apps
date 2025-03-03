@@ -3,7 +3,7 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE field_ptr_mod
+module field_ptr_mod
 !
 ! This module defines and provides access to the field pointer object derived
 ! type. This object simply contains a pointer to a LFRic field type. Its
@@ -11,12 +11,12 @@ MODULE field_ptr_mod
 ! one cannot create allocatable pointer arrays in Fortran.
 !
 
-USE field_mod, ONLY: field_type
+use field_mod, only: field_type
 
-IMPLICIT NONE
+implicit none
 
-TYPE field_ptr_object
-  TYPE(field_type), POINTER :: field_ptr => NULL()
-END TYPE field_ptr_object
+type field_ptr_object
+  type(field_type), pointer :: field_ptr => null()
+end type field_ptr_object
 
-END MODULE field_ptr_mod
+end module field_ptr_mod

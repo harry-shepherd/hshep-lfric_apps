@@ -3,103 +3,103 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_masked_field_adjust_type_mod
+module lfricinp_masked_field_adjust_type_mod
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY : int32, int64, real64
+use, intrinsic :: iso_fortran_env, only : int32, int64, real64
 
 ! lfricinputs modules
-USE lfricinp_regrid_weights_type_mod, ONLY: lfricinp_regrid_weights_type
+use lfricinp_regrid_weights_type_mod, only: lfricinp_regrid_weights_type
 
 ! Shumlib modules
-USE f_shum_field_mod, ONLY: shum_field_type
+use f_shum_field_mod, only: shum_field_type
 
 ! LFRic modules
-USE log_mod, ONLY: log_event, log_scratch_space, LOG_LEVEL_ERROR, &
+use log_mod, only: log_event, log_scratch_space, LOG_LEVEL_ERROR, &
                    LOG_LEVEL_INFO
-USE constants_mod, ONLY: imdi, rmdi
+use constants_mod, only: imdi, rmdi
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
-PUBLIC :: lfricinp_masked_field_adjust_type
+public :: lfricinp_masked_field_adjust_type
 
 ! Type to contain information relating to masked fields adjustments/corrections
 
-TYPE :: lfricinp_masked_field_adjust_type
+type :: lfricinp_masked_field_adjust_type
 
   ! Number of destination points that do not have a full weight contribution
   ! from the source points of the same field mask type. ie some contributions
   ! come from points with different field mask type
-  INTEGER(KIND=int32) :: num_adjusted_points
+  integer(kind=int32) :: num_adjusted_points
 
   ! Indices of adjusted points on the destination grid/mesh
-  INTEGER(KIND=int32), ALLOCATABLE :: adjusted_dst_indices_1D(:)
+  integer(kind=int32), allocatable :: adjusted_dst_indices_1D(:)
   ! Map that links the which single source point has been selected to replace
   ! the adjusted destination data point
-  INTEGER(KIND=int32), ALLOCATABLE :: adjusted_dst_to_src_map_2D(:,:)
+  integer(kind=int32), allocatable :: adjusted_dst_to_src_map_2D(:,:)
 
   ! Flag to check whether the adjustment type has been initialised
-  LOGICAL :: initialised = .FALSE.
+  logical :: initialised = .false.
 
   ! Destination mask - logical is true when point is VALID, logical false
   ! point should be ignored/masked out
-  LOGICAL, ALLOCATABLE :: dst_mask_1D(:)
+  logical, allocatable :: dst_mask_1D(:)
 
-CONTAINS
-  PROCEDURE :: find_adjusted_points_src_2d_dst_1d
-  PROCEDURE :: apply_masked_adjustment_src_2d_dst_1d
+contains
+  procedure :: find_adjusted_points_src_2d_dst_1d
+  procedure :: apply_masked_adjustment_src_2d_dst_1d
 
-END TYPE lfricinp_masked_field_adjust_type
+end type lfricinp_masked_field_adjust_type
 
-CONTAINS
+contains
 !---------------------------------------------------------
 ! Start of type bound procedures
 !---------------------------------------------------------
 
-SUBROUTINE find_adjusted_points_src_2d_dst_1d(self, src_mask, dst_mask, weights)
+subroutine find_adjusted_points_src_2d_dst_1d(self, src_mask, dst_mask, weights)
 !
 ! This routine finds all masked field destination points that will require
 ! post regridding adjustment
 !
 ! Argument(s)
 !
-CLASS(lfricinp_masked_field_adjust_type)       :: self
-LOGICAL,                            INTENT(IN) :: src_mask(:,:)
-LOGICAL,                            INTENT(IN) :: dst_mask(:)
-TYPE(lfricinp_regrid_weights_type), INTENT(IN) :: weights
+class(lfricinp_masked_field_adjust_type)       :: self
+logical,                            intent(in) :: src_mask(:,:)
+logical,                            intent(in) :: dst_mask(:)
+type(lfricinp_regrid_weights_type), intent(in) :: weights
 
 !
 ! Local variables
 !
-INTEGER(KIND=int32)              :: i, j, l, w
-INTEGER(KIND=int32)              :: src_index1, src_index2, dst_index
-INTEGER(KIND=int32), ALLOCATABLE :: dst_point_contrb_record(:)
-REAL(KIND=real64)                :: weight_value
-INTEGER(KIND=int32), PARAMETER   :: unchecked = 0, src_mask_contrb_only = 1,   &
+integer(kind=int32)              :: i, j, l, w
+integer(kind=int32)              :: src_index1, src_index2, dst_index
+integer(kind=int32), allocatable :: dst_point_contrb_record(:)
+real(kind=real64)                :: weight_value
+integer(kind=int32), parameter   :: unchecked = 0, src_mask_contrb_only = 1,   &
                                     off_src_mask_contrb = 2
-LOGICAL                          :: l_on_src_mask, l_on_dst_mask
+logical                          :: l_on_src_mask, l_on_dst_mask
 
-ALLOCATE(self%dst_mask_1D(SIZE(dst_mask)))
+allocate(self%dst_mask_1D(size(dst_mask)))
 self%dst_mask_1D(:) = dst_mask(:)
 
 ! Initialise arrays that records whether dst points had any or no
 ! contribution from on mask src points and the src point data
 ! to replace the dst point data
-ALLOCATE(dst_point_contrb_record(SIZE(dst_mask)))
+allocate(dst_point_contrb_record(size(dst_mask)))
 dst_point_contrb_record = unchecked
 
 ! Loop over remap matrix, considering only non-zero weight elements, to
 ! determine whether a dst point has contribution from any off mask src points
-DO w = 1, weights%num_wgts
-  DO l = 1, weights%num_links
+do w = 1, weights%num_wgts
+  do l = 1, weights%num_links
 
     dst_index = weights%dst_address(l)
     l_on_dst_mask = dst_mask(dst_index)
 
-    weight_value = ABS(weights%remap_matrix(w,l))
-    IF (weight_value > 0.0_real64 .AND. l_on_dst_mask) THEN
+    weight_value = abs(weights%remap_matrix(w,l))
+    if (weight_value > 0.0_real64 .and. l_on_dst_mask) then
 
       src_index1 = weights%src_address_2d(l,1)
       src_index2 = weights%src_address_2d(l,2)
@@ -107,93 +107,93 @@ DO w = 1, weights%num_wgts
 
       ! Update records on whether the dst point has contributions from only
       ! masked src points, or some off mask source points.
-      SELECT CASE (dst_point_contrb_record(dst_index))
+      select case (dst_point_contrb_record(dst_index))
 
-        CASE (unchecked)
-          IF (l_on_src_mask) THEN
+        case (unchecked)
+          if (l_on_src_mask) then
             dst_point_contrb_record(dst_index) = src_mask_contrb_only
-          ELSE
+          else
             dst_point_contrb_record(dst_index) = off_src_mask_contrb
-          END IF
+          end if
 
-        CASE (src_mask_contrb_only)
-          IF ( .NOT. l_on_src_mask) THEN
+        case (src_mask_contrb_only)
+          if ( .not. l_on_src_mask) then
             dst_point_contrb_record(dst_index) = off_src_mask_contrb
-          END IF
+          end if
 
-      END SELECT
+      end select
 
-    END IF
-  END DO
-END DO
+    end if
+  end do
+end do
 
 ! Set number of part resolved dst points.
-self%num_adjusted_points = COUNT((dst_point_contrb_record ==                   &
+self%num_adjusted_points = count((dst_point_contrb_record ==                   &
                                        off_src_mask_contrb))
-WRITE (log_scratch_space, '(A,I0)') "Number of adjusted points = ",            &
+write (log_scratch_space, '(A,I0)') "Number of adjusted points = ",            &
      self%num_adjusted_points
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
 
 ! Generate array of dst indices that requires post regridding masked adjustment
-ALLOCATE(self%adjusted_dst_indices_1D(self%num_adjusted_points))
+allocate(self%adjusted_dst_indices_1D(self%num_adjusted_points))
 j = 0
-DO i = 1, SIZE(dst_mask)
-  IF (dst_point_contrb_record(i) == off_src_mask_contrb) THEN
+do i = 1, size(dst_mask)
+  if (dst_point_contrb_record(i) == off_src_mask_contrb) then
     j = j + 1
     self%adjusted_dst_indices_1D(j) = i
-  END IF
-END DO
+  end if
+end do
 
-DEALLOCATE(dst_point_contrb_record)
+deallocate(dst_point_contrb_record)
 
-END SUBROUTINE find_adjusted_points_src_2d_dst_1d
+end subroutine find_adjusted_points_src_2d_dst_1d
 
 !---------------------------------------------------------
 
-SUBROUTINE apply_masked_adjustment_src_2d_dst_1d(self, src, dst)
+subroutine apply_masked_adjustment_src_2d_dst_1d(self, src, dst)
 !
 ! Apply post regridding adjustments to masked field destination points
 ! Uses real arrays, could be overloaded for different types,
 ! precision and shapes
 !
-USE lfricinp_um_parameters_mod, ONLY: um_rmdi
+use lfricinp_um_parameters_mod, only: um_rmdi
 
 !
 ! Argument(s)
 !
-REAL(KIND=real64), INTENT(IN) :: src(:,:)
-REAL(KIND=real64), INTENT(IN OUT) :: dst(:)
-CLASS(lfricinp_masked_field_adjust_type) :: self
+real(kind=real64), intent(in) :: src(:,:)
+real(kind=real64), intent(in out) :: dst(:)
+class(lfricinp_masked_field_adjust_type) :: self
 !
 ! Local variables
 !
-INTEGER(KIND=int32) :: i
+integer(kind=int32) :: i
 
 ! Check if masked field adjust type has been initialised. If not
 ! report a warning
-IF (self%initialised) THEN
+if (self%initialised) then
 
-  DO i = 1, self%num_adjusted_points
+  do i = 1, self%num_adjusted_points
     dst(self%adjusted_dst_indices_1D(i)) =                                     &
                                      src(self%adjusted_dst_to_src_map_2D(i,1), &
                                          self%adjusted_dst_to_src_map_2D(i,2))
-  END DO
+  end do
 
-  DO i = 1, SIZE(dst)
-    IF (.NOT. self%dst_mask_1D(i)) THEN
+  do i = 1, size(dst)
+    if (.not. self%dst_mask_1D(i)) then
       dst(i) = um_rmdi
-    END IF
-  END DO
+    end if
+  end do
 
-ELSE
+else
 
   log_scratch_space = 'Masked field adjustment type not initialised.'
-  CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
+  call log_event(log_scratch_space, LOG_LEVEL_ERROR)
 
-END IF
+end if
 
-END SUBROUTINE apply_masked_adjustment_src_2d_dst_1d
+end subroutine apply_masked_adjustment_src_2d_dst_1d
 
 !---------------------------------------------------------
 
-END MODULE lfricinp_masked_field_adjust_type_mod
+end module lfricinp_masked_field_adjust_type_mod

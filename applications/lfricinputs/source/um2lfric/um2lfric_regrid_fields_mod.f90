@@ -3,18 +3,18 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE um2lfric_regrid_fields_mod
+module um2lfric_regrid_fields_mod
 
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
-PUBLIC :: um2lfric_regrid_fields
+public :: um2lfric_regrid_fields
 
-CONTAINS
+contains
 
-SUBROUTINE um2lfric_regrid_fields(fctime)
+subroutine um2lfric_regrid_fields(fctime)
 
 ! Description:
 !
@@ -49,121 +49,121 @@ SUBROUTINE um2lfric_regrid_fields(fctime)
 ! to number of points per level and the second dimension to the number levels
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, &
-                                  ONLY: real64, int32, int64
-USE, INTRINSIC :: ISO_C_BINDING,  ONLY: C_BOOL
+use, intrinsic :: iso_fortran_env, &
+                                  only: real64, int32, int64
+use, intrinsic :: iso_c_binding,  only: c_bool
 
 ! lfricinputs modules
-USE lfricinp_check_shumlib_status_mod, &
-                                  ONLY: shumlib
-USE lfricinp_regrid_weights_type_mod, &
-                                  ONLY: lfricinp_regrid_weights_type
-USE lfricinp_stash_to_lfric_map_mod, &
-                                  ONLY: get_field_name
-USE lfricinp_lfric_driver_mod,    ONLY: lfric_fields
-USE lfricinp_regrid_options_mod,  ONLY: regrid_type
+use lfricinp_check_shumlib_status_mod, &
+                                  only: shumlib
+use lfricinp_regrid_weights_type_mod, &
+                                  only: lfricinp_regrid_weights_type
+use lfricinp_stash_to_lfric_map_mod, &
+                                  only: get_field_name
+use lfricinp_lfric_driver_mod,    only: lfric_fields
+use lfricinp_regrid_options_mod,  only: regrid_type
 
 ! um2lfric modules
-USE um2lfric_namelist_mod,        ONLY: um2lfric_config
-USE um2lfric_read_um_file_mod,    ONLY: um_input_file
-USE um2lfric_regrid_weights_mod,  ONLY: get_weights
-USE um2lfric_post_process_fields_mod, &
-                                  ONLY: um2lfric_post_process_fields
-USE um2lfric_apply_masked_field_adjustments_mod, &
-                                  ONLY: um2lfric_apply_masked_field_adjustments
+use um2lfric_namelist_mod,        only: um2lfric_config
+use um2lfric_read_um_file_mod,    only: um_input_file
+use um2lfric_regrid_weights_mod,  only: get_weights
+use um2lfric_post_process_fields_mod, &
+                                  only: um2lfric_post_process_fields
+use um2lfric_apply_masked_field_adjustments_mod, &
+                                  only: um2lfric_apply_masked_field_adjustments
 
 ! shumlib modules
-USE f_shum_field_mod,             ONLY: shum_field_type
+use f_shum_field_mod,             only: shum_field_type
 
 ! lfric modules
-USE field_mod,                    ONLY: lfric_field_type => field_type, &
+use field_mod,                    only: lfric_field_type => field_type, &
                                         lfric_proxy_type => field_proxy_type
-USE function_space_mod,           ONLY: function_space_type
-USE fs_continuity_mod,            ONLY: W3, Wtheta, W2H
-USE log_mod,                      ONLY: log_event,       &
+use function_space_mod,           only: function_space_type
+use fs_continuity_mod,            only: W3, Wtheta, W2H
+use log_mod,                      only: log_event,       &
                                         LOG_LEVEL_INFO,  &
                                         LOG_LEVEL_ERROR, &
                                         log_scratch_space
 
-IMPLICIT NONE
+implicit none
 
 ! Forecast time of a field
-REAL(KIND=real64), INTENT(IN) :: fctime
+real(kind=real64), intent(in) :: fctime
 
 ! Array of shumlib field objects that will be returned from UM file
-TYPE(shum_field_type), ALLOCATABLE  :: um_input_fields(:)
+type(shum_field_type), allocatable  :: um_input_fields(:)
 
 ! Intermediate target field for regridding
-REAL(KIND=real64), ALLOCATABLE :: regridded_field(:,:)
+real(kind=real64), allocatable :: regridded_field(:,:)
 
 ! Pointers to lfric objects
-TYPE(lfric_field_type), POINTER :: lfric_field => NULL()
-TYPE(function_space_type), POINTER :: lfric_field_fs => NULL()
-TYPE(lfricinp_regrid_weights_type), POINTER :: weights => NULL()
+type(lfric_field_type), pointer :: lfric_field => null()
+type(function_space_type), pointer :: lfric_field_fs => null()
+type(lfricinp_regrid_weights_type), pointer :: weights => null()
 
 ! LFRic field proxy
-TYPE(lfric_proxy_type) :: lfric_field_proxy
+type(lfric_proxy_type) :: lfric_field_proxy
 
 ! Other variables
-INTEGER(KIND=int64) :: stashcode
-INTEGER(KIND=int32) :: fs_type
+integer(kind=int64) :: stashcode
+integer(kind=int32) :: fs_type
 ! Iterators
-INTEGER :: i_field, level, regridded_index, len_regridded_field, lfric_index
-INTEGER :: errorstatus
+integer :: i_field, level, regridded_index, len_regridded_field, lfric_index
+integer :: errorstatus
 ! Number levels of UM field
-INTEGER(KIND=int32) :: num_levels, num_dofs_per_level, num_lfric_levels
-LOGICAL(KIND=C_BOOL) :: true_cbool
+integer(kind=int32) :: num_levels, num_dofs_per_level, num_lfric_levels
+logical(kind=c_bool) :: true_cbool
 
-true_cbool = LOGICAL(.TRUE., KIND=C_BOOL)
+true_cbool = logical(.true., kind=c_bool)
 
 !-------------------------------------------------------------------------------
 ! Initialise lfric fields to zero
 !-------------------------------------------------------------------------------
-DO i_field = 1, um2lfric_config%num_fields
+do i_field = 1, um2lfric_config%num_fields
   stashcode = um2lfric_config%stash_list(i_field)
   call lfric_fields % get_field(get_field_name(stashcode), lfric_field)
   lfric_field_proxy = lfric_field % get_proxy()
   lfric_field_proxy % data(:) = 0.0_real64
-  lfric_field => NULL()
-END DO
+  lfric_field => null()
+end do
 
 !-------------------------------------------------------------------------------
 ! Main loop over fields for regridding
 !-------------------------------------------------------------------------------
-WRITE(log_scratch_space, '(A,I0,A)') 'Will process ', &
+write(log_scratch_space, '(A,I0,A)') 'Will process ', &
      um2lfric_config%num_fields, ' fields'
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
 
-DO i_field = 1, um2lfric_config%num_fields
+do i_field = 1, um2lfric_config%num_fields
 
   stashcode = um2lfric_config%stash_list(i_field)
-  WRITE(log_scratch_space, '(A,I0)') 'Processing/regrid STASH code: ',         &
+  write(log_scratch_space, '(A,I0)') 'Processing/regrid STASH code: ',         &
                                      stashcode
-  CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-  WRITE(log_scratch_space,'(A,A)') 'LFRic field name: ',                       &
-                                   TRIM(get_field_name(stashcode))
-  CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+  call log_event(log_scratch_space, LOG_LEVEL_INFO)
+  write(log_scratch_space,'(A,A)') 'LFRic field name: ',                       &
+                                   trim(get_field_name(stashcode))
+  call log_event(log_scratch_space, LOG_LEVEL_INFO)
 
   !-----------------------------------------------------------------------------
   ! Get UM field array and number of UM field levels
   !-----------------------------------------------------------------------------
-  CALL shumlib("um2lfric::find_fields_in_file",                                &
+  call shumlib("um2lfric::find_fields_in_file",                                &
                 um_input_file%find_fields_in_file(um_input_fields,             &
                 stashcode = stashcode, lbproc = 0_int64,                       &
                 fctime = fctime), ignore_warning = true_cbool,                 &
                 errorstatus = errorstatus)
 
-  IF (errorstatus /= 0) THEN ! Field has not been found in dump
+  if (errorstatus /= 0) then ! Field has not been found in dump
 
-    WRITE(log_scratch_space,'(A,I0,A)') 'WARNING: stashcode ', stashcode,      &
+    write(log_scratch_space,'(A,I0,A)') 'WARNING: stashcode ', stashcode,      &
                                         'not found in input dump. Data set '// &
                                         'to zero in LFRic output field.'
-    CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-    IF (ALLOCATED(um_input_fields)) DEALLOCATE(um_input_fields)
+    call log_event(log_scratch_space, LOG_LEVEL_INFO)
+    if (allocated(um_input_fields)) deallocate(um_input_fields)
 
-  ELSE ! Field has sucessfully been found
+  else ! Field has sucessfully been found
 
-    num_levels = SIZE(um_input_fields)
+    num_levels = size(um_input_fields)
 
     !---------------------------------------------------------------------------
     ! Create pointers to lfric field and function space field lives on
@@ -175,19 +175,19 @@ DO i_field = 1, um2lfric_config%num_fields
     ! Allocate and set dimensions of intermediate regridded field data array
     !---------------------------------------------------------------------------
     fs_type = lfric_field % which_function_space()
-    IF ((fs_type == W3) .OR.  (fs_type == W2H)) THEN
+    if ((fs_type == W3) .or.  (fs_type == W2H)) then
       num_lfric_levels = lfric_field_fs % get_nlayers()
-    ELSE IF (fs_type == Wtheta) THEN
+    else if (fs_type == Wtheta) then
       num_lfric_levels = lfric_field_fs % get_nlayers() + 1
-    ELSE
-      WRITE(log_scratch_space,'(A)') 'Function space for field ' //            &
+    else
+      write(log_scratch_space,'(A)') 'Function space for field ' //            &
                                      get_field_name(stashcode) //              &
                                      ' not currently supported in regridding'
-      CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-    END IF
+      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+    end if
     num_dofs_per_level = lfric_field_fs % get_undf() /                         &
                          (num_lfric_levels * lfric_field_fs % get_ndata())
-    ALLOCATE(regridded_field(num_dofs_per_level, num_levels))
+    allocate(regridded_field(num_dofs_per_level, num_levels))
 
     !---------------------------------------------------------------------------
     ! Get required regridding weights
@@ -197,80 +197,80 @@ DO i_field = 1, um2lfric_config%num_fields
     !---------------------------------------------------------------------------
     ! Loop for level by level regridding
     !---------------------------------------------------------------------------
-    DO level = 1, num_levels
+    do level = 1, num_levels
 
       !-------------------------------------------------------------------------
       ! Perform regridding/copying data from one grid/mesh to another
       !-------------------------------------------------------------------------
-      CALL weights % regrid_src_2d_dst_1d (src=um_input_fields(level)%rdata,   &
+      call weights % regrid_src_2d_dst_1d (src=um_input_fields(level)%rdata,   &
                                            dst=regridded_field(:, level))
       !-------------------------------------------------------------------------
       ! Perform post regridding masked field adjustments, if regridding was not
       ! a simple copy of data (as is case for LAMs)
       !-------------------------------------------------------------------------
-      IF (TRIM(regrid_type) /= 'lam_to_lam') THEN
-        CALL um2lfric_apply_masked_field_adjustments(                          &
+      if (trim(regrid_type) /= 'lam_to_lam') then
+        call um2lfric_apply_masked_field_adjustments(                          &
                                             stashcode,                         &
                                             src=um_input_fields(level)%rdata,  &
                                             dst=regridded_field(:, level))
-      END IF
+      end if
 
-    END DO ! loop over levels
+    end do ! loop over levels
 
     ! Tidy up input field memory
-    IF (ALLOCATED(um_input_fields)) DEALLOCATE(um_input_fields)
+    if (allocated(um_input_fields)) deallocate(um_input_fields)
 
     !---------------------------------------------------------------------------
     ! Do any final post-processing to field, if required
     !---------------------------------------------------------------------------
-    CALL um2lfric_post_process_fields(regridded_field, stashcode)
+    call um2lfric_post_process_fields(regridded_field, stashcode)
     ! Update number of levels for field if it changed during post-processing
-    num_levels = SIZE(regridded_field, 2)
+    num_levels = size(regridded_field, 2)
 
     !---------------------------------------------------------------------------
     ! Copy the regridded data to the lfric field
     !---------------------------------------------------------------------------
     lfric_field_proxy = lfric_field % get_proxy()
-    IF (SIZE(regridded_field) /= SIZE(lfric_field_proxy % data)) THEN
-      WRITE(log_scratch_space,'(A,I0,A,I0)')                                   &
+    if (size(regridded_field) /= size(lfric_field_proxy % data)) then
+      write(log_scratch_space,'(A,I0,A,I0)')                                   &
                               'Mismatch between lfric field data array size ', &
-                              SIZE(lfric_field_proxy % data), ' and ' //       &
+                              size(lfric_field_proxy % data), ' and ' //       &
                               'regridded array size ',                         &
-                              SIZE(regridded_field)
-      CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-    END IF
-    WRITE(log_scratch_space,'(A)') 'Fill LFRic field object with regridded data'
-    CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-    DO level = 1, num_levels
-       len_regridded_field = SIZE(regridded_field, 1)
+                              size(regridded_field)
+      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+    end if
+    write(log_scratch_space,'(A)') 'Fill LFRic field object with regridded data'
+    call log_event(log_scratch_space, LOG_LEVEL_INFO)
+    do level = 1, num_levels
+       len_regridded_field = size(regridded_field, 1)
        ! Split up the data here and insert it into the LFRic field in the
        ! correct place. Loop over all points in the 2D regridded field that
        ! represents a single level. The first lfric array index will match the
        ! current level number
        lfric_index = level
-       DO regridded_index = 1, len_regridded_field
+       do regridded_index = 1, len_regridded_field
          lfric_field_proxy % data(lfric_index) =                               &
                                       lfric_field_proxy % data(lfric_index) +  &
                                       regridded_field(regridded_index, level)
          ! Need to step by the total number of levels to get to the lfric
          ! array index that corresponds to the next regridded point
          lfric_index = lfric_index + num_levels
-       END DO
-     END DO
+       end do
+     end do
 
-    DEALLOCATE(regridded_field)
+    deallocate(regridded_field)
 
     !---------------------------------------------------------------------------
     ! Nullify pointers before redefining
     !---------------------------------------------------------------------------
-    weights => NULL()
-    lfric_field => NULL()
-    lfric_field_fs => NULL()
+    weights => null()
+    lfric_field => null()
+    lfric_field_fs => null()
 
-  END IF
+  end if
 
-END DO ! loop over stashcodes
+end do ! loop over stashcodes
 
-END SUBROUTINE um2lfric_regrid_fields
+end subroutine um2lfric_regrid_fields
 
-END MODULE um2lfric_regrid_fields_mod
+end module um2lfric_regrid_fields_mod

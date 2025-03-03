@@ -3,7 +3,7 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE scintelapi_namelist_mod
+module scintelapi_namelist_mod
 !
 ! This module holds the paths to the LFRic infracstructure namelist file and the
 ! field definition and dependency graph namelist file. The former is used to
@@ -13,15 +13,15 @@ MODULE scintelapi_namelist_mod
 ! argument list.
 !
 
-USE constants_def_mod, ONLY: file_name_len
+use constants_def_mod, only: file_name_len
 
-IMPLICIT NONE
+implicit none
 
 ! Science Intelligence input namelist file
-CHARACTER(LEN=file_name_len), PUBLIC :: scintelapi_nl
+character(len=file_name_len), public :: scintelapi_nl
 
 ! Array containing required LFRic configuration namelists
-CHARACTER(*), PARAMETER  :: required_lfric_namelists(6) = ['logging       ', &
+character(*), parameter  :: required_lfric_namelists(6) = ['logging       ', &
                                                            'finite_element', &
                                                            'base_mesh     ', &
                                                            'planet        ', &
@@ -29,4 +29,4 @@ CHARACTER(*), PARAMETER  :: required_lfric_namelists(6) = ['logging       ', &
                                                            'io            ']
 
 
-END MODULE scintelapi_namelist_mod
+end module scintelapi_namelist_mod

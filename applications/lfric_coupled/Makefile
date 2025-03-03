@@ -31,7 +31,8 @@ export INTERNAL_DEPENDENCIES = $(CORE_ROOT_DIR)/infrastructure \
                                $(CORE_ROOT_DIR)/components/lfric-xios \
                                $(APPS_ROOT_DIR)/science/shared \
                                $(APPS_ROOT_DIR)/science/jules_interface \
-                               $(APPS_ROOT_DIR)/science/socrates_interface
+                               $(APPS_ROOT_DIR)/science/socrates_interface \
+                               $(APPS_ROOT_DIR)/science/um_physics_interface
 
 META_VN       ?= HEAD
 META_FILE_DIR  = $(PROJECT_DIR)/rose-meta/lfric-$(PROJECT_NAME)/$(META_VN)
@@ -133,8 +134,6 @@ build: ALWAYS
 	$(call MESSAGE,Extracting UM physics )
 	$(call MESSAGE,========================================)
 	$Q$(MAKE) $(QUIET_ARG) -f $(APPS_ROOT_DIR)/build/extract/extract_physics.mk
-	$Q$(MAKE) $(QUIET_ARG) -f $(LFRIC_BUILD)/extract.mk \
-	          SOURCE_DIR=$(APPS_ROOT_DIR)/science/um_physics_interface/source
 	$(call MESSAGE,========================================)
 	$(call MESSAGE,Extracting $(PROJECT_NAME))
 	$(call MESSAGE,========================================)
@@ -157,11 +156,6 @@ build: ALWAYS
 	$(call MESSAGE,========================================)
 	$Q$(MAKE) $(QUIET_ARG) -f $(LFRIC_BUILD)/psyclone/psyclone.mk \
 	        SOURCE_DIR=$(APPS_ROOT_DIR)/science/gungho/source
-	$(call MESSAGE,========================================)
-	$(call MESSAGE,PSycloning UM Physics)
-	$(call MESSAGE,========================================)
-	$Q$(MAKE) $(QUIET_ARG) -f $(LFRIC_BUILD)/psyclone/psyclone.mk \
-	          SOURCE_DIR=$(APPS_ROOT_DIR)/science/um_physics_interface/source
 	$(call MESSAGE,========================================)
 	$(call MESSAGE,PSycloning $(PROJECT_NAME))
 	$(call MESSAGE,========================================)

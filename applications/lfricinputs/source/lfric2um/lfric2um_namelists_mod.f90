@@ -3,106 +3,106 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-!> @brief   Module containing lfric2um configuration TYPE
+!> @brief   Module containing lfric2um configuration type
 !> @details Hold information on input and output files and fields to be
 !!          regridded, including proceedures to read this information from
 !!          the relevant namelist.
-MODULE lfric2um_namelists_mod
+module lfric2um_namelists_mod
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY : int64, real64
+use, intrinsic :: iso_fortran_env, only : int64, real64
 
 ! lfricinputs modules
-USE lfricinp_um_parameters_mod,     ONLY: fnamelen, um_imdi
+use lfricinp_um_parameters_mod,     only: fnamelen, um_imdi
 
-IMPLICIT NONE
-PRIVATE
+implicit none
+private
 
-PUBLIC :: lfric2um_config, required_lfric_namelists
+public :: lfric2um_config, required_lfric_namelists
 
-TYPE :: config
-  CHARACTER(LEN=fnamelen) :: output_filename = 'unset'
-  CHARACTER(LEN=fnamelen) :: target_grid_namelist = 'unset'
-  CHARACTER(LEN=fnamelen) :: stashmaster_file = 'unset'
-  CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_p_bilinear = 'unset'
-  CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_p_neareststod = 'unset'
-  CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_u_bilinear = 'unset'
-  CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_v_bilinear = 'unset'
-  INTEGER(KIND=int64), ALLOCATABLE ::  stash_list(:)
-  INTEGER(KIND=int64) :: um_version_int = um_imdi
-  INTEGER(KIND=int64) :: dump_validity_time(6) = um_imdi
-  INTEGER :: num_fields
+type :: config
+  character(len=fnamelen) :: output_filename = 'unset'
+  character(len=fnamelen) :: target_grid_namelist = 'unset'
+  character(len=fnamelen) :: stashmaster_file = 'unset'
+  character(len=fnamelen) :: weights_file_face_centre_to_p_bilinear = 'unset'
+  character(len=fnamelen) :: weights_file_face_centre_to_p_neareststod = 'unset'
+  character(len=fnamelen) :: weights_file_face_centre_to_u_bilinear = 'unset'
+  character(len=fnamelen) :: weights_file_face_centre_to_v_bilinear = 'unset'
+  integer(kind=int64), allocatable ::  stash_list(:)
+  integer(kind=int64) :: um_version_int = um_imdi
+  integer(kind=int64) :: dump_validity_time(6) = um_imdi
+  integer :: num_fields
 
-  INTEGER :: status = -1
-  CHARACTER(LEN=512) :: message = 'No namelist read'
-  INTEGER :: unit_number
-CONTAINS
+  integer :: status = -1
+  character(len=512) :: message = 'No namelist read'
+  integer :: unit_number
+contains
 
-  PROCEDURE :: load_namelists
+  procedure :: load_namelists
 
-END TYPE config
+end type config
 
 ! Input namelist configuration
-TYPE(config) :: lfric2um_config
+type(config) :: lfric2um_config
 
 ! Namelist filenames read from command line
-CHARACTER(LEN=fnamelen), PUBLIC :: lfric2um_nl_fname
+character(len=fnamelen), public :: lfric2um_nl_fname
 
-INTEGER(KIND=int64), PARAMETER :: max_stash_list = 999
+integer(kind=int64), parameter :: max_stash_list = 999
 
-CHARACTER(*), PARAMETER  :: required_lfric_namelists(6) = ['logging         ', &
+character(*), parameter  :: required_lfric_namelists(6) = ['logging         ', &
                                                            'finite_element  ', &
                                                            'base_mesh       ', &
                                                            'planet          ', &
                                                            'extrusion       ', &
                                                            'io              ']
 
-CONTAINS
+contains
 
-SUBROUTINE load_namelists(self)
+subroutine load_namelists(self)
 
 ! Descriptions:
 !  Reads in lfric2um namelists. Performs checking on namelist values.
 !  Populates UM grid object and prints out grid diagnostics.
 
 ! LFRic modules
-USE log_mod,                    ONLY: log_event,       &
+use log_mod,                    only: log_event,       &
                                       LOG_LEVEL_ERROR, &
                                       LOG_LEVEL_INFO
-USE constants_mod,              ONLY: imdi, rmdi
+use constants_mod,              only: imdi, rmdi
 
 ! lfricinputs modules
-USE lfricinp_grid_namelist_mod, ONLY: grid,                                &
+use lfricinp_grid_namelist_mod, only: grid,                                &
                                       lambda_origin_targ, phi_origin_targ, &
                                       phi_pole, lambda_pole,               &
                                       delta_lambda_targ, delta_phi_targ,   &
                                       points_lambda_targ, points_phi_targ, &
                                       igrid_targ, rotated
-USE lfricinp_unit_handler_mod,  ONLY: get_free_unit
+use lfricinp_unit_handler_mod,  only: get_free_unit
 
 ! lfric2um modules
-USE lfricinp_um_grid_mod,       ONLY: um_grid
+use lfricinp_um_grid_mod,       only: um_grid
 
-IMPLICIT NONE
-CLASS(config) :: self
+implicit none
+class(config) :: self
 
 
 ! Local variables
-INTEGER :: i_stash
+integer :: i_stash
 
 ! Namelist variables
-CHARACTER(LEN=fnamelen) :: output_filename = 'unset'
-CHARACTER(LEN=fnamelen) :: stashmaster_file = 'unset'
-CHARACTER(LEN=fnamelen) :: target_grid_namelist = 'unset'
-CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_p_bilinear = 'unset'
-CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_p_neareststod = 'unset'
-CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_u_bilinear = 'unset'
-CHARACTER(LEN=fnamelen) :: weights_file_face_centre_to_v_bilinear = 'unset'
-INTEGER(KIND=int64) ::  stash_list(max_stash_list)
-INTEGER(KIND=int64) :: um_version_int = um_imdi
-INTEGER(KIND=int64) :: dump_validity_time(6) = um_imdi
+character(len=fnamelen) :: output_filename = 'unset'
+character(len=fnamelen) :: stashmaster_file = 'unset'
+character(len=fnamelen) :: target_grid_namelist = 'unset'
+character(len=fnamelen) :: weights_file_face_centre_to_p_bilinear = 'unset'
+character(len=fnamelen) :: weights_file_face_centre_to_p_neareststod = 'unset'
+character(len=fnamelen) :: weights_file_face_centre_to_u_bilinear = 'unset'
+character(len=fnamelen) :: weights_file_face_centre_to_v_bilinear = 'unset'
+integer(kind=int64) ::  stash_list(max_stash_list)
+integer(kind=int64) :: um_version_int = um_imdi
+integer(kind=int64) :: dump_validity_time(6) = um_imdi
 
-NAMELIST /configure_lfric2um/ output_filename,                                 &
+namelist /configure_lfric2um/ output_filename,                                 &
                               target_grid_namelist,                            &
                               stashmaster_file,                                &
                               weights_file_face_centre_to_p_bilinear,          &
@@ -116,69 +116,69 @@ NAMELIST /configure_lfric2um/ output_filename,                                 &
 stash_list(:) = um_imdi
 
 self%status = 0
-self%message = 'Reading namelist from ' // TRIM(lfric2um_nl_fname)
+self%message = 'Reading namelist from ' // trim(lfric2um_nl_fname)
 
-CALL get_free_unit(self%unit_number)
+call get_free_unit(self%unit_number)
 
-OPEN(UNIT=self%unit_number, FILE=lfric2um_nl_fname, IOSTAT=self%status,                    &
-                            IOMSG=self%message)
-IF (self%status /= 0) CALL log_event(self%message, LOG_LEVEL_ERROR)
+open(unit=self%unit_number, file=lfric2um_nl_fname, iostat=self%status,                    &
+                            iomsg=self%message)
+if (self%status /= 0) call log_event(self%message, LOG_LEVEL_ERROR)
 
-READ(self%unit_number, NML=configure_lfric2um, IOSTAT=self%status,             &
-                       IOMSG=self%message)
-IF (self%status /= 0) CALL log_event(self%message, LOG_LEVEL_ERROR)
+read(self%unit_number, nml=configure_lfric2um, iostat=self%status,             &
+                       iomsg=self%message)
+if (self%status /= 0) call log_event(self%message, LOG_LEVEL_ERROR)
 
-IF (TRIM(output_filename) == 'unset') THEN
+if (trim(output_filename) == 'unset') then
   self%status = 1
   self%message='Target filename is unset'
-  CALL log_event(self%message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(self%message, LOG_LEVEL_ERROR)
+end if
 
-IF (TRIM(stashmaster_file) == 'unset') THEN
+if (trim(stashmaster_file) == 'unset') then
   self%status = 1
   self%message='Stashmaster filename is unset'
-  CALL log_event(self%message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(self%message, LOG_LEVEL_ERROR)
+end if
 
-IF (TRIM(weights_file_face_centre_to_p_bilinear) == 'unset') THEN
+if (trim(weights_file_face_centre_to_p_bilinear) == 'unset') then
   self%status = 1
   self%message='weights_file_face_centre_to_p_bilinear filename is unset'
-  CALL log_event(self%message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(self%message, LOG_LEVEL_ERROR)
+end if
 
-IF (TRIM(weights_file_face_centre_to_p_neareststod) == 'unset') THEN
+if (trim(weights_file_face_centre_to_p_neareststod) == 'unset') then
   self%status = 1
   self%message='weights_file_face_centre_to_p_neareststod filename is unset'
-  CALL log_event(self%message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(self%message, LOG_LEVEL_ERROR)
+end if
 
-IF (TRIM(weights_file_face_centre_to_u_bilinear) == 'unset') THEN
+if (trim(weights_file_face_centre_to_u_bilinear) == 'unset') then
   self%status = 1
   self%message='weights_file_face_centre_to_u_bilinear filename is unset'
-  CALL log_event(self%message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(self%message, LOG_LEVEL_ERROR)
+end if
 
-IF (TRIM(weights_file_face_centre_to_v_bilinear) == 'unset') THEN
+if (trim(weights_file_face_centre_to_v_bilinear) == 'unset') then
   self%status = 1
   self%message='weights_file_face_centre_to_v_bilinear filename is unset'
-  CALL log_event(self%message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(self%message, LOG_LEVEL_ERROR)
+end if
 
-IF (TRIM(target_grid_namelist) == 'unset') THEN
+if (trim(target_grid_namelist) == 'unset') then
   self%status = 1
   self%message='Target grid namelist is unset'
-  CALL log_event(self%message, LOG_LEVEL_ERROR)
-END IF
+  call log_event(self%message, LOG_LEVEL_ERROR)
+end if
 
-CLOSE(self%unit_number)
+close(self%unit_number)
 
 ! Now read grid namelist to define UM grid
-OPEN(UNIT=self%unit_number, FILE=target_grid_namelist, IOSTAT=self%status,     &
-                            IOMSG=self%message)
-IF (self%status /= 0) CALL log_event(self%message, LOG_LEVEL_ERROR)
-READ(self%unit_number, NML=grid, IOSTAT=self%status,                           &
-                       IOMSG=self%message)
-IF (self%status /= 0) CALL log_event(self%message, LOG_LEVEL_ERROR)
+open(unit=self%unit_number, file=target_grid_namelist, iostat=self%status,     &
+                            iomsg=self%message)
+if (self%status /= 0) call log_event(self%message, LOG_LEVEL_ERROR)
+read(self%unit_number, nml=grid, iostat=self%status,                           &
+                       iomsg=self%message)
+if (self%status /= 0) call log_event(self%message, LOG_LEVEL_ERROR)
 
 ! Load namelist variables into objects
 self%output_filename = output_filename
@@ -197,24 +197,24 @@ self%dump_validity_time(:) = dump_validity_time(:)
 
 self%num_fields=0
 ! Count how many fields have been requested
-DO i_stash = 1, max_stash_list
-  IF (stash_list(i_stash) == um_imdi) THEN
-    EXIT
-  ELSE
+do i_stash = 1, max_stash_list
+  if (stash_list(i_stash) == um_imdi) then
+    exit
+  else
     self%num_fields = self%num_fields + 1
-  END IF
-END DO
+  end if
+end do
 
-IF (self%num_fields <= 0) THEN
-  CALL log_event('No fields selected in stash_list namelist variable',         &
+if (self%num_fields <= 0) then
+  call log_event('No fields selected in stash_list namelist variable',         &
        LOG_LEVEL_ERROR)
-END IF
+end if
 
 ! Can now allocate type variable
-ALLOCATE(self%stash_list(self%num_fields))
+allocate(self%stash_list(self%num_fields))
 self%stash_list(:) = stash_list(1:self%num_fields)
 
-CALL um_grid%set_grid_coords(                                                  &
+call um_grid%set_grid_coords(                                                  &
      grid_staggering = igrid_targ ,                                            &
      num_p_points_x = points_lambda_targ,                                      &
      num_p_points_y = points_phi_targ,                                         &
@@ -225,13 +225,13 @@ CALL um_grid%set_grid_coords(                                                  &
      grid_origin_x = lambda_origin_targ - (0.5_real64 * delta_lambda_targ),           &
      grid_origin_y = phi_origin_targ - (0.5_real64 * delta_phi_targ))
 
-CALL um_grid%print_grid_coords()
+call um_grid%print_grid_coords()
 
 self%status = 0
-self%message = 'Successfully read namelists from ' // TRIM(lfric2um_nl_fname)
-CALL log_event(self%message, LOG_LEVEL_INFO)
-CLOSE(self%unit_number)
+self%message = 'Successfully read namelists from ' // trim(lfric2um_nl_fname)
+call log_event(self%message, LOG_LEVEL_INFO)
+close(self%unit_number)
 
-END SUBROUTINE load_namelists
+end subroutine load_namelists
 
-END MODULE lfric2um_namelists_mod
+end module lfric2um_namelists_mod

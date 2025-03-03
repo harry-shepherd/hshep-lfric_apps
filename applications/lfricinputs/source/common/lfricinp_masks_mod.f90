@@ -3,59 +3,59 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_masks_mod
+module lfricinp_masks_mod
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY: int32, int64, real64
-USE, INTRINSIC :: ISO_C_BINDING, ONLY: C_BOOL
+use, intrinsic :: iso_fortran_env, only: int32, int64, real64
+use, intrinsic :: iso_c_binding, only: c_bool
 
-IMPLICIT NONE
+implicit none
 
-LOGICAL, ALLOCATABLE :: um_land_mask(:,:), um_maritime_mask(:,:)
-LOGICAL, ALLOCATABLE :: lfric_land_mask(:), lfric_maritime_mask(:)
+logical, allocatable :: um_land_mask(:,:), um_maritime_mask(:,:)
+logical, allocatable :: lfric_land_mask(:), lfric_maritime_mask(:)
 
-CONTAINS
+contains
 
-SUBROUTINE lfricinp_init_masks(stashcode_land_mask)
+subroutine lfricinp_init_masks(stashcode_land_mask)
 
-USE log_mod,        ONLY: log_event, log_scratch_space, LOG_LEVEL_INFO
-USE field_mod,      ONLY: lfric_field_type => field_type,                      &
+use log_mod,        only: log_event, log_scratch_space, LOG_LEVEL_INFO
+use field_mod,      only: lfric_field_type => field_type,                      &
                           lfric_proxy_type => field_proxy_type
-USE local_mesh_mod, ONLY: local_mesh_type
-USE mesh_mod,       ONLY: mesh_type
+use local_mesh_mod, only: local_mesh_type
+use mesh_mod,       only: mesh_type
 
-USE lfricinp_lfric_driver_mod,         ONLY: local_rank
-USE lfricinp_check_shumlib_status_mod, ONLY: shumlib
-USE um2lfric_read_um_file_mod,        ONLY: um_input_file
-USE lfricinp_ancils_mod,               ONLY: ancil_fields, l_land_area_fraction
+use lfricinp_lfric_driver_mod,         only: local_rank
+use lfricinp_check_shumlib_status_mod, only: shumlib
+use um2lfric_read_um_file_mod,        only: um_input_file
+use lfricinp_ancils_mod,               only: ancil_fields, l_land_area_fraction
 !
 ! shumlib modules
-USE f_shum_field_mod, ONLY: shum_field_type
+use f_shum_field_mod, only: shum_field_type
 
-IMPLICIT NONE
+implicit none
 
 ! LFRic mesh and local mesh
-TYPE(mesh_type), POINTER :: mesh
-TYPE(local_mesh_type), POINTER :: local_mesh
+type(mesh_type), pointer :: mesh
+type(local_mesh_type), pointer :: local_mesh
 
 ! Ancil fields
-TYPE(lfric_field_type), POINTER :: ancil_field
-TYPE(lfric_proxy_type) :: ancil_field_proxy
+type(lfric_field_type), pointer :: ancil_field
+type(lfric_proxy_type) :: ancil_field_proxy
 
 ! Array of shumlib field objects that will be returned from UM file
-TYPE(shum_field_type), ALLOCATABLE  :: um_input_fields(:)
+type(shum_field_type), allocatable  :: um_input_fields(:)
 
 ! Local variables
-INTEGER(KIND=int64)  :: stashcode_land_mask
-! Results of SIZE() are the default integer kind
-INTEGER :: dim_1d, dim_2dx, dim_2dy, i
-INTEGER(KIND=int32)  :: err
-LOGICAL(KIND=C_BOOL) :: true_cbool
+integer(kind=int64)  :: stashcode_land_mask
+! Results of size() are the default integer kind
+integer :: dim_1d, dim_2dx, dim_2dy, i
+integer(kind=int32)  :: err
+logical(kind=c_bool) :: true_cbool
 
-true_cbool = LOGICAL(.TRUE., KIND=C_BOOL)
+true_cbool = logical(.true., kind=c_bool)
 
 ! Get UM land mask
-CALL shumlib("um2lfric::find_fields_in_file",                                  &
+call shumlib("um2lfric::find_fields_in_file",                                  &
              um_input_file%find_fields_in_file(um_input_fields,                &
                                                stashcode = stashcode_land_mask,&
                                                lbproc = 0_int64),              &
@@ -63,82 +63,82 @@ CALL shumlib("um2lfric::find_fields_in_file",                                  &
 
 ! Check that both the source and destination land area fraction fields are
 ! available. Source from start dump via shumlib and destination from lfric ancil
-IF (err /= 0 .OR. .NOT. l_land_area_fraction) THEN
+if (err /= 0 .or. .not. l_land_area_fraction) then
 
-  IF (err /=0 ) THEN
+  if (err /=0 ) then
     log_scratch_space = 'Error encountered when trying to read UM land mask. '
-  ELSE IF (.NOT. l_land_area_fraction) THEN
-    log_scratch_space = 'l_land_area_fraction set to FALSE. Land fraction '//  &
+  else if (.not. l_land_area_fraction) then
+    log_scratch_space = 'l_land_area_fraction set to false. Land fraction '//  &
          'ancil not available. '
-  END IF
-  log_scratch_space = TRIM(log_scratch_space) //                               &
+  end if
+  log_scratch_space = trim(log_scratch_space) //                               &
                       'Post regridding adjustments '//                         &
                       'on land and maritime compressed fields will be ignored.'
-  CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+  call log_event(log_scratch_space, LOG_LEVEL_INFO)
 
-ELSE
+else
 
   ! Set up LFRic mask dimension size
   call ancil_fields%get_field("land_area_fraction", ancil_field)
-  CALL ancil_field%read_field(ancil_field%get_name())
+  call ancil_field%read_field(ancil_field%get_name())
   ancil_field_proxy = ancil_field%get_proxy()
-  dim_1d = SIZE(ancil_field_proxy%data)
+  dim_1d = size(ancil_field_proxy%data)
   !
   ! Get local_mesh LFRic mask is defined on
   mesh => ancil_field%get_mesh()
   local_mesh => mesh%get_local_mesh()
   !
   ! Set up LFRic logical land mask
-  ALLOCATE(lfric_land_mask(dim_1d))
-  DO i = 1, dim_1d
-    lfric_land_mask(i) = .FALSE.
-    IF (local_mesh%get_cell_owner(i) == local_rank ) THEN
-      IF (ancil_field_proxy%data(i) > 0.0_real64) THEN
-        lfric_land_mask(i) = .TRUE.
-      END IF
-    END IF
-  END DO
+  allocate(lfric_land_mask(dim_1d))
+  do i = 1, dim_1d
+    lfric_land_mask(i) = .false.
+    if (local_mesh%get_cell_owner(i) == local_rank ) then
+      if (ancil_field_proxy%data(i) > 0.0_real64) then
+        lfric_land_mask(i) = .true.
+      end if
+    end if
+  end do
   !
   ! Set up LFRic logical maritime mask
-  ALLOCATE(lfric_maritime_mask(dim_1d))
-  DO i = 1, dim_1d
-    lfric_maritime_mask(i) = .FALSE.
-    IF (local_mesh%get_cell_owner(i) == local_rank ) THEN
-      IF (ancil_field_proxy%data(i) < 1.0_real64) THEN
-        lfric_maritime_mask(i) = .TRUE.
-      END IF
-    END IF
-  END DO
+  allocate(lfric_maritime_mask(dim_1d))
+  do i = 1, dim_1d
+    lfric_maritime_mask(i) = .false.
+    if (local_mesh%get_cell_owner(i) == local_rank ) then
+      if (ancil_field_proxy%data(i) < 1.0_real64) then
+        lfric_maritime_mask(i) = .true.
+      end if
+    end if
+  end do
   !
   ! Nullify LFRic mesh and local_mesh pointers
-  NULLIFY(mesh, local_mesh)
+  nullify(mesh, local_mesh)
 
   ! Set up UM mask dimensions
-  dim_2dx = SIZE(um_input_fields(1)%rdata,DIM=1)
-  dim_2dy = SIZE(um_input_fields(1)%rdata,DIM=2)
+  dim_2dx = size(um_input_fields(1)%rdata,dim=1)
+  dim_2dy = size(um_input_fields(1)%rdata,dim=2)
   !
   ! Set up UM logical land mask
-  ALLOCATE(um_land_mask(dim_2dx,dim_2dy))
+  allocate(um_land_mask(dim_2dx,dim_2dy))
   um_land_mask = (um_input_fields(1)%rdata > 0.0_real64)
   !
   ! Set up UM logical maritime mask
-  ALLOCATE(um_maritime_mask(dim_2dx,dim_2dy))
+  allocate(um_maritime_mask(dim_2dx,dim_2dy))
   um_maritime_mask = (um_input_fields(1)%rdata < 1.0_real64)
 
-END IF
+end if
 
-END SUBROUTINE lfricinp_init_masks
+end subroutine lfricinp_init_masks
 
 
-SUBROUTINE lfricinp_finalise_masks()
+subroutine lfricinp_finalise_masks()
 
-IMPLICIT NONE
+implicit none
 
-IF (ALLOCATED(um_land_mask)) DEALLOCATE(um_land_mask)
-IF (ALLOCATED(lfric_land_mask)) DEALLOCATE(lfric_land_mask)
-IF (ALLOCATED(um_maritime_mask)) DEALLOCATE(um_maritime_mask)
-IF (ALLOCATED(lfric_maritime_mask)) DEALLOCATE(lfric_maritime_mask)
+if (allocated(um_land_mask)) deallocate(um_land_mask)
+if (allocated(lfric_land_mask)) deallocate(lfric_land_mask)
+if (allocated(um_maritime_mask)) deallocate(um_maritime_mask)
+if (allocated(lfric_maritime_mask)) deallocate(lfric_maritime_mask)
 
-END SUBROUTINE lfricinp_finalise_masks
+end subroutine lfricinp_finalise_masks
 
-END MODULE lfricinp_masks_mod
+end module lfricinp_masks_mod

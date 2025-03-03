@@ -3,70 +3,70 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE soil_moist_content_to_soil_moist_stress_mod
+module soil_moist_content_to_soil_moist_stress_mod
 !
 ! This module contains generator that converts soil moisture content
 ! in kg per m2 to soil moisture stress
 !
 
-USE dependency_graph_mod, ONLY: dependency_graph
+use dependency_graph_mod, only: dependency_graph
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
-PUBLIC :: soil_moist_content_to_soil_moist_stress, soil_moist_stress
+public :: soil_moist_content_to_soil_moist_stress, soil_moist_stress
 
-CONTAINS
+contains
 
-SUBROUTINE  soil_moist_content_to_soil_moist_stress(dep_graph)
+subroutine  soil_moist_content_to_soil_moist_stress(dep_graph)
 !
 ! This generator calculates a linear combination of the two input fields in a
 ! dependency graph and store result in the output field.
 !
 
-USE gen_io_check_mod,       ONLY: gen_io_check
-USE field_mod,              ONLY: field_type, field_proxy_type
-USE log_mod,                ONLY: log_event, log_scratch_space, LOG_LEVEL_ERROR
-USE fs_continuity_mod,      ONLY: W3
-USE function_space_mod,     ONLY: function_space_type
+use gen_io_check_mod,       only: gen_io_check
+use field_mod,              only: field_type, field_proxy_type
+use log_mod,                only: log_event, log_scratch_space, LOG_LEVEL_ERROR
+use fs_continuity_mod,      only: W3
+use function_space_mod,     only: function_space_type
 
-USE lfricinp_surface_parameters_mod, ONLY: dzsoil, sm_levels
-USE lfricinp_physics_constants_mod,  ONLY: density_h2o
+use lfricinp_surface_parameters_mod, only: dzsoil, sm_levels
+use lfricinp_physics_constants_mod,  only: density_h2o
 
-IMPLICIT NONE
+implicit none
 
 !
 ! Argument definitions:
 !
 ! Dependency graph to be processed
-CLASS(dependency_graph), INTENT(IN OUT) :: dep_graph
+class(dependency_graph), intent(in out) :: dep_graph
 
 !
 ! Local variables
 !
 ! Field pointers to use
-TYPE(field_type), POINTER :: field_soil_moist_content => NULL(),               &
-                             field_soil_moist_content_crit => NULL(),          &
-                             field_soil_moist_content_wilt => NULL(),          &
-                             field_soil_moist_stress => NULL()
+type(field_type), pointer :: field_soil_moist_content => null(),               &
+                             field_soil_moist_content_crit => null(),          &
+                             field_soil_moist_content_wilt => null(),          &
+                             field_soil_moist_stress => null()
 
 ! Field proxies for accessing data
-TYPE(field_proxy_type)    :: field_proxy_soil_moist_content,                   &
+type(field_proxy_type)    :: field_proxy_soil_moist_content,                   &
                              field_proxy_soil_moist_content_crit,              &
                              field_proxy_soil_moist_content_wilt,              &
                              field_proxy_soil_moist_stress
 
-TYPE(function_space_type), POINTER :: field_func_space => NULL()
+type(function_space_type), pointer :: field_func_space => null()
 
 !
 ! Local integers
-INTEGER :: i, j, l, size_horisontal, ndata
+integer :: i, j, l, size_horisontal, ndata
 
 !
 ! Perform some initial input checks
 !
-CALL gen_io_check(                                                             &
+call gen_io_check(                                                             &
                   dep_graph=dep_graph,                                         &
                   input_field_no=3,                                            &
                   input_field_fs=[W3, W3, W3],                                 &
@@ -92,72 +92,72 @@ field_proxy_soil_moist_content_wilt =                                          &
 field_proxy_soil_moist_stress = field_soil_moist_stress % get_proxy()
 
 ! Set some size variables
-size_horisontal = SIZE(field_proxy_soil_moist_content_crit%data)
+size_horisontal = size(field_proxy_soil_moist_content_crit%data)
 field_func_space => field_soil_moist_stress % get_function_space()
 ndata = field_func_space % get_ndata()
-NULLIFY(field_func_space)
+nullify(field_func_space)
 
-IF ( ndata /= sm_levels ) THEN
-  WRITE(log_scratch_space,'(A)')                                               &
-       'ERROR: NDATA for soil moisture field is not equal to sm_levels'
-  CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-END IF
+if ( ndata /= sm_levels ) then
+  write(log_scratch_space,'(A)')                                               &
+       'error: NDATA for soil moisture field is not equal to sm_levels'
+  call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+end if
 
 ! Calculate soil moisture stress from soil moisture content
 l = 0
-DO i = 1, size_horisontal
-  DO j = 1, ndata
+do i = 1, size_horisontal
+  do j = 1, ndata
     l = l + 1
     field_proxy_soil_moist_stress % data(l) =                                  &
               soil_moist_stress(field_proxy_soil_moist_content % data(l),      &
                                 field_proxy_soil_moist_content_crit % data(i), &
                                 field_proxy_soil_moist_content_wilt % data(i), &
                                 dzsoil(j), density_h2o)
-  END DO
-END DO
+  end do
+end do
 
 ! Nullify field pointers
-NULLIFY(field_soil_moist_content)
-NULLIFY(field_soil_moist_content_crit)
-NULLIFY(field_soil_moist_content_wilt)
-NULLIFY(field_soil_moist_stress)
+nullify(field_soil_moist_content)
+nullify(field_soil_moist_content_crit)
+nullify(field_soil_moist_content_wilt)
+nullify(field_soil_moist_stress)
 
-END SUBROUTINE soil_moist_content_to_soil_moist_stress
+end subroutine soil_moist_content_to_soil_moist_stress
 
 
-FUNCTION soil_moist_stress(soil_moist_content, soil_moist_content_crit,        &
+function soil_moist_stress(soil_moist_content, soil_moist_content_crit,        &
                            soil_moist_content_wilt, dz, rho_water)             &
-                          RESULT (sm_stress)
+                          result (sm_stress)
 
-USE constants_def_mod, ONLY: r_def, rmdi
-USE mdi_mod, ONLY: is_rmdi
+use constants_def_mod, only: r_def, rmdi
+use mdi_mod, only: is_rmdi
 
-IMPLICIT NONE
+implicit none
 
 ! Arguments
-REAL(KIND=r_def), INTENT(IN) :: soil_moist_content, soil_moist_content_crit,   &
+real(kind=r_def), intent(in) :: soil_moist_content, soil_moist_content_crit,   &
                                 soil_moist_content_wilt, dz, rho_water
 
 ! The result
-REAL(KIND=r_def) :: sm_stress, tiny_real
+real(kind=r_def) :: sm_stress, tiny_real
 
-tiny_real = TINY(1.0_r_def)
+tiny_real = tiny(1.0_r_def)
 
-IF ( is_rmdi(soil_moist_content)      .OR.                                     &
-     is_rmdi(soil_moist_content_crit) .OR.                                     &
-     is_rmdi(soil_moist_content_wilt) .OR.                                     &
-     ABS(soil_moist_content_crit - soil_moist_content_wilt) < tiny_real ) THEN
+if ( is_rmdi(soil_moist_content)      .or.                                     &
+     is_rmdi(soil_moist_content_crit) .or.                                     &
+     is_rmdi(soil_moist_content_wilt) .or.                                     &
+     abs(soil_moist_content_crit - soil_moist_content_wilt) < tiny_real ) then
 
   sm_stress = rmdi
 
-ELSE
+else
 
   sm_stress = (soil_moist_content / (dz * rho_water) -                         &
                soil_moist_content_wilt) /                                      &
               (soil_moist_content_crit - soil_moist_content_wilt)
 
-END IF
+end if
 
-END FUNCTION soil_moist_stress
+end function soil_moist_stress
 
-END MODULE soil_moist_content_to_soil_moist_stress_mod
+end module soil_moist_content_to_soil_moist_stress_mod

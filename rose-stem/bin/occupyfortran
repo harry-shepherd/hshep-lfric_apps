@@ -23,6 +23,7 @@ VALID_APPS = [
     "science/gungho",
     "science/jedi_lfric_interface",
     "science/linear",
+    "science/physics_schemes",
     "science/socrates_interface",
     "science/um_physics_interface",
 ]

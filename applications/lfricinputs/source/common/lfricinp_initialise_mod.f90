@@ -8,51 +8,51 @@
 !>
 !> @details Provides a common basis for initialising um2lfric and lfric2um.
 
-MODULE lfricinp_initialise_mod
+module lfricinp_initialise_mod
 
-USE lfricinp_um_parameters_mod, ONLY: fnamelen
+use lfricinp_um_parameters_mod, only: fnamelen
 ! LFRic modules
-USE log_mod,         ONLY: log_event, LOG_LEVEL_INFO
+use log_mod,         only: log_event, LOG_LEVEL_INFO
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
-PUBLIC :: lfricinp_initialise
+public :: lfricinp_initialise
 
-CONTAINS
+contains
 
 !> Initialises generic lfricinputs infrastructure
 !> @param [out] program_fname Filename for program specific namelists provided
 !>                            on the command line
-SUBROUTINE lfricinp_initialise(program_fname)
-  USE lfricinp_read_command_line_args_mod, ONLY: lfricinp_read_command_line_args
-  USE lfricinp_setup_io_mod,          ONLY: io_config, io_fname
-  USE lfricinp_regrid_options_mod, ONLY: lfricinp_init_regrid_options
-  USE lfricinp_datetime_mod, ONLY: datetime
-  USE lfricinp_stash_to_lfric_map_mod, ONLY: lfricinp_init_stash_to_lfric_map
-  USE lfricinp_lfric_driver_mod, ONLY: lfric_nl_fname
+subroutine lfricinp_initialise(program_fname)
+  use lfricinp_read_command_line_args_mod, only: lfricinp_read_command_line_args
+  use lfricinp_setup_io_mod,          only: io_config, io_fname
+  use lfricinp_regrid_options_mod, only: lfricinp_init_regrid_options
+  use lfricinp_datetime_mod, only: datetime
+  use lfricinp_stash_to_lfric_map_mod, only: lfricinp_init_stash_to_lfric_map
+  use lfricinp_lfric_driver_mod, only: lfric_nl_fname
 
-  IMPLICIT NONE
+  implicit none
 
-  CHARACTER(LEN=fnamelen), INTENT(OUT) :: program_fname
+  character(len=fnamelen), intent(out) :: program_fname
 
-  CALL log_event('Reading command line', LOG_LEVEL_INFO)
-  CALL lfricinp_read_command_line_args(program_fname, lfric_nl_fname, io_fname)
+  call log_event('Reading command line', LOG_LEVEL_INFO)
+  call lfricinp_read_command_line_args(program_fname, lfric_nl_fname, io_fname)
 
-  CALL log_event('Loading IO namelist', LOG_LEVEL_INFO)
-  CALL io_config%load_namelist()
+  call log_event('Loading IO namelist', LOG_LEVEL_INFO)
+  call io_config%load_namelist()
 
-  CALL log_event('Loading global regridding options', LOG_LEVEL_INFO)
-  CALL lfricinp_init_regrid_options(program_fname)
+  call log_event('Loading global regridding options', LOG_LEVEL_INFO)
+  call lfricinp_init_regrid_options(program_fname)
 
-  CALL log_event('Initialise stashcode to lfric field mapping', LOG_LEVEL_INFO)
-  CALL lfricinp_init_stash_to_lfric_map()
+  call log_event('Initialise stashcode to lfric field mapping', LOG_LEVEL_INFO)
+  call lfricinp_init_stash_to_lfric_map()
 
-  CALL log_event('Initialise datetime class', LOG_LEVEL_INFO)
-  CALL datetime % initialise()
+  call log_event('Initialise datetime class', LOG_LEVEL_INFO)
+  call datetime % initialise()
 
 
-END SUBROUTINE lfricinp_initialise
+end subroutine lfricinp_initialise
 
-END MODULE lfricinp_initialise_mod
+end module lfricinp_initialise_mod

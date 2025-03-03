@@ -3,32 +3,32 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_gather_lfric_field_mod
+module lfricinp_gather_lfric_field_mod
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY: real64, int32, int64
+use, intrinsic :: iso_fortran_env, only: real64, int32, int64
 
 ! external libraries
-USE mpi
+use mpi
 
 ! lfric modules
-USE field_mod, ONLY: field_type, field_proxy_type
-USE constants_mod, ONLY: r_def, i_def
-USE mesh_mod, ONLY: mesh_type
-USE function_space_mod, ONLY: function_space_type
-USE mpi_mod, ONLY: global_mpi
-USE log_mod, ONLY: log_scratch_space, log_event, LOG_LEVEL_INFO, LOG_LEVEL_ERROR
-IMPLICIT NONE
+use field_mod, only: field_type, field_proxy_type
+use constants_mod, only: r_def, i_def
+use mesh_mod, only: mesh_type
+use function_space_mod, only: function_space_type
+use mpi_mod, only: global_mpi
+use log_mod, only: log_scratch_space, log_event, LOG_LEVEL_INFO, LOG_LEVEL_ERROR
+implicit none
 
-PRIVATE
-PUBLIC :: lfricinp_gather_lfric_field
+private
+public :: lfricinp_gather_lfric_field
 
-CONTAINS
+contains
 
-SUBROUTINE lfricinp_gather_lfric_field( lfric_field, global_field_array, comm, &
+subroutine lfricinp_gather_lfric_field( lfric_field, global_field_array, comm, &
                                         num_levels, level, twod_mesh )
 
-IMPLICIT NONE
+implicit none
 !
 ! Description:
 !  Takes an partitioned lfric field and extracts data from a single level,
@@ -36,30 +36,30 @@ IMPLICIT NONE
 !  and puts into correct location using the global id (gid) map
 !
 ! Arguments
-TYPE(field_type),    INTENT(INOUT) :: lfric_field
-REAL(KIND=real64),   INTENT(OUT)   :: global_field_array(:)
-INTEGER(KIND=i_def), INTENT(IN)    :: comm
-INTEGER(KIND=int64), INTENT(IN)    :: num_levels
-INTEGER(KIND=int64), INTENT(IN)    :: level
-TYPE(mesh_type),     INTENT(IN), POINTER :: twod_mesh
+type(field_type),    intent(INOUT) :: lfric_field
+real(kind=real64),   intent(out)   :: global_field_array(:)
+integer(kind=i_def), intent(in)    :: comm
+integer(kind=int64), intent(in)    :: num_levels
+integer(kind=int64), intent(in)    :: level
+type(mesh_type),     intent(in), pointer :: twod_mesh
 
 ! Local variables
-TYPE(mesh_type), POINTER :: mesh => null()
-TYPE(field_proxy_type) :: field_proxy
-INTEGER(KIND=int32), ALLOCATABLE :: rank_sizes(:)
-INTEGER(KIND=int32), ALLOCATABLE :: displacements(:)
-INTEGER(KIND=int32) :: local_rank, total_ranks
-INTEGER(KIND=int32) :: local_size_2d, global_size_2d
-INTEGER(KIND=int32), PARAMETER   :: rank_0 = 0
-INTEGER(KIND=int32) :: err, i
-INTEGER(KIND=int64) :: index_3d
+type(mesh_type), pointer :: mesh => null()
+type(field_proxy_type) :: field_proxy
+integer(kind=int32), allocatable :: rank_sizes(:)
+integer(kind=int32), allocatable :: displacements(:)
+integer(kind=int32) :: local_rank, total_ranks
+integer(kind=int32) :: local_size_2d, global_size_2d
+integer(kind=int32), parameter   :: rank_0 = 0
+integer(kind=int32) :: err, i
+integer(kind=int64) :: index_3d
 !, unit_num
 
-REAL(KIND=real64), ALLOCATABLE :: local_data(:)
-REAL(KIND=real64), ALLOCATABLE :: temp_global_data(:)
+real(kind=real64), allocatable :: local_data(:)
+real(kind=real64), allocatable :: temp_global_data(:)
 
-INTEGER(KIND=int32), ALLOCATABLE :: local_gid_lid_map(:)
-INTEGER(KIND=int32), ALLOCATABLE :: global_gid_map(:)
+integer(kind=int32), allocatable :: local_gid_lid_map(:)
+integer(kind=int32), allocatable :: global_gid_map(:)
 
 ! Get objects
 mesh => lfric_field%get_mesh()
@@ -74,90 +74,90 @@ total_ranks = global_mpi%get_comm_size()
 
 ! The local size of single 2D level, just local domain, no haloes etc
 local_size_2d = twod_mesh%get_last_edge_cell()
-ALLOCATE(local_data(local_size_2d))
+allocate(local_data(local_size_2d))
 
 ! Copy from 1D array that contains full local 3D field in column order into
 ! 1D array that contains only a 2D slice of the field
 index_3d = level
-DO i = 1, local_size_2d
+do i = 1, local_size_2d
   local_data(i) = field_proxy%data(index_3d)
   index_3d = index_3d + num_levels
-END DO
+end do
 
 ! Gather size of each rank onto rank 0
-ALLOCATE(rank_sizes(total_ranks))
-CALL mpi_gather(local_size_2d, 1, mpi_integer, rank_sizes, 1, mpi_integer, &
+allocate(rank_sizes(total_ranks))
+call mpi_gather(local_size_2d, 1, mpi_integer, rank_sizes, 1, mpi_integer, &
                rank_0, comm, err)
-IF (err /= mpi_success) THEN
-  CALL log_event('Call to mpi_gather failed in MPI error.', &
+if (err /= mpi_success) then
+  call log_event('Call to mpi_gather failed in MPI error.', &
        LOG_LEVEL_ERROR )
-END IF
+end if
 
 ! Construct displacements array. This tells receiving rank the start position
 ! of where it should put the data from each rank.
-ALLOCATE(displacements(total_ranks))
+allocate(displacements(total_ranks))
 ! Displacements value begin at zero, this correlates to first element
 displacements(1) = 0
 global_size_2d = rank_sizes(1)
-DO i = 2, total_ranks
+do i = 2, total_ranks
   ! Next position is previous position + size of previous buffer
   displacements(i) = displacements(i-1) + rank_sizes(i-1)
   global_size_2d = global_size_2d + rank_sizes(i)
-END DO
+end do
 
-IF (local_rank == rank_0) THEN
+if (local_rank == rank_0) then
   ! Allocate full global array to receive data
-  ALLOCATE(temp_global_data(global_size_2d))
-ELSE
-  ALLOCATE(temp_global_data(1))
-END IF
+  allocate(temp_global_data(global_size_2d))
+else
+  allocate(temp_global_data(1))
+end if
 
 ! Gather data from all ranks onto rank 0
-CALL mpi_gatherv(local_data, local_size_2d, mpi_double_precision,              &
+call mpi_gatherv(local_data, local_size_2d, mpi_double_precision,              &
      temp_global_data, rank_sizes, displacements, mpi_double_precision,        &
      rank_0, comm, err)
-IF (err /= mpi_success) THEN
-  CALL log_event('Call to mpi_gatherv failed in MPI error.', &
+if (err /= mpi_success) then
+  call log_event('Call to mpi_gatherv failed in MPI error.', &
        LOG_LEVEL_ERROR )
-END IF
+end if
 
-ALLOCATE(local_gid_lid_map(local_size_2d))
+allocate(local_gid_lid_map(local_size_2d))
 ! Get global indices for each local point on 2D level
-DO i = 1, local_size_2d
+do i = 1, local_size_2d
   local_gid_lid_map(i) = mesh%get_gid_from_lid(i)
-END DO
+end do
 
-IF (local_rank == rank_0) THEN
-  ALLOCATE(global_gid_map(global_size_2d))
-ELSE
-  ALLOCATE(global_gid_map(1))
-END IF
+if (local_rank == rank_0) then
+  allocate(global_gid_map(global_size_2d))
+else
+  allocate(global_gid_map(1))
+end if
 
 ! Gather gid map from all ranks onto rank 0
-CALL mpi_gatherv(local_gid_lid_map, local_size_2d, mpi_integer, &
+call mpi_gatherv(local_gid_lid_map, local_size_2d, mpi_integer, &
        global_gid_map, rank_sizes, displacements, mpi_integer, rank_0, &
        comm, err)
-IF (err /= mpi_success) THEN
-  CALL log_event('Call to mpi_gatherv failed in MPI error.', &
+if (err /= mpi_success) then
+  call log_event('Call to mpi_gatherv failed in MPI error.', &
        LOG_LEVEL_ERROR )
-END IF
+end if
 
-IF (local_rank == rank_0) THEN
-  IF (SIZE(global_field_array, 1) /= SIZE(temp_global_data, 1) ) THEN
-    WRITE(log_scratch_space, '(2(A,I0))')                         &
+if (local_rank == rank_0) then
+  if (size(global_field_array, 1) /= size(temp_global_data, 1) ) then
+    write(log_scratch_space, '(2(A,I0))')                         &
          "Mismatch between array sizes global_field_array ",      &
-         SIZE(global_field_array, 1), " and temp_global_data", &
-         SIZE(temp_global_data, 1)
-    CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-  END IF
+         size(global_field_array, 1), " and temp_global_data", &
+         size(temp_global_data, 1)
+    call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+  end if
   ! Use the gid map to copy data into correct location in main array
-  DO i = 1, global_size_2d
+  do i = 1, global_size_2d
     global_field_array(global_gid_map(i)) = temp_global_data(i)
-  END DO
-END IF
+  end do
+end if
 
-NULLIFY(mesh)
+nullify(mesh)
 
-END SUBROUTINE lfricinp_gather_lfric_field
+end subroutine lfricinp_gather_lfric_field
 
-END MODULE lfricinp_gather_lfric_field_mod
+end module lfricinp_gather_lfric_field_mod

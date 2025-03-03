@@ -3,96 +3,96 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_ancils_mod
+module lfricinp_ancils_mod
 
-USE constants_mod,                  ONLY : i_def, l_def
-USE log_mod,                        ONLY : log_event,         &
+use constants_mod,                  only : i_def, l_def
+use log_mod,                        only : log_event,         &
                                            log_scratch_space, &
                                            LOG_LEVEL_INFO
-USE field_collection_mod,           ONLY: field_collection_type
-USE field_mod,                      ONLY : field_type
-USE field_parent_mod,               ONLY : read_interface, &
+use field_collection_mod,           only: field_collection_type
+use field_mod,                      only : field_type
+use field_parent_mod,               only : read_interface, &
                                            write_interface
-use lfric_xios_read_mod,            ONLY : read_field_generic
-use lfric_xios_write_mod,           ONLY : write_field_generic
-USE field_collection_mod,           ONLY : field_collection_type
-USE mesh_mod,                       ONLY : mesh_type
-USE function_space_mod,             ONLY : function_space_type
-USE function_space_collection_mod,  ONLY : function_space_collection
-USE fs_continuity_mod,              ONLY : W3
+use lfric_xios_read_mod,            only : read_field_generic
+use lfric_xios_write_mod,           only : write_field_generic
+use field_collection_mod,           only : field_collection_type
+use mesh_mod,                       only : mesh_type
+use function_space_mod,             only : function_space_type
+use function_space_collection_mod,  only : function_space_collection
+use fs_continuity_mod,              only : W3
 
-IMPLICIT NONE
+implicit none
 
-LOGICAL :: l_land_area_fraction = .FALSE.
+logical :: l_land_area_fraction = .false.
 ! Container for ancil fields
-TYPE(field_collection_type) :: ancil_fields
+type(field_collection_type) :: ancil_fields
 
-PUBLIC   :: lfricinp_create_ancil_fields,         &
+public   :: lfricinp_create_ancil_fields,         &
             lfricinp_setup_ancil_field,           &
             l_land_area_fraction
 
-CONTAINS
+contains
 
 ! Organises fields to be read from ancils into ancil_fields collection
 
-SUBROUTINE lfricinp_create_ancil_fields( ancil_fields, mesh, twod_mesh )
+subroutine lfricinp_create_ancil_fields( ancil_fields, mesh, twod_mesh )
 
-IMPLICIT NONE
+implicit none
 
-TYPE( field_collection_type ), INTENT( OUT )         :: ancil_fields
-TYPE( mesh_type ),             INTENT( IN ), POINTER :: mesh
-TYPE( mesh_type ),             INTENT( IN ), POINTER :: twod_mesh
+type( field_collection_type ), intent( out )         :: ancil_fields
+type( mesh_type ),             intent( in ), pointer :: mesh
+type( mesh_type ),             intent( in ), pointer :: twod_mesh
 
 ! Set up ancil_fields collection
-WRITE(log_scratch_space,'(A,A)') "Create ancil fields: "// &
+write(log_scratch_space,'(A,A)') "Create ancil fields: "// &
      "Setting up ancil field collection"
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-CALL ancil_fields%initialise(name='ancil_fields', table_len=100)
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+call ancil_fields%initialise(name='ancil_fields', table_len=100)
 
-IF (l_land_area_fraction) THEN
+if (l_land_area_fraction) then
   ! Surface ancils
-  CALL log_event("Create land area fraction ancil", LOG_LEVEL_INFO)
-  CALL lfricinp_setup_ancil_field("land_area_fraction", ancil_fields, mesh, &
-       twod_mesh, twod=.TRUE.)
-END IF
+  call log_event("Create land area fraction ancil", LOG_LEVEL_INFO)
+  call lfricinp_setup_ancil_field("land_area_fraction", ancil_fields, mesh, &
+       twod_mesh, twod=.true.)
+end if
 
-END SUBROUTINE lfricinp_create_ancil_fields
+end subroutine lfricinp_create_ancil_fields
 
 !------------------------------------------------------------
 
 ! Creates fields to be read into from ancillary files
 
-SUBROUTINE lfricinp_setup_ancil_field( name, ancil_fields, mesh, &
+subroutine lfricinp_setup_ancil_field( name, ancil_fields, mesh, &
                                        twod_mesh, twod, ndata )
 
-IMPLICIT NONE
+implicit none
 
-CHARACTER(*), INTENT(IN)                    :: name
-TYPE(field_collection_type), INTENT(IN OUT) :: ancil_fields
-TYPE( mesh_type ), INTENT(IN), POINTER      :: mesh
-TYPE( mesh_type ), INTENT(IN), POINTER      :: twod_mesh
-LOGICAL(l_def), OPTIONAL, INTENT(IN)        :: twod
-INTEGER(i_def), OPTIONAL, INTENT(IN)        :: ndata
+character(*), intent(in)                    :: name
+type(field_collection_type), intent(in out) :: ancil_fields
+type( mesh_type ), intent(in), pointer      :: mesh
+type( mesh_type ), intent(in), pointer      :: twod_mesh
+logical(l_def), optional, intent(in)        :: twod
+integer(i_def), optional, intent(in)        :: ndata
 
 ! Local variables
-TYPE(field_type)           :: new_field
-INTEGER(i_def)             :: ndat
-INTEGER(i_def), PARAMETER  :: fs_order_h = 0
-INTEGER(i_def), PARAMETER  :: fs_order_v = 0
+type(field_type)           :: new_field
+integer(i_def)             :: ndat
+integer(i_def), parameter  :: fs_order_h = 0
+integer(i_def), parameter  :: fs_order_v = 0
 
 ! Pointers
-TYPE(function_space_type),       POINTER  :: w3_space => NULL()
-TYPE(function_space_type),       POINTER  :: twod_space => NULL()
-PROCEDURE(read_interface),       POINTER  :: tmp_read_ptr => NULL()
-PROCEDURE(write_interface),      POINTER  :: tmp_write_ptr => NULL()
-TYPE(field_type),                POINTER  :: tgt_ptr => NULL()
+type(function_space_type),       pointer  :: w3_space => null()
+type(function_space_type),       pointer  :: twod_space => null()
+procedure(read_interface),       pointer  :: tmp_read_ptr => null()
+procedure(write_interface),      pointer  :: tmp_write_ptr => null()
+type(field_type),                pointer  :: tgt_ptr => null()
 
 ! Set field ndata if argument is present, else leave as default value
-IF (PRESENT(ndata)) THEN
+if (present(ndata)) then
   ndat = ndata
-ELSE
+else
   ndat = 1
-END IF
+end if
 
 ! Set up function spaces for field initialisation
 w3_space   => function_space_collection%get_fs( mesh, fs_order_h, &
@@ -101,19 +101,19 @@ twod_space => function_space_collection%get_fs( twod_mesh, fs_order_h, &
                fs_order_v, W3, ndat )
 
 ! Create field
-WRITE(log_scratch_space,'(3A,I6)') &
-     "Creating new field for ", TRIM(name)
-CALL log_event(log_scratch_space,LOG_LEVEL_INFO)
-IF (PRESENT(twod)) THEN
-  CALL new_field%initialise( twod_space, name=TRIM(name), &
+write(log_scratch_space,'(3A,I6)') &
+     "Creating new field for ", trim(name)
+call log_event(log_scratch_space,LOG_LEVEL_INFO)
+if (present(twod)) then
+  call new_field%initialise( twod_space, name=trim(name), &
                              halo_depth = twod_mesh%get_halo_depth() )
-ELSE
-  CALL new_field%initialise( w3_space, name=TRIM(name), &
+else
+  call new_field%initialise( w3_space, name=trim(name), &
                              halo_depth = mesh%get_halo_depth() )
-END IF
+end if
 
 ! Add the new field to the field collection
-CALL ancil_fields%add_field(new_field)
+call ancil_fields%add_field(new_field)
 
 ! Get a field pointer from the collection
 call ancil_fields%get_field(name, tgt_ptr)
@@ -123,17 +123,17 @@ tmp_read_ptr => read_field_generic
 tmp_write_ptr => write_field_generic
 
 ! Set field read behaviour for target field
-CALL tgt_ptr%set_read_behaviour(tmp_read_ptr)
-CALL tgt_ptr%set_write_behaviour(tmp_write_ptr)
+call tgt_ptr%set_read_behaviour(tmp_read_ptr)
+call tgt_ptr%set_write_behaviour(tmp_write_ptr)
 
 
 ! Nullify pointers
-NULLIFY(w3_space)
-NULLIFY(twod_space)
-NULLIFY(tmp_read_ptr)
-NULLIFY(tmp_write_ptr)
-NULLIFY(tgt_ptr)
+nullify(w3_space)
+nullify(twod_space)
+nullify(tmp_read_ptr)
+nullify(tmp_write_ptr)
+nullify(tgt_ptr)
 
-END SUBROUTINE lfricinp_setup_ancil_field
+end subroutine lfricinp_setup_ancil_field
 
-END MODULE lfricinp_ancils_mod
+end module lfricinp_ancils_mod

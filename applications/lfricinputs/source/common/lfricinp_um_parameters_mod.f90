@@ -3,85 +3,85 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_um_parameters_mod
+module lfricinp_um_parameters_mod
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY: int64
+use, intrinsic :: iso_fortran_env, only: int64
 
-IMPLICIT NONE
+implicit none
 
 ! Filename length
-INTEGER, PUBLIC, PARAMETER :: fnamelen = 512
+integer, public, parameter :: fnamelen = 512
 
 ! Message length
-INTEGER, PARAMETER :: msglen = 512
+integer, parameter :: msglen = 512
 
-! UM definitions of REAL and INTEGER in fieldsfiles
-INTEGER, PUBLIC, PARAMETER :: um_real64  = SELECTED_REAL_KIND(15,307)
-INTEGER, PUBLIC, PARAMETER :: um_integer64 = SELECTED_INT_KIND(15)
-INTEGER, PUBLIC, PARAMETER :: um_real32  = SELECTED_REAL_KIND(6,37)
-INTEGER, PUBLIC, PARAMETER :: um_integer32 = SELECTED_INT_KIND(9)
+! UM definitions of real and integer in fieldsfiles
+integer, public, parameter :: um_real64  = selected_real_kind(15,307)
+integer, public, parameter :: um_integer64 = selected_int_kind(15)
+integer, public, parameter :: um_real32  = selected_real_kind(6,37)
+integer, public, parameter :: um_integer32 = selected_int_kind(9)
 
 ! Missing data, real and integer
-REAL(KIND=um_real64), PARAMETER       :: um_rmdi     = -32768.0_um_real64*32768.0_um_real64
-INTEGER(KIND=um_integer64), PARAMETER :: um_imdi     = -32768
-INTEGER(KIND=um_integer32), PARAMETER :: um_imdi_32  = um_imdi
+real(kind=um_real64), parameter       :: um_rmdi     = -32768.0_um_real64*32768.0_um_real64
+integer(kind=um_integer64), parameter :: um_imdi     = -32768
+integer(kind=um_integer32), parameter :: um_imdi_32  = um_imdi
 
 
 ! Meaningful parameter names for real constants header
 ! East-West   grid spacing in degrees
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: rh_deltaEW         = 1
+integer(kind=int64), parameter, public :: rh_deltaEW         = 1
 ! North-South grid spacing in degrees
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: rh_deltaNS         = 2
+integer(kind=int64), parameter, public :: rh_deltaNS         = 2
 ! Latitude  of first p point in degrees
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: rh_baselat         = 3
+integer(kind=int64), parameter, public :: rh_baselat         = 3
 ! Longitude of first p point in degrees
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: rh_baselong        = 4
+integer(kind=int64), parameter, public :: rh_baselong        = 4
 ! Latitude  of rotated N pole in degrees
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: rh_polelat         = 5
+integer(kind=int64), parameter, public :: rh_polelat         = 5
 ! Longitude of rotated N pole in degrees
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: rh_polelong        = 6
+integer(kind=int64), parameter, public :: rh_polelong        = 6
 ! Height of top theta level (m)
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: rh_model_top       =16
+integer(kind=int64), parameter, public :: rh_model_top       =16
 
 ! Meaningful parameter names for integer constants header
 ! No. of points E-W
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_row_length      = 6
+integer(kind=int64), parameter, public :: ih_row_length      = 6
 ! No. of points N-S
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_rows            = 7
+integer(kind=int64), parameter, public :: ih_rows            = 7
 ! No. of model levels (0=surface)
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_model_levels    = 8
+integer(kind=int64), parameter, public :: ih_model_levels    = 8
 ! No. of model levels with moisture
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_wet_levels      = 9
+integer(kind=int64), parameter, public :: ih_wet_levels      = 9
 ! No. of deep soil temperature levels
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_soilT_levels    = 10
+integer(kind=int64), parameter, public :: ih_soilT_levels    = 10
 ! No. of cloud levels
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_cloud_levels    = 11
+integer(kind=int64), parameter, public :: ih_cloud_levels    = 11
 ! No. of tracer levels
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_tracer_levels   = 12
+integer(kind=int64), parameter, public :: ih_tracer_levels   = 12
 ! No. of boundary layer levels
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_boundary_levels = 13
+integer(kind=int64), parameter, public :: ih_boundary_levels = 13
 ! No. of field types
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_N_types         = 15
+integer(kind=int64), parameter, public :: ih_N_types         = 15
 ! Height generation method
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_height_gen      = 17
+integer(kind=int64), parameter, public :: ih_height_gen      = 17
 ! First rho level at which height is constant
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_1_c_rho_level   = 24
+integer(kind=int64), parameter, public :: ih_1_c_rho_level   = 24
 ! No. of land points
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_land_points     = 25
+integer(kind=int64), parameter, public :: ih_land_points     = 25
 ! No. of ozone levels
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_ozone_levels    = 26
+integer(kind=int64), parameter, public :: ih_ozone_levels    = 26
 ! No. of deep soil moisture levels
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_soilQ_levels    = 28
+integer(kind=int64), parameter, public :: ih_soilQ_levels    = 28
 ! Number of convective cloud levels
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ih_convect_levels  = 34
+integer(kind=int64), parameter, public :: ih_convect_levels  = 34
 
 ! Meaningful parameter names for level dependent constants
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ldc_eta_theta  = 1
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ldc_eta_rho    = 2
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ldc_Zsea_theta = 5
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ldc_C_theta    = 6
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ldc_Zsea_rho   = 7
-INTEGER(KIND=int64), PARAMETER, PUBLIC :: ldc_C_rho      = 8
+integer(kind=int64), parameter, public :: ldc_eta_theta  = 1
+integer(kind=int64), parameter, public :: ldc_eta_rho    = 2
+integer(kind=int64), parameter, public :: ldc_Zsea_theta = 5
+integer(kind=int64), parameter, public :: ldc_C_theta    = 6
+integer(kind=int64), parameter, public :: ldc_Zsea_rho   = 7
+integer(kind=int64), parameter, public :: ldc_C_rho      = 8
 
-END MODULE lfricinp_um_parameters_mod
+end module lfricinp_um_parameters_mod

@@ -3,53 +3,53 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_reorder_snow_field_mod
+module lfricinp_reorder_snow_field_mod
 
-!USE lfricinp_um_parameters_mod, ONLY: fnamelen, um_rmdi
+!use lfricinp_um_parameters_mod, only: fnamelen, um_rmdi
 
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY : real64, int64
+use, intrinsic :: iso_fortran_env, only : real64, int64
 
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
-PUBLIC :: lfricinp_reorder_snow_field
+public :: lfricinp_reorder_snow_field
 
-CONTAINS
+contains
 
-SUBROUTINE lfricinp_reorder_snow_field(field, um_grid)
+subroutine lfricinp_reorder_snow_field(field, um_grid)
 ! Take a snow layer field and converts from UM to
 ! LFRic ordering
-USE lfricinp_grid_type_mod, ONLY: lfricinp_grid_type
+use lfricinp_grid_type_mod, only: lfricinp_grid_type
 
-USE log_mod, ONLY: log_event, LOG_LEVEL_ERROR, log_scratch_space, &
+use log_mod, only: log_event, LOG_LEVEL_ERROR, log_scratch_space, &
                    LOG_LEVEL_INFO
 ! Arguments
-REAL(KIND=real64), ALLOCATABLE, INTENT(IN OUT) :: field(:,:)
+real(kind=real64), allocatable, intent(in out) :: field(:,:)
 ! Note 1st index is 2D field, 2nd index is pseudo level number
-TYPE(lfricinp_grid_type), INTENT(IN):: um_grid
+type(lfricinp_grid_type), intent(in):: um_grid
 
 ! Local variables
-REAL(KIND=real64), ALLOCATABLE :: field_temp(:,:)
-INTEGER(KIND=int64) :: total_lev
-INTEGER(KIND=int64) :: field_size_2d
-INTEGER(KIND=int64) :: tile_num
-INTEGER(KIND=int64) :: layer_num, i
-INTEGER(KIND=int64) :: pseud_lev_count
+real(kind=real64), allocatable :: field_temp(:,:)
+integer(kind=int64) :: total_lev
+integer(kind=int64) :: field_size_2d
+integer(kind=int64) :: tile_num
+integer(kind=int64) :: layer_num, i
+integer(kind=int64) :: pseud_lev_count
 
-total_lev = SIZE(field, 2)
-field_size_2d = SIZE(field, 1)
+total_lev = size(field, 2)
+field_size_2d = size(field, 1)
 
-IF ( total_lev /= um_grid%num_snow_layers * um_grid%num_surface_types ) THEN
-  WRITE(log_scratch_space, '(2(A,I0))') "Mismatch between total_lev = ", &
+if ( total_lev /= um_grid%num_snow_layers * um_grid%num_surface_types ) then
+  write(log_scratch_space, '(2(A,I0))') "Mismatch between total_lev = ", &
        total_lev, " and snow_layers * surface types = ", &
        um_grid%num_snow_layers * um_grid%num_surface_types
-  CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-END IF
+  call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+end if
 
-ALLOCATE(field_temp(field_size_2d, total_lev))
+allocate(field_temp(field_size_2d, total_lev))
 
 ! UM ordering:
 !   All tiles for snow layer 1, followed by all tiles for snow
@@ -59,18 +59,18 @@ ALLOCATE(field_temp(field_size_2d, total_lev))
 !   Tile 1, snow layer 1,2,3. Tile 2, snow layer 1,2,3. Ie the
 !   snow layers are grouped together
 pseud_lev_count = 1
-DO tile_num = 1, um_grid%num_surface_types
-  DO layer_num = 1, um_grid%num_snow_layers
-    DO i = 1, field_size_2d
+do tile_num = 1, um_grid%num_surface_types
+  do layer_num = 1, um_grid%num_snow_layers
+    do i = 1, field_size_2d
       field_temp(i, pseud_lev_count) =  field(i, tile_num + &
            ((layer_num - 1) * um_grid%num_surface_types))
-    END DO
+    end do
     pseud_lev_count = pseud_lev_count + 1
-  END DO
-END DO
+  end do
+end do
 
-CALL MOVE_ALLOC(field_temp, field)
+call move_alloc(field_temp, field)
 
-END SUBROUTINE lfricinp_reorder_snow_field
+end subroutine lfricinp_reorder_snow_field
 
-END MODULE lfricinp_reorder_snow_field_mod
+end module lfricinp_reorder_snow_field_mod

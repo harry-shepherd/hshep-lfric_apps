@@ -3,55 +3,55 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE scintelapi_interface_mod
+module scintelapi_interface_mod
 !
 ! This module provides the necessary routines for initialising, configuring and
 ! finalising the API.
 !
 
-USE log_mod,                   ONLY: log_event, log_scratch_space,             &
+use log_mod,                   only: log_event, log_scratch_space,             &
                                      LOG_LEVEL_INFO, LOG_LEVEL_ERROR
-USE scintelapi_namelist_mod,   ONLY: scintelapi_nl, required_lfric_namelists
-USE constants_def_mod,         ONLY: field_kind_name_len, field_name_len,      &
+use scintelapi_namelist_mod,   only: scintelapi_nl, required_lfric_namelists
+use constants_def_mod,         only: field_kind_name_len, field_name_len,      &
                                      gen_id_len, genpar_len,                   &
                                      field_id_list_max_size, empty_string, rmdi
-USE lfricinp_setup_io_mod,     ONLY: io_config
-USE lfricinp_datetime_mod,     ONLY: datetime
+use lfricinp_setup_io_mod,     only: io_config
+use lfricinp_datetime_mod,     only: datetime
 
-IMPLICIT NONE
+implicit none
 
-CONTAINS
+contains
 
 
-SUBROUTINE scintelapi_initialise()
+subroutine scintelapi_initialise()
 !
 ! This routine initialises all the necessary LFRic, XIOS, YAXT and API
 ! infrastructure.
 !
 
-USE field_list_mod,            ONLY: init_field_list
-USE generator_library_mod,     ONLY: init_generator_lib
-USE dependency_graph_list_mod, ONLY: init_dependency_graph_list
-USE lfricinp_lfric_driver_mod, ONLY: lfricinp_initialise_lfric, model_clock,   &
+use field_list_mod,            only: init_field_list
+use generator_library_mod,     only: init_generator_lib
+use dependency_graph_list_mod, only: init_dependency_graph_list
+use lfricinp_lfric_driver_mod, only: lfricinp_initialise_lfric, model_clock,   &
                                      lfric_nl_fname
-USE lfricinp_setup_io_mod,     ONLY: io_fname
-USE lfricinp_read_command_line_args_mod, ONLY: lfricinp_read_command_line_args
+use lfricinp_setup_io_mod,     only: io_fname
+use lfricinp_read_command_line_args_mod, only: lfricinp_read_command_line_args
 
-IMPLICIT NONE
+implicit none
 
-LOGICAL                             :: l_advance
+logical                             :: l_advance
 
 ! Read namelist file names from command line
-CALL lfricinp_read_command_line_args(scintelapi_nl, lfric_nl_fname, io_fname)
+call lfricinp_read_command_line_args(scintelapi_nl, lfric_nl_fname, io_fname)
 
 ! Set up IO file configuration
-CALL io_config%load_namelist()
+call io_config%load_namelist()
 
 ! Load date and time information
-CALL datetime % initialise()
+call datetime % initialise()
 
 ! Initialise LFRic infrastructure
-CALL lfricinp_initialise_lfric(program_name_arg="scintelapi",                  &
+call lfricinp_initialise_lfric(program_name_arg="scintelapi",                  &
      required_lfric_namelists = required_lfric_namelists,                      &
      start_date = datetime % first_validity_time,                              &
      time_origin = datetime % first_validity_time,                             &
@@ -62,97 +62,97 @@ CALL lfricinp_initialise_lfric(program_name_arg="scintelapi",                  &
 
 ! Advance clock to first time step, so output can be written to file
 l_advance = model_clock % tick()
-IF (.NOT. l_advance) THEN
-  CALL log_event('Failed to advance clock on initialisation', LOG_LEVEL_ERROR)
-END IF
+if (.not. l_advance) then
+  call log_event('Failed to advance clock on initialisation', LOG_LEVEL_ERROR)
+end if
 
 ! Initialise the field list
-CALL init_field_list()
+call init_field_list()
 
 ! Initialise the generator library
-CALL init_generator_lib()
+call init_generator_lib()
 
 ! Initialise the dependency graph list
-CALL init_dependency_graph_list()
+call init_dependency_graph_list()
 
-END SUBROUTINE scintelapi_initialise
+end subroutine scintelapi_initialise
 
 
-SUBROUTINE scintelapi_finalise()
+subroutine scintelapi_finalise()
 !
 ! This routine finalises all the used infrastructure
 !
 
-USE lfricinp_lfric_driver_mod, ONLY: lfricinp_finalise_lfric
+use lfricinp_lfric_driver_mod, only: lfricinp_finalise_lfric
 
-IMPLICIT NONE
+implicit none
 
 ! Finalise LFRic infrastructure.
-CALL lfricinp_finalise_lfric()
+call lfricinp_finalise_lfric()
 
-END SUBROUTINE scintelapi_finalise
+end subroutine scintelapi_finalise
 
 
-SUBROUTINE scintelapi_add_field(field_id, field_kind, n_data, write_name)
+subroutine scintelapi_add_field(field_id, field_kind, n_data, write_name)
 !
 ! This routine is used to add a field to the internally stored global field
 ! list. It also performs several checks on the input for validity and
 ! consistency.
 !
 
-USE finite_element_config_mod,      ONLY: element_order_h, element_order_v
-USE function_space_collection_mod , ONLY: function_space_collection
-USE fs_continuity_mod,              ONLY: W3, Wtheta
-USE lfricinp_lfric_driver_mod,      ONLY: mesh, twod_mesh
-USE field_list_mod,                 ONLY: no_fields, field_list,               &
+use finite_element_config_mod,      only: element_order_h, element_order_v
+use function_space_collection_mod , only: function_space_collection
+use fs_continuity_mod,              only: W3, Wtheta
+use lfricinp_lfric_driver_mod,      only: mesh, twod_mesh
+use field_list_mod,                 only: no_fields, field_list,               &
                                           field_io_name_list
-USE field_mod,                      ONLY: field_proxy_type
-USE mesh_mod,                       ONLY: mesh_type
+use field_mod,                      only: field_proxy_type
+use mesh_mod,                       only: mesh_type
 
-IMPLICIT NONE
+implicit none
 
 !
 ! Arguments
 !
 ! Field identifier of new field to be added to list
-CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: field_id
+character(len=*), optional, intent(in) :: field_id
 
 ! Field type identifier
-CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: field_kind
+character(len=*), optional, intent(in) :: field_kind
 
 ! Field non-spatial dimension size
-INTEGER, OPTIONAL, INTENT(IN)          :: n_data
+integer, optional, intent(in)          :: n_data
 
 ! Field proxy
-TYPE(field_proxy_type)                 :: field_proxy
+type(field_proxy_type)                 :: field_proxy
 
 ! XIOS write identifier to use as defined in iodef.xml file
-CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: write_name
+character(len=*), optional, intent(in) :: write_name
 
 !
 ! Local variables
 !
 ! Mesh to use
-TYPE(mesh_type), pointer :: tmp_mesh => null()
+type(mesh_type), pointer :: tmp_mesh => null()
 
 ! Function space to use
-INTEGER :: Fspace
+integer :: Fspace
 
 ! ndata
-INTEGER :: ndata
+integer :: ndata
 
 ! Iterable
-INTEGER :: l
+integer :: l
 
 ! Logicals used
-LOGICAL :: l_field_id_exists, l_write_name_exists, l_field_id_present,         &
+logical :: l_field_id_exists, l_write_name_exists, l_field_id_present,         &
            l_write_name_present, l_field_kind_present
-LOGICAL :: ndata_first
+logical :: ndata_first
 
 ! User feedback
-WRITE(log_scratch_space,'(A)') 'Attempt to add ' // TRIM(field_id) //          &
+write(log_scratch_space,'(A)') 'Attempt to add ' // trim(field_id) //          &
                                ' to global field list.'
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
 
 !
 ! START input checks ...
@@ -160,106 +160,106 @@ CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
 
 ! Check field id is present and not already in global field list
 l_field_id_present = .false.
-IF (PRESENT(field_id)) THEN
-  IF (TRIM(field_id) /= empty_string) l_field_id_present = .true.
-END IF
+if (present(field_id)) then
+  if (trim(field_id) /= empty_string) l_field_id_present = .true.
+end if
 
-IF (l_field_id_present) THEN
+if (l_field_id_present) then
 
   l_field_id_exists = .false.
-  DO l = 1, no_fields
-    IF (TRIM(field_list(l)%get_name()) == TRIM(field_id)) THEN
+  do l = 1, no_fields
+    if (trim(field_list(l)%get_name()) == trim(field_id)) then
       l_field_id_exists = .true.
-      EXIT
-    END IF
-  END DO
+      exit
+    end if
+  end do
 
-  IF (l_field_id_exists) THEN
-    WRITE(log_scratch_space,'(A)') TRIM(field_id) // ' already in field list'
-    CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-  END IF
+  if (l_field_id_exists) then
+    write(log_scratch_space,'(A)') trim(field_id) // ' already in field list'
+    call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+  end if
 
-ELSE
+else
 
-CALL log_event('No field id provided', LOG_LEVEL_ERROR)
+call log_event('No field id provided', LOG_LEVEL_ERROR)
 
-END IF
+end if
 
 ! Check if any fields in global field list already has the same write name
 l_write_name_present = .false.
-IF (PRESENT(write_name)) THEN
-  IF (TRIM(write_name) /= empty_string) l_write_name_present = .true.
-END IF
+if (present(write_name)) then
+  if (trim(write_name) /= empty_string) l_write_name_present = .true.
+end if
 
-IF (l_write_name_present) THEN
+if (l_write_name_present) then
 
   l_write_name_exists = .false.
-  DO l = 1, no_fields
-    IF (TRIM(field_io_name_list(l)) == TRIM(write_name)) THEN
+  do l = 1, no_fields
+    if (trim(field_io_name_list(l)) == trim(write_name)) then
       l_write_name_exists = .true.
-      EXIT
-    END IF
-  END DO
+      exit
+    end if
+  end do
 
-  IF (l_write_name_exists) THEN
-    WRITE(log_scratch_space,'(A)') 'The supplied write_name ' //               &
-                                   TRIM(write_name) // ' for field ' //        &
-                                   TRIM(field_id) // ' already exist for ' //  &
+  if (l_write_name_exists) then
+    write(log_scratch_space,'(A)') 'The supplied write_name ' //               &
+                                   trim(write_name) // ' for field ' //        &
+                                   trim(field_id) // ' already exist for ' //  &
                                    'another field in the field list'
-    CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-  END IF
+    call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+  end if
 
-END IF
+end if
 
 ! Set size of non-spatial dimension based on input provided
-IF (PRESENT(n_data)) THEN
+if (present(n_data)) then
   ndata = n_data
-ELSE
+else
   ndata = 1
-END if
+end if
 
 ! Set mesh type, function space, etc based on field type provided
 l_field_kind_present = .false.
-IF (PRESENT(field_kind)) THEN
-  IF (TRIM(field_kind) /= empty_string) l_field_kind_present = .true.
-END IF
+if (present(field_kind)) then
+  if (trim(field_kind) /= empty_string) l_field_kind_present = .true.
+end if
 
-IF (l_field_kind_present) THEN
+if (l_field_kind_present) then
 
-  SELECT CASE (TRIM(field_kind))
+  select case (trim(field_kind))
 
-    CASE('W3_field')
+    case('W3_field')
       tmp_mesh => mesh
       Fspace = W3
-      ndata_first = .FALSE.
+      ndata_first = .false.
 
-    CASE('Wtheta_field')
+    case('Wtheta_field')
       tmp_mesh => mesh
       Fspace = Wtheta
-      ndata_first = .FALSE.
+      ndata_first = .false.
 
-    CASE('W3_field_2d')
+    case('W3_field_2d')
       tmp_mesh => twod_mesh
       Fspace = W3
-      ndata_first = .FALSE.
+      ndata_first = .false.
 
-    CASE('W3_soil_field')
+    case('W3_soil_field')
       tmp_mesh => twod_mesh
       Fspace = W3
-      ndata_first = .TRUE.
+      ndata_first = .true.
 
-    CASE DEFAULT
-      WRITE(log_scratch_space, '(A,A,A)')                                      &
-         "Field type ", TRIM(field_kind), " not recognised"
-      CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
+    case DEFAULT
+      write(log_scratch_space, '(A,A,A)')                                      &
+         "Field type ", trim(field_kind), " not recognised"
+      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
 
-  END SELECT
+  end select
 
-ELSE
+else
 
-CALL log_event('No field type provided', LOG_LEVEL_ERROR)
+call log_event('No field type provided', LOG_LEVEL_ERROR)
 
-END IF
+end if
 
 !
 ! Input checks DONE ...
@@ -269,7 +269,7 @@ END IF
 l = no_fields + 1
 
 ! Set new field
-CALL field_list(l) % initialise(vector_space =                                  &
+call field_list(l) % initialise(vector_space =                                  &
                                   function_space_collection%get_fs(             &
                                                                tmp_mesh,        &
                                                                element_order_h, &
@@ -286,21 +286,21 @@ field_proxy = field_list(l) % get_proxy()
 field_proxy % data(:) = rmdi
 
 ! Set write id of the new field, if defined
-IF (l_write_name_present) THEN
+if (l_write_name_present) then
   field_io_name_list(l) = write_name
-END IF
+end if
 
 ! Update the number of defined fields
 no_fields = no_fields + 1
 
-CALL log_event('Field successfully added', LOG_LEVEL_INFO)
+call log_event('Field successfully added', LOG_LEVEL_INFO)
 
-NULLIFY (tmp_mesh)
+nullify (tmp_mesh)
 
-END SUBROUTINE scintelapi_add_field
+end subroutine scintelapi_add_field
 
 
-SUBROUTINE scintelapi_add_dependency_graph(input_fields, output_fields,        &
+subroutine scintelapi_add_dependency_graph(input_fields, output_fields,        &
                                           generator, genpar)
 !
 ! This routine is used to add a dependency graph to the internally stored global
@@ -308,47 +308,47 @@ SUBROUTINE scintelapi_add_dependency_graph(input_fields, output_fields,        &
 ! validity and consistency.
 !
 
-USE dependency_graph_list_mod, ONLY: no_dependency_graphs, dependency_graph_list
-USE field_list_mod,            ONLY: get_field_pointer, field_list, no_fields
-USE generator_library_mod,     ONLY: generator_index, generator_list,          &
+use dependency_graph_list_mod, only: no_dependency_graphs, dependency_graph_list
+use field_list_mod,            only: get_field_pointer, field_list, no_fields
+use generator_library_mod,     only: generator_index, generator_list,          &
                                      no_generators
 
-IMPLICIT NONE
+implicit none
 
 !
 ! Arguments
 !
 ! Identifier of generator to run
-CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: generator
+character(len=*), optional, intent(in) :: generator
 
 ! Input field id array
-CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: input_fields(:)
+character(len=*), optional, intent(in) :: input_fields(:)
 
 ! Output field id array
-CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: output_fields(:)
+character(len=*), optional, intent(in) :: output_fields(:)
 
 ! Optional input parameter list to the generator
-CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: genpar
+character(len=*), optional, intent(in) :: genpar
 
 !
 ! Local variables
 !
 ! Sizes of input and output field arrays for the dep graph
-INTEGER :: no_input_fields, no_output_fields
+integer :: no_input_fields, no_output_fields
 
 ! Iterable
-INTEGER :: i, j, l
+integer :: i, j, l
 
 ! Logical to check if input and output fields are defined in global field list
-LOGICAL :: l_field_does_not_exist
+logical :: l_field_does_not_exist
 
 ! Logical to check if generator is defined in generator library
-LOGICAL :: l_generator_does_not_exist
+logical :: l_generator_does_not_exist
 
 ! Other logicals used in checking input
-LOGICAL :: l_input_fields_present, l_output_fields_present, l_generator_present
+logical :: l_input_fields_present, l_output_fields_present, l_generator_present
 
-CALL log_event('Attempting to ADD DEPENDENCY GRAPH', LOG_LEVEL_INFO)
+call log_event('Attempting to ADD DEPENDENCY GRAPH', LOG_LEVEL_INFO)
 
 !
 ! START input checks ...
@@ -358,105 +358,105 @@ CALL log_event('Attempting to ADD DEPENDENCY GRAPH', LOG_LEVEL_INFO)
 ! ids, the fields are already in the global field list, and the output field
 ! list has at least one field id.
 l_input_fields_present = .false.
-IF (PRESENT(input_fields)) THEN
-  IF (SIZE(input_fields) /= 0) l_input_fields_present = .true.
-END IF
+if (present(input_fields)) then
+  if (size(input_fields) /= 0) l_input_fields_present = .true.
+end if
 
-IF (l_input_fields_present) THEN
-  WRITE(log_scratch_space,'(100(A,1X))')                                       &
-        'INPUT FIELDS:', (TRIM(input_fields(i)), i=1,SIZE(input_fields))
-  CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-  DO i = 1, SIZE(input_fields)
+if (l_input_fields_present) then
+  write(log_scratch_space,'(100(A,1X))')                                       &
+        'INPUT FIELDS:', (trim(input_fields(i)), i=1,size(input_fields))
+  call log_event(log_scratch_space, LOG_LEVEL_INFO)
+  do i = 1, size(input_fields)
 
-    DO j = 1, SIZE(input_fields)
-      IF ( (TRIM(input_fields(j)) == TRIM(input_fields(i))) .AND. j /= i ) THEN
-        WRITE(log_scratch_space, '(A)') 'Repeated field ids in input list'
-        CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-      END IF
-    END DO
+    do j = 1, size(input_fields)
+      if ( (trim(input_fields(j)) == trim(input_fields(i))) .and. j /= i ) then
+        write(log_scratch_space, '(A)') 'Repeated field ids in input list'
+        call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+      end if
+    end do
 
     l_field_does_not_exist = .true.
-    DO j = 1, no_fields
-      IF (TRIM(field_list(j)%get_name()) == TRIM(input_fields(i))) THEN
+    do j = 1, no_fields
+      if (trim(field_list(j)%get_name()) == trim(input_fields(i))) then
         l_field_does_not_exist = .false.
-        EXIT
-      END IF
-    END DO
+        exit
+      end if
+    end do
 
-    IF (l_field_does_not_exist) THEN
-      WRITE(log_scratch_space, '(A)') 'Input field not defined'
-      CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-    END IF
+    if (l_field_does_not_exist) then
+      write(log_scratch_space, '(A)') 'Input field not defined'
+      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+    end if
 
-  END DO
-END IF
+  end do
+end if
 !
 l_output_fields_present = .false.
-IF (PRESENT(output_fields)) THEN
-  IF (SIZE(output_fields) /= 0) l_output_fields_present = .true.
-END IF
+if (present(output_fields)) then
+  if (size(output_fields) /= 0) l_output_fields_present = .true.
+end if
 
-IF (l_output_fields_present) THEN
-  WRITE(log_scratch_space,'(100(A,1X))')                                       &
-        'OUTPUT FIELDS:', (TRIM(output_fields(i)), i=1,SIZE(output_fields))
-  CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-  DO i = 1, SIZE(output_fields)
+if (l_output_fields_present) then
+  write(log_scratch_space,'(100(A,1X))')                                       &
+        'OUTPUT FIELDS:', (trim(output_fields(i)), i=1,size(output_fields))
+  call log_event(log_scratch_space, LOG_LEVEL_INFO)
+  do i = 1, size(output_fields)
 
-    DO j = 1, SIZE(output_fields)
-      IF ( (TRIM(output_fields(j)) == TRIM(output_fields(i)))                  &
-          .AND. j /= i ) THEN
-        WRITE(log_scratch_space, '(A)') 'Repeated field ids in output list'
-        CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-      END IF
-    END DO
+    do j = 1, size(output_fields)
+      if ( (trim(output_fields(j)) == trim(output_fields(i)))                  &
+          .and. j /= i ) then
+        write(log_scratch_space, '(A)') 'Repeated field ids in output list'
+        call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+      end if
+    end do
 
     l_field_does_not_exist = .true.
-    DO j = 1, no_fields
-      IF (TRIM(field_list(j)%get_name()) == TRIM(output_fields(i))) THEN
+    do j = 1, no_fields
+      if (trim(field_list(j)%get_name()) == trim(output_fields(i))) then
         l_field_does_not_exist = .false.
-        EXIT
-      END IF
-    END DO
+        exit
+      end if
+    end do
 
-    IF (l_field_does_not_exist) THEN
-      WRITE(log_scratch_space, '(A)') 'Output field not defined'
-      CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-    END IF
+    if (l_field_does_not_exist) then
+      write(log_scratch_space, '(A)') 'Output field not defined'
+      call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+    end if
 
-  END DO
-ELSE
-  WRITE(log_scratch_space, '(A)') 'No output fields in dependency graph!'
-  CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-END IF
+  end do
+else
+  write(log_scratch_space, '(A)') 'No output fields in dependency graph!'
+  call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+end if
 
 ! Check generator id has been provided and that it exists in the generator
 ! library
 l_generator_present = .false.
-IF (PRESENT(generator)) THEN
-  IF (TRIM(generator) /= empty_string) l_generator_present = .true.
-END IF
+if (present(generator)) then
+  if (trim(generator) /= empty_string) l_generator_present = .true.
+end if
 
-IF (l_generator_present) THEN
-  WRITE(log_scratch_space,'(2(A,1X))') 'GENERATOR:', TRIM(generator)
-  CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+if (l_generator_present) then
+  write(log_scratch_space,'(2(A,1X))') 'GENERATOR:', trim(generator)
+  call log_event(log_scratch_space, LOG_LEVEL_INFO)
 
   l_generator_does_not_exist = .true.
-  DO j = 1, no_generators
-    IF (TRIM(generator_list(j)%identifier) == TRIM(generator)) THEN
+  do j = 1, no_generators
+    if (trim(generator_list(j)%identifier) == trim(generator)) then
       l_generator_does_not_exist = .false.
-      EXIT
-    END IF
-  END DO
+      exit
+    end if
+  end do
 
-  IF (l_generator_does_not_exist) THEN
-    WRITE(log_scratch_space, '(A)') 'Generator not defined!'
-    CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-  END IF
+  if (l_generator_does_not_exist) then
+    write(log_scratch_space, '(A)') 'Generator not defined!'
+    call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+  end if
 
-ELSE
-  WRITE(log_scratch_space, '(A)') 'No generator id provided!'
-  CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-END IF
+else
+  write(log_scratch_space, '(A)') 'No generator id provided!'
+  call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+end if
 
 !
 ! Input checks DONE ...
@@ -466,72 +466,72 @@ END IF
 l = no_dependency_graphs + 1
 
 ! Set up the pointers to the input fields
-IF (l_input_fields_present) THEN
-  no_input_fields = SIZE(input_fields)
-  ALLOCATE(dependency_graph_list(l)%input_field(no_input_fields))
-  DO i = 1, no_input_fields
+if (l_input_fields_present) then
+  no_input_fields = size(input_fields)
+  allocate(dependency_graph_list(l)%input_field(no_input_fields))
+  do i = 1, no_input_fields
     dependency_graph_list(l)%input_field(i)%field_ptr =>                       &
                                             get_field_pointer(input_fields(i))
-  END DO
-END IF
+  end do
+end if
 
 ! Set up the pointers to the output fields
-no_output_fields = SIZE(output_fields)
-ALLOCATE(dependency_graph_list(l)%output_field(no_output_fields))
-DO i = 1, no_output_fields
+no_output_fields = size(output_fields)
+allocate(dependency_graph_list(l)%output_field(no_output_fields))
+do i = 1, no_output_fields
   dependency_graph_list(l)%output_field(i)%field_ptr =>                        &
                                            get_field_pointer(output_fields(i))
-END DO
+end do
 
 ! Set up generator for this dep graph
 dependency_graph_list(l)%gen = generator_list(generator_index(generator))
 
 ! Set up generator parameter list
-IF (PRESENT(genpar)) THEN
+if (present(genpar)) then
   dependency_graph_list(l)%genpar = genpar
-ELSE
+else
   dependency_graph_list(l)%genpar = empty_string
-END IF
+end if
 
 ! Update the number of defined dep graphs
 no_dependency_graphs = no_dependency_graphs + 1
 
-CALL log_event('DEPENDENCY GRAPH successfully added', LOG_LEVEL_INFO)
+call log_event('DEPENDENCY GRAPH successfully added', LOG_LEVEL_INFO)
 
-END SUBROUTINE scintelapi_add_dependency_graph
+end subroutine scintelapi_add_dependency_graph
 
 
-SUBROUTINE scintelapi_add_fields_from_nl()
+subroutine scintelapi_add_fields_from_nl()
 !
 ! This routine is used to add a list of fields to the internally stored global
 ! field list. Input is read from the scintelapi_nl namelist file as set in the
 ! module scintelapi_namelist_mod.
 !
 
-USE lfricinp_unit_handler_mod,          ONLY: get_free_unit
+use lfricinp_unit_handler_mod,          only: get_free_unit
 
-IMPLICIT NONE
+implicit none
 
 ! Unit number to use in namelist file reading.
-INTEGER :: nml_unit
+integer :: nml_unit
 
 ! Input string declarations used in namelists
-CHARACTER(LEN=field_name_len)      :: field_id
-CHARACTER(LEN=field_kind_name_len) :: field_kind
-INTEGER                            :: n_data
-CHARACTER(LEN=field_name_len)      :: write_name
-CHARACTER(LEN=1)                   :: write_to_dump
+character(len=field_name_len)      :: field_id
+character(len=field_kind_name_len) :: field_kind
+integer                            :: n_data
+character(len=field_name_len)      :: write_name
+character(len=1)                   :: write_to_dump
 
 ! Field definition namelist
-NAMELIST /field_definitions/ field_id, field_kind, n_data, write_name,      &
+namelist /field_definitions/ field_id, field_kind, n_data, write_name,      &
                              write_to_dump
 
 ! Read namelist file for field definitions, and add said fields to internal
 ! field list
-CALL get_free_unit(nml_unit)
-OPEN(unit=nml_unit, file=TRIM(scintelapi_nl))
+call get_free_unit(nml_unit)
+open(unit=nml_unit, file=trim(scintelapi_nl))
 
-DO ! Loop over all field_definitions namelists
+do ! Loop over all field_definitions namelists
 
   ! Initialise field definition items
   field_id   = empty_string
@@ -540,75 +540,75 @@ DO ! Loop over all field_definitions namelists
   write_name = empty_string
 
   ! Read namelist items. Exit loop if EOF is reached
-  READ(unit=nml_unit, nml=field_definitions, END=101)
+  read(unit=nml_unit, nml=field_definitions, end=101)
 
   ! Report warning to user if write_name item and write_to_dump settings are in
   ! in conflict with each other. In case of such a conflict, default position is
   ! not to write field to dump, i.e. write_name is an empty string.
-  IF ((TRIM(write_name) /= empty_string).AND.(write_to_dump == 'n')) THEN
-    WRITE(log_scratch_space,'(A)') 'WARNING: Dump write name set, but '    //  &
+  if ((trim(write_name) /= empty_string).and.(write_to_dump == 'n')) then
+    write(log_scratch_space,'(A)') 'WARNING: Dump write name set, but '    //  &
                                    'writing to dump option turned off. '   //  &
                                    'Field will not be written to dump'
-    CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+    call log_event(log_scratch_space, LOG_LEVEL_INFO)
     write_name = empty_string
-  END IF
+  end if
 
-  IF ((TRIM(write_name) == empty_string).AND.(write_to_dump == 'y')) THEN
-    WRITE(log_scratch_space,'(A)') 'WARNING: Dump write name not set, but ' // &
+  if ((trim(write_name) == empty_string).and.(write_to_dump == 'y')) then
+    write(log_scratch_space,'(A)') 'WARNING: Dump write name not set, but ' // &
                                    'writing to dump option turned on. '     // &
                                    'Field will not be written to dump'
-    CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-  END IF
+    call log_event(log_scratch_space, LOG_LEVEL_INFO)
+  end if
 
   ! Add field to global field list
-  CALL scintelapi_add_field(field_id      = field_id,                          &
+  call scintelapi_add_field(field_id      = field_id,                          &
                             field_kind    = field_kind,                        &
                             n_data        = n_data,                            &
                             write_name    = write_name)
 
-END DO ! End of loop over namelists
+end do ! End of loop over namelists
 
-101 CLOSE(unit=nml_unit)
+101 close(unit=nml_unit)
 
-END SUBROUTINE scintelapi_add_fields_from_nl
+end subroutine scintelapi_add_fields_from_nl
 
 
-SUBROUTINE scintelapi_add_dependency_graphs_from_nl()
+subroutine scintelapi_add_dependency_graphs_from_nl()
 !
 ! This routine is used to add a list of dependency graphs to the internally
 ! stored global dependency graph list. Input is read from the scintelapi_nl
 ! namelist file as set in the module scintelapi_namelist_mod.
 !
 
-USE lfricinp_unit_handler_mod,          ONLY: get_free_unit
+use lfricinp_unit_handler_mod,          only: get_free_unit
 
-IMPLICIT NONE
+implicit none
 
 ! Unit number to use in namelist file reading.
-INTEGER :: nml_unit
+integer :: nml_unit
 
 ! Iterable(s)
-INTEGER :: i, k
+integer :: i, k
 
 ! Allocatable arrays needed
-CHARACTER(LEN=field_name_len), ALLOCATABLE :: input_fields_trimmed(:)
-CHARACTER(LEN=field_name_len), ALLOCATABLE :: output_fields_trimmed(:)
+character(len=field_name_len), allocatable :: input_fields_trimmed(:)
+character(len=field_name_len), allocatable :: output_fields_trimmed(:)
 
 ! Input string declarations used in namelists
-CHARACTER(LEN=field_name_len)      :: output_fields(field_id_list_max_size)
-CHARACTER(LEN=field_name_len)      :: input_fields(field_id_list_max_size)
-CHARACTER(LEN=gen_id_len)          :: generator
-CHARACTER(LEN=genpar_len)          :: genpar
+character(len=field_name_len)      :: output_fields(field_id_list_max_size)
+character(len=field_name_len)      :: input_fields(field_id_list_max_size)
+character(len=gen_id_len)          :: generator
+character(len=genpar_len)          :: genpar
 
 ! Dependency graph definition namelist
-NAMELIST /dependency_graphs/ input_fields, output_fields, generator, genpar
+namelist /dependency_graphs/ input_fields, output_fields, generator, genpar
 
 ! Read namelist file for dependency graph definitions, and add said dependency
 ! graphs to internal list
-CALL get_free_unit(nml_unit)
-OPEN(unit=nml_unit, file=TRIM(scintelapi_nl))
+call get_free_unit(nml_unit)
+open(unit=nml_unit, file=trim(scintelapi_nl))
 
-DO ! Loop over all dependency_graphs namelists
+do ! Loop over all dependency_graphs namelists
 
   ! Initialise dependency graph items. Assume input and output field name arrays
   ! are of maximum size, which will be trimmed down later.
@@ -618,57 +618,57 @@ DO ! Loop over all dependency_graphs namelists
   genpar        = empty_string
 
   ! Read namelist items. Exit loop if EOF is reached
-  READ(unit=nml_unit, nml=dependency_graphs, END=102)
+  read(unit=nml_unit, nml=dependency_graphs, end=102)
 
   ! Trim down input field name array to minimum size.
   !
   ! First find minimum size and allocate necessary array with that size.
   k = 0
-  DO i = 1, field_id_list_max_size
-    IF (TRIM(input_fields(i)) /= empty_string) k = k + 1
-  END DO
-  ALLOCATE(input_fields_trimmed(k))
+  do i = 1, field_id_list_max_size
+    if (trim(input_fields(i)) /= empty_string) k = k + 1
+  end do
+  allocate(input_fields_trimmed(k))
   !
   ! Second fill allocated minimun sized array with the necessary data.
   k = 0
-  DO i = 1, field_id_list_max_size
-    IF (TRIM(input_fields(i)) /= empty_string) THEN
+  do i = 1, field_id_list_max_size
+    if (trim(input_fields(i)) /= empty_string) then
       k = k + 1
       input_fields_trimmed(k) = input_fields(i)
-    END IF
-  END DO
+    end if
+  end do
 
   ! Trim down output field name array to minimum size.
   !
   ! First find minimum size and allocate necessary array with that size.
   k = 0
-  DO i = 1, field_id_list_max_size
-    IF (TRIM(output_fields(i)) /= empty_string) k = k + 1
-  END DO
-  ALLOCATE(output_fields_trimmed(k))
+  do i = 1, field_id_list_max_size
+    if (trim(output_fields(i)) /= empty_string) k = k + 1
+  end do
+  allocate(output_fields_trimmed(k))
   !
   ! Second fill allocated minimun sized array with the necessary data.
   k = 0
-  DO i = 1, field_id_list_max_size
-    IF (TRIM(output_fields(i)) /= empty_string) THEN
+  do i = 1, field_id_list_max_size
+    if (trim(output_fields(i)) /= empty_string) then
       k = k + 1
       output_fields_trimmed(k) = output_fields(i)
-    END IF
-  END DO
+    end if
+  end do
 
   ! Add dependendency graph to global dependency graph list
-  CALL scintelapi_add_dependency_graph(input_fields  = input_fields_trimmed,   &
+  call scintelapi_add_dependency_graph(input_fields  = input_fields_trimmed,   &
                                        output_fields = output_fields_trimmed,  &
                                        generator     = generator,              &
                                        genpar        = genpar)
 
-  DEALLOCATE(input_fields_trimmed)
-  DEALLOCATE(output_fields_trimmed)
+  deallocate(input_fields_trimmed)
+  deallocate(output_fields_trimmed)
 
-END DO ! End of loop over namelists
+end do ! End of loop over namelists
 
-102 CLOSE(unit=nml_unit)
+102 close(unit=nml_unit)
 
-END SUBROUTINE scintelapi_add_dependency_graphs_from_nl
+end subroutine scintelapi_add_dependency_graphs_from_nl
 
-END MODULE scintelapi_interface_mod
+end module scintelapi_interface_mod

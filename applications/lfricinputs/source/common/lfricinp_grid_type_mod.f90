@@ -3,76 +3,76 @@
 ! For further details please refer to the file LICENCE
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
-MODULE lfricinp_grid_type_mod
-! NEED TO REMEMBER TO RENAME THIS FILE AS WELL AS THE MODULE!!! - DO AFTER
+module lfricinp_grid_type_mod
+! NEED to REMEMBER to rename THIS file AS WELL AS THE module!!! - do AFTER
 ! CODE REVIEW
 ! Intrinsic modules
-USE, INTRINSIC :: iso_fortran_env, ONLY: real64, int64
+use, intrinsic :: iso_fortran_env, only: real64, int64
 
 ! LFRic modules
-USE log_mod,  ONLY: log_event, LOG_LEVEL_ERROR, log_scratch_space
-USE constants_mod,    ONLY: imdi, rmdi
+use log_mod,  only: log_event, LOG_LEVEL_ERROR, log_scratch_space
+use constants_mod,    only: imdi, rmdi
 
-IMPLICIT NONE
+implicit none
 
-PRIVATE
+private
 
 ! Type to contain information relating to the structured grid
-TYPE, PUBLIC :: lfricinp_grid_type
+type, public :: lfricinp_grid_type
   ! Horizontal grid
-  INTEGER(KIND=int64) :: num_arakawa_cells_x = imdi
-  INTEGER(KIND=int64) :: num_arakawa_cells_y = imdi
-  INTEGER(KIND=int64) :: num_p_points_x = imdi
-  INTEGER(KIND=int64) :: num_p_points_y = imdi
-  INTEGER(KIND=int64) :: num_u_points_x = imdi
-  INTEGER(KIND=int64) :: num_u_points_y = imdi
-  INTEGER(KIND=int64) :: num_v_points_x = imdi
-  INTEGER(KIND=int64) :: num_v_points_y = imdi
-  INTEGER(KIND=int64) :: num_snow_layers = imdi
-  INTEGER(KIND=int64) :: num_surface_types = imdi
-  REAL(KIND=real64)   :: spacing_x = rmdi
-  REAL(KIND=real64)   :: spacing_y = rmdi
-  REAL(KIND=real64)   :: grid_origin_x = rmdi
-  REAL(KIND=real64)   :: grid_origin_y = rmdi
-  REAL(KIND=real64)   :: p_origin_x = rmdi
-  REAL(KIND=real64)   :: p_origin_y = rmdi
-  REAL(KIND=real64)   :: u_origin_x = rmdi
-  REAL(KIND=real64)   :: u_origin_y = rmdi
-  REAL(KIND=real64)   :: v_origin_x = rmdi
-  REAL(KIND=real64)   :: v_origin_y = rmdi
+  integer(kind=int64) :: num_arakawa_cells_x = imdi
+  integer(kind=int64) :: num_arakawa_cells_y = imdi
+  integer(kind=int64) :: num_p_points_x = imdi
+  integer(kind=int64) :: num_p_points_y = imdi
+  integer(kind=int64) :: num_u_points_x = imdi
+  integer(kind=int64) :: num_u_points_y = imdi
+  integer(kind=int64) :: num_v_points_x = imdi
+  integer(kind=int64) :: num_v_points_y = imdi
+  integer(kind=int64) :: num_snow_layers = imdi
+  integer(kind=int64) :: num_surface_types = imdi
+  real(kind=real64)   :: spacing_x = rmdi
+  real(kind=real64)   :: spacing_y = rmdi
+  real(kind=real64)   :: grid_origin_x = rmdi
+  real(kind=real64)   :: grid_origin_y = rmdi
+  real(kind=real64)   :: p_origin_x = rmdi
+  real(kind=real64)   :: p_origin_y = rmdi
+  real(kind=real64)   :: u_origin_x = rmdi
+  real(kind=real64)   :: u_origin_y = rmdi
+  real(kind=real64)   :: v_origin_x = rmdi
+  real(kind=real64)   :: v_origin_y = rmdi
   ! Hardwired parameters for now
-  LOGICAL             :: rotated_pole = .FALSE.
-  REAL(KIND=real64)   :: pole_lat = 90.0_real64
-  REAL(KIND=real64)   :: pole_long = 0.0_real64
-  INTEGER(KIND=int64) :: horiz_grid_type = 0 ! Global
-  CONTAINS
-  PROCEDURE :: print_grid_coords
-  PROCEDURE :: set_grid_coords
-END TYPE lfricinp_grid_type
+  logical             :: rotated_pole = .false.
+  real(kind=real64)   :: pole_lat = 90.0_real64
+  real(kind=real64)   :: pole_long = 0.0_real64
+  integer(kind=int64) :: horiz_grid_type = 0 ! Global
+  contains
+  procedure :: print_grid_coords
+  procedure :: set_grid_coords
+end type lfricinp_grid_type
 
-INTERFACE lfricinp_grid_type
-  MODULE PROCEDURE lfricinp_grid_info_constructor_shumlib
-END INTERFACE
+interface lfricinp_grid_type
+  module procedure lfricinp_grid_info_constructor_shumlib
+end interface
 
-CONTAINS
+contains
 
 !-----------------------------------------------------------------
 
-FUNCTION lfricinp_grid_info_constructor_shumlib(um_input_file) RESULT (self)
+function lfricinp_grid_info_constructor_shumlib(um_input_file) result (self)
 ! Description:
 !  Creates the lfricinp_grid_type object based on the information
 !  passed in from a UM file.
 
 ! Shumlib modules
-USE f_shum_file_mod,       ONLY: shum_file_type
-USE f_shum_fixed_length_header_indices_mod,       &
-                           ONLY: horiz_grid_type, &
+use f_shum_file_mod,       only: shum_file_type
+use f_shum_fixed_length_header_indices_mod,       &
+                           only: horiz_grid_type, &
                                  grid_staggering
-USE f_shum_fieldsfile_mod, ONLY: f_shum_fixed_length_header_len
+use f_shum_fieldsfile_mod, only: f_shum_fixed_length_header_len
 
 ! lfricinputs modules
-USE lfricinp_check_shumlib_status_mod, &
-                           ONLY: shumlib
+use lfricinp_check_shumlib_status_mod, &
+                           only: shumlib
 
 ! DEPENDS ON: c_shum_byteswap.o
 ! This is required to force fcm-make to compile the C code; whilst the built-in
@@ -81,47 +81,47 @@ USE lfricinp_check_shumlib_status_mod, &
 ! to force it to compile the C part of the byte-swapping code. This is
 ! currently the approved way of linking Fortran and C in fcm-make.
 
-IMPLICIT NONE
+implicit none
 
 ! Arguments
-TYPE(shum_file_type), INTENT(INOUT) :: um_input_file
+type(shum_file_type), intent(INOUT) :: um_input_file
 !
-TYPE(lfricinp_grid_type) :: self
+type(lfricinp_grid_type) :: self
 
 ! Local variables
 ! Grid sizes - integer header
-INTEGER(KIND=int64), PARAMETER :: ih_num_p_points_x = 6
-INTEGER(KIND=int64), PARAMETER :: ih_num_p_points_y = 7
+integer(kind=int64), parameter :: ih_num_p_points_x = 6
+integer(kind=int64), parameter :: ih_num_p_points_y = 7
 ! Grid sizes - real header
-INTEGER(KIND=int64), PARAMETER :: rh_grid_spacing_x = 1
-INTEGER(KIND=int64), PARAMETER :: rh_grid_spacing_y = 2
-INTEGER(KIND=int64), PARAMETER :: rh_grid_origin_y_coord = 3
-INTEGER(KIND=int64), PARAMETER :: rh_grid_origin_x_coord = 4
+integer(kind=int64), parameter :: rh_grid_spacing_x = 1
+integer(kind=int64), parameter :: rh_grid_spacing_y = 2
+integer(kind=int64), parameter :: rh_grid_origin_y_coord = 3
+integer(kind=int64), parameter :: rh_grid_origin_x_coord = 4
 
 ! Fixed length header
-INTEGER(KIND=int64) :: um_file_fixed_length_header(      &
+integer(kind=int64) :: um_file_fixed_length_header(      &
                             f_shum_fixed_length_header_len)
 ! Integer constants
-INTEGER(KIND=int64), ALLOCATABLE  :: um_file_integer_constants(:)
+integer(kind=int64), allocatable  :: um_file_integer_constants(:)
 ! Real constants
-REAL(KIND=real64), ALLOCATABLE :: um_file_real_constants(:)
+real(kind=real64), allocatable :: um_file_real_constants(:)
 
-CHARACTER(LEN=*), PARAMETER :: routinename = &
+character(len=*), parameter :: routinename = &
      'lfricinp_grid_info_constructor_shumlib'
 
 ! Get fixed length header
-CALL shumlib(routinename//'::get_fixed_length_header', &
+call shumlib(routinename//'::get_fixed_length_header', &
      um_input_file % get_fixed_length_header(um_file_fixed_length_header))
 
 ! Get integer constants
-CALL shumlib(routinename//'::get_integer_constants', &
+call shumlib(routinename//'::get_integer_constants', &
      um_input_file % get_integer_constants(um_file_integer_constants))
 
 ! Get real constants
-CALL shumlib(routinename//'::get_real_constants', &
+call shumlib(routinename//'::get_real_constants', &
       um_input_file % get_real_constants(um_file_real_constants))
 
-CALL self%set_grid_coords(                                              &
+call self%set_grid_coords(                                              &
        grid_staggering = um_file_fixed_length_header(grid_staggering),&
        num_p_points_x = um_file_integer_constants(ih_num_p_points_x), &
        num_p_points_y = um_file_integer_constants(ih_num_p_points_y), &
@@ -130,11 +130,11 @@ CALL self%set_grid_coords(                                              &
        grid_origin_x =  um_file_real_constants(rh_grid_origin_x_coord),&
        grid_origin_y =  um_file_real_constants(rh_grid_origin_y_coord) )
 
-END FUNCTION lfricinp_grid_info_constructor_shumlib
+end function lfricinp_grid_info_constructor_shumlib
 
 !------------------------------------------------------------------
 
-SUBROUTINE set_grid_coords(self,                                 &
+subroutine set_grid_coords(self,                                 &
                          grid_staggering,  num_p_points_x,     &
                          num_p_points_y,   grid_spacing_x,     &
                          grid_spacing_y,   grid_origin_x,      &
@@ -142,25 +142,25 @@ SUBROUTINE set_grid_coords(self,                                 &
 
 ! Description: Set grid info from argument list
 
-IMPLICIT NONE
+implicit none
 
-CLASS(lfricinp_grid_type), INTENT(INOUT) :: self
+class(lfricinp_grid_type), intent(INOUT) :: self
 
 ! Arguments
-INTEGER(KIND=int64), INTENT(IN) :: grid_staggering
-INTEGER(KIND=int64), INTENT(IN) :: num_p_points_x
-INTEGER(KIND=int64), INTENT(IN) :: num_p_points_y
-REAL(KIND=real64), INTENT(IN)   :: grid_spacing_x
-REAL(KIND=real64), INTENT(IN)   :: grid_spacing_y
-REAL(KIND=real64), INTENT(IN)   :: grid_origin_x
-REAL(KIND=real64), INTENT(IN)   :: grid_origin_y
+integer(kind=int64), intent(in) :: grid_staggering
+integer(kind=int64), intent(in) :: num_p_points_x
+integer(kind=int64), intent(in) :: num_p_points_y
+real(kind=real64), intent(in)   :: grid_spacing_x
+real(kind=real64), intent(in)   :: grid_spacing_y
+real(kind=real64), intent(in)   :: grid_origin_x
+real(kind=real64), intent(in)   :: grid_origin_y
 
 ! Grid staggering indicator values
-INTEGER(KIND=int64), PARAMETER :: arakawa_C_endgame = 6
-INTEGER(KIND=int64), PARAMETER :: arakawa_C_nd = 3
+integer(kind=int64), parameter :: arakawa_C_endgame = 6
+integer(kind=int64), parameter :: arakawa_C_nd = 3
 
 ! Calculate the number of Arakawa cells that make up the grid.
-IF (grid_staggering == arakawa_C_endgame) THEN
+if (grid_staggering == arakawa_C_endgame) then
   !      EG 2x2 grid example
   !
   !      .___V___.___V___.
@@ -199,68 +199,68 @@ IF (grid_staggering == arakawa_C_endgame) THEN
   self%u_origin_y = grid_origin_y + (0.5_real64 * self%spacing_y)
   self%v_origin_x = grid_origin_x + (0.5_real64 * self%spacing_x)
   self%v_origin_y = grid_origin_y
-ELSE IF(grid_staggering == arakawa_C_nd) THEN
+else if(grid_staggering == arakawa_C_nd) then
 ! If a standard Arakawa C grid is used then the x direction the number of P
 ! points is equal to the number of cells but the y direction the number of
 ! P points is one greater than the number of cells.
-  CALL log_event("New Dynamics Arakawa C grid not supported", LOG_LEVEL_ERROR)
-ELSE
-  WRITE(log_scratch_space, '(A,I0)') "Unsupported value, grid staggering = ", &
+  call log_event("New Dynamics Arakawa C grid not supported", LOG_LEVEL_ERROR)
+else
+  write(log_scratch_space, '(A,I0)') "Unsupported value, grid staggering = ", &
        grid_staggering
-  CALL log_event(log_scratch_space, LOG_LEVEL_ERROR)
-END IF
+  call log_event(log_scratch_space, LOG_LEVEL_ERROR)
+end if
 
-END SUBROUTINE set_grid_coords
+end subroutine set_grid_coords
 
 !------------------------------------------------------------------
 
-SUBROUTINE print_grid_coords(self)
+subroutine print_grid_coords(self)
 ! Description:
 !  Prints out contents of lfricinp_grid_type
-USE log_mod,       ONLY: log_event, LOG_LEVEL_INFO
-IMPLICIT NONE
-CLASS(lfricinp_grid_type), INTENT(IN) :: self
-WRITE(log_scratch_space, '(A)') "|============ Grid Diagnostics ============|"
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') &
+use log_mod,       only: log_event, LOG_LEVEL_INFO
+implicit none
+class(lfricinp_grid_type), intent(in) :: self
+write(log_scratch_space, '(A)') "|============ Grid Diagnostics ============|"
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') &
      "|  num_arakawa_cells_x: ", self%num_arakawa_cells_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') &
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') &
      "|  num_arakawa_cells_y: ", self%num_arakawa_cells_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') "|  num_p_points_x: ", self%num_p_points_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') "|  num_p_points_y: ", self%num_p_points_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') "|  num_u_points_x: ", self%num_u_points_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') "|  num_u_points_y: ", self%num_u_points_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') "|  num_v_points_x: ", self%num_v_points_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,I0)') "|  num_v_points_y: ", self%num_v_points_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  spacing_x: ", self%spacing_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  spacing_y: ", self%spacing_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  p_origin_x: ", self%p_origin_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  p_origin_y: ", self%p_origin_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  u_origin_x: ", self%u_origin_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  u_origin_y: ", self%u_origin_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  v_origin_x: ", self%v_origin_x
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A,F0.6)') "|  v_origin_y: ", self%v_origin_y
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
-WRITE(log_scratch_space, '(A)')   "|==========================================|"
-CALL log_event(log_scratch_space, LOG_LEVEL_INFO)
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') "|  num_p_points_x: ", self%num_p_points_x
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') "|  num_p_points_y: ", self%num_p_points_y
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') "|  num_u_points_x: ", self%num_u_points_x
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') "|  num_u_points_y: ", self%num_u_points_y
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') "|  num_v_points_x: ", self%num_v_points_x
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,I0)') "|  num_v_points_y: ", self%num_v_points_y
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  spacing_x: ", self%spacing_x
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  spacing_y: ", self%spacing_y
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  p_origin_x: ", self%p_origin_x
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  p_origin_y: ", self%p_origin_y
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  u_origin_x: ", self%u_origin_x
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  u_origin_y: ", self%u_origin_y
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  v_origin_x: ", self%v_origin_x
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A,F0.6)') "|  v_origin_y: ", self%v_origin_y
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
+write(log_scratch_space, '(A)')   "|==========================================|"
+call log_event(log_scratch_space, LOG_LEVEL_INFO)
 
-END SUBROUTINE print_grid_coords
+end subroutine print_grid_coords
 
 !------------------------------------------------------------------
 
-END MODULE lfricinp_grid_type_mod
+end module lfricinp_grid_type_mod
