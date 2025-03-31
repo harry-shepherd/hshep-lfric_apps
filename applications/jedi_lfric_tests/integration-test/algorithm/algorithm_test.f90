@@ -33,7 +33,8 @@ program algorithm_test
                                      LOG_LEVEL_ERROR,    &
                                      LOG_LEVEL_INFO
   use mpi_mod,                 only: global_mpi, &
-                                     create_comm, destroy_comm
+                                     create_comm, destroy_comm, &
+                                     lfric_comm_type
   use namelist_collection_mod, only: namelist_collection_type
   use namelist_mod,            only: namelist_type
 
@@ -43,7 +44,7 @@ program algorithm_test
   implicit none
 
   ! MPI communicator
-  integer(i_def) :: comm
+  type(lfric_comm_type) :: comm
 
   ! Number of processes and local rank
   integer(i_def) :: total_ranks, local_rank
@@ -105,7 +106,7 @@ program algorithm_test
   total_ranks = global_mpi%get_comm_size()
   local_rank  = global_mpi%get_comm_rank()
 
-  call initialise_logging( comm, 'jedi_lfric_test_alg' )
+  call initialise_logging( comm%get_comm_mpi_val(), 'jedi_lfric_test_alg' )
 
   call log_event( 'da dev alg testing running ...', LOG_LEVEL_INFO )
 

@@ -16,8 +16,8 @@ use field_mod, only: field_type, field_proxy_type
 use constants_mod, only: r_def, i_def
 use mesh_mod, only: mesh_type
 use function_space_mod, only: function_space_type
-use mpi_mod, only: global_mpi
-use log_mod, only: log_scratch_space, log_event, LOG_LEVEL_INFO, LOG_LEVEL_ERROR
+use mpi_mod, only: global_mpi, lfric_comm_type
+use log_mod, only: log_scratch_space, log_event, log_level_info, log_level_error
 implicit none
 
 private
@@ -38,7 +38,7 @@ implicit none
 ! Arguments
 type(field_type),    intent(INOUT) :: lfric_field
 real(kind=real64),   intent(out)   :: global_field_array(:)
-integer(kind=i_def), intent(in)    :: comm
+type(lfric_comm_type), intent(in)  :: comm
 integer(kind=int64), intent(in)    :: num_levels
 integer(kind=int64), intent(in)    :: level
 type(mesh_type),     intent(in), pointer :: twod_mesh
@@ -53,6 +53,7 @@ integer(kind=int32) :: local_size_2d, global_size_2d
 integer(kind=int32), parameter   :: rank_0 = 0
 integer(kind=int32) :: err, i
 integer(kind=int64) :: index_3d
+integer(kind=i_def) :: mpi_comm
 !, unit_num
 
 real(kind=real64), allocatable :: local_data(:)
@@ -84,10 +85,11 @@ do i = 1, local_size_2d
   index_3d = index_3d + num_levels
 end do
 
+mpi_comm = comm%get_comm_mpi_val()
 ! Gather size of each rank onto rank 0
 allocate(rank_sizes(total_ranks))
 call mpi_gather(local_size_2d, 1, mpi_integer, rank_sizes, 1, mpi_integer, &
-               rank_0, comm, err)
+               rank_0, mpi_comm, err)
 if (err /= mpi_success) then
   call log_event('Call to mpi_gather failed in MPI error.', &
        LOG_LEVEL_ERROR )
@@ -115,7 +117,7 @@ end if
 ! Gather data from all ranks onto rank 0
 call mpi_gatherv(local_data, local_size_2d, mpi_double_precision,              &
      temp_global_data, rank_sizes, displacements, mpi_double_precision,        &
-     rank_0, comm, err)
+     rank_0, mpi_comm, err)
 if (err /= mpi_success) then
   call log_event('Call to mpi_gatherv failed in MPI error.', &
        LOG_LEVEL_ERROR )
@@ -136,7 +138,7 @@ end if
 ! Gather gid map from all ranks onto rank 0
 call mpi_gatherv(local_gid_lid_map, local_size_2d, mpi_integer, &
        global_gid_map, rank_sizes, displacements, mpi_integer, rank_0, &
-       comm, err)
+       mpi_comm, err)
 if (err /= mpi_success) then
   call log_event('Call to mpi_gatherv failed in MPI error.', &
        LOG_LEVEL_ERROR )

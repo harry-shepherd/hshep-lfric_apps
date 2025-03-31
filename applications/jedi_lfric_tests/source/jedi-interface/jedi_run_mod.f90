@@ -49,7 +49,8 @@ contains
 !> @param [out] out_communicator The communicator to be used by the application
 subroutine initialise( self, program_name, out_communicator )
 
-  use mpi_mod,                only: create_comm
+  use mpi_mod,                only: create_comm, &
+                                    lfric_comm_type
   use jedi_lfric_comm_mod,    only: init_external_comm
 
   implicit none
@@ -58,13 +59,15 @@ subroutine initialise( self, program_name, out_communicator )
   character(len=*),       intent(in)    :: program_name
   integer(i_def),         intent(out)   :: out_communicator
   ! Local
+  type(lfric_comm_type) :: lfric_comm
   integer(i_def) :: world_communicator
 
   self%jedi_run_name = program_name
 
   ! JEDI will initialise MPI so calling it here to enforce that behaviour.
   ! It will be called outside the scope of the model interface.
-  call create_comm( world_communicator )
+  call create_comm( lfric_comm )
+  world_communicator = lfric_comm%get_comm_mpi_val()
 
   ! Call to initialise external dependencies like XIOS that require the world
   ! comm
@@ -84,12 +87,15 @@ subroutine initialise_infrastructure( self, filename, model_communicator )
   use driver_config_mod,             only: init_config
   use driver_log_mod,                only: init_logger
   use jedi_lfric_tests_mod,          only: jedi_lfric_tests_required_namelists
+  use mpi_mod,                       only: lfric_comm_type
 
   implicit none
 
   class( jedi_run_type ),         intent(inout) :: self
   character(len=*),               intent(in)    :: filename
   integer(i_def),                 intent(in)    :: model_communicator
+
+  type(lfric_comm_type)                         :: lfric_comm
 
   ! Initialise the configuration
   call self%configuration%initialise( self%jedi_run_name, table_len=10 )
@@ -102,7 +108,8 @@ subroutine initialise_infrastructure( self, filename, model_communicator )
                     self%configuration )
 
   ! Initialise the logger
-  call init_logger( model_communicator, self%jedi_run_name )
+  call lfric_comm%set_comm_mpi_val(model_communicator)
+  call init_logger( lfric_comm, self%jedi_run_name )
 
   ! Initialise collections
   call init_collections()

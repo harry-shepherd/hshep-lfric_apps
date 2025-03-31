@@ -20,7 +20,8 @@ program runge_kutta
                                     log_event,       &
                                     LOG_LEVEL_ERROR, &
                                     LOG_LEVEL_INFO
-  use mpi_mod,                only: create_comm, destroy_comm, global_mpi
+  use mpi_mod,                only: create_comm, destroy_comm, global_mpi, &
+                                    lfric_comm_type
   use tl_test_driver_mod,     only: initialise,                  &
                                     finalise,                    &
                                     run_timesteps,               &
@@ -46,7 +47,7 @@ program runge_kutta
   character(len=0) :: dummy
   character(len=:), allocatable :: program_name, test_flag
 
-  integer :: communicator
+  type(lfric_comm_type) :: communicator
 
   ! Flags which determine the tests that will be carried out
   logical :: do_test_timesteps = .false.
@@ -66,7 +67,8 @@ program runge_kutta
 
   call create_comm( communicator )
   call modeldb%mpi%initialise( communicator )
-  call initialise_logging( communicator, "linear_integration-runge_kutta-test" )
+  call initialise_logging( communicator%get_comm_mpi_val(), &
+                           "linear_integration-runge_kutta-test" )
   call initialise_halo_comms( communicator )
 
   call log_event( 'TL testing running ...', LOG_LEVEL_INFO )

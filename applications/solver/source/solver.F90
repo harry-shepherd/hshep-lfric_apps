@@ -29,7 +29,8 @@ program solver
   use init_solver_miniapp_mod, only: init_solver_miniapp
   use inventory_by_mesh_mod,   only: inventory_by_mesh_type
   use mpi_mod,                 only: global_mpi, &
-                                     create_comm, destroy_comm
+                                     create_comm, destroy_comm, &
+                                     lfric_comm_type
   use field_mod,               only: field_type
   use sci_field_vector_mod,    only: field_vector_type
   use solver_miniapp_alg_mod,  only: solver_miniapp_alg
@@ -61,7 +62,7 @@ program solver
   type(namelist_collection_type), SAVE :: configuration
 
   integer(i_def) :: total_ranks, local_rank
-  integer(i_def) :: comm = -999
+  type(lfric_comm_type) :: comm
 
   ! prognostic fields
   type(field_type),    pointer :: chi(:) => null()

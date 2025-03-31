@@ -19,7 +19,8 @@ module jedi_lfric_comm_mod
   use constants_mod,         only: i_def
   use halo_comms_mod,        only: initialise_halo_comms, &
                                    finalise_halo_comms
-  use mpi_mod,               only: global_mpi
+  use mpi_mod,               only: global_mpi, &
+                                   lfric_comm_type
 
 ! USE_XIOS flag used for models using the XIOS I/O server
 #ifdef USE_XIOS
@@ -51,13 +52,18 @@ contains
 
     ! Local
     logical :: comm_is_split
+#ifdef USE_XIOS
+    type(lfric_comm_type) :: lfric_comm
+#endif
 
     ! Comm has not been split yet
     comm_is_split = .false.
 
 #ifdef USE_XIOS
     ! Initialise XIOS and get back the split communicator
-    call lfric_xios_initialise( program_name, output_comm, comm_is_split )
+    call lfric_xios_initialise( program_name, lfric_comm, comm_is_split )
+    ! Convert the LFRic communicator back to an mpi communicator
+    output_comm = lfric_comm%get_comm_mpi_val()
     comm_is_split = .true.
 #endif
 
@@ -74,12 +80,16 @@ contains
     implicit none
 
     integer(i_def), intent(in) :: model_communicator
+    type(lfric_comm_type) :: lfric_comm
+
+    ! Convert the mpi communicator to an LFRic communicator
+    call lfric_comm%set_comm_mpi_val(model_communicator)
 
     ! Store the MPI communicator for later use
-    call global_mpi%initialise( model_communicator )
+    call global_mpi%initialise( lfric_comm )
 
     ! Initialise halo functionality
-    call initialise_halo_comms( model_communicator )
+    call initialise_halo_comms( lfric_comm )
 
   end subroutine init_internal_comm
 

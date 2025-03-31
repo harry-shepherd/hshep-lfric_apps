@@ -35,7 +35,8 @@ module jedi_geometry_mod
   use mesh_mod,                      only : mesh_type
   use mesh_collection_mod,           only : mesh_collection
   use model_clock_mod,               only : model_clock_type
-  use mpi_mod,                       only : mpi_type
+  use mpi_mod,                       only : mpi_type, &
+                                            lfric_comm_type
   use namelist_collection_mod,       only : namelist_collection_type
   use namelist_mod,                  only : namelist_type
 
@@ -226,8 +227,10 @@ implicit none
 
   class( jedi_geometry_type ), intent(in) :: self
   type( mpi_type )                        :: mpi_obj
+  type(lfric_comm_type)                   :: lfric_comm
 
-  call mpi_obj%initialise( self%mpi_comm )
+  call lfric_comm%set_comm_mpi_val( self%mpi_comm )
+  call mpi_obj%initialise( lfric_comm )
 
 end function get_mpi_comm
 

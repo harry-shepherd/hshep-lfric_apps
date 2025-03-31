@@ -38,13 +38,14 @@ program jedi_lfric_time_test
                                               LOG_LEVEL_ERROR,    &
                                               LOG_LEVEL_INFO
   use mpi_mod,                         only : global_mpi, &
-                                              create_comm, destroy_comm
+                                              create_comm, destroy_comm, &
+                                              lfric_comm_type
   use namelist_collection_mod,         only : namelist_collection_type
 
   implicit none
 
   ! MPI communicator
-  integer(i_def) :: comm
+  type(lfric_comm_type) :: comm
 
   ! Number of processes and local rank
   integer(i_def) :: total_ranks, local_rank
@@ -92,7 +93,7 @@ program jedi_lfric_time_test
   total_ranks = global_mpi%get_comm_size()
   local_rank  = global_mpi%get_comm_rank()
 
-  call initialise_logging( comm, 'jedi-interface_test' )
+  call initialise_logging( comm%get_comm_mpi_val(), 'jedi-interface_test' )
 
   call log_event( 'jedi interface testing running ...', LOG_LEVEL_INFO )
 

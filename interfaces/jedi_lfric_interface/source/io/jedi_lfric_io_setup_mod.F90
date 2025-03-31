@@ -21,7 +21,8 @@ module jedi_lfric_io_setup_mod
   use mesh_mod,                  only: mesh_type
   use mesh_collection_mod,       only: mesh_collection
   use model_clock_mod,           only: model_clock_type
-  use mpi_mod,                   only: mpi_type
+  use mpi_mod,                   only: mpi_type, &
+                                       lfric_comm_type
   use namelist_collection_mod,   only: namelist_collection_type
   use namelist_mod,              only: namelist_type
 
@@ -70,7 +71,7 @@ contains
     type(mesh_type), pointer     :: mesh
     type(field_type), pointer    :: chi(:)
     type(field_type), pointer    :: panel_id
-
+    type(lfric_comm_type)        :: lfric_comm
 
     nullify(mesh, chi, panel_id)
 
@@ -83,8 +84,9 @@ contains
     call panel_id_inventory%get_field( mesh, panel_id )
 
     ! Initialise I/O context and setup file to use
-    call init_io( context_name, mpi%get_comm(), file_meta, calendar, &
-                  io_context, chi, panel_id, model_clock )
+    lfric_comm = mpi%get_comm()
+    call init_io( context_name, lfric_comm%get_comm_mpi_val(), file_meta, &
+                  calendar, io_context, chi, panel_id, model_clock )
 
     ! Do initial step
     if ( model_clock%is_initialisation() ) then
@@ -143,6 +145,7 @@ contains
     type(linked_list_type), pointer :: file_list
     class(event_actor_type), pointer :: event_actor_ptr
     procedure(event_action), pointer :: context_advance
+    type(lfric_comm_type)            :: lfric_comm
 
     ! Allocate XIOS IO context types
     if (present(before_close)) then
@@ -167,7 +170,8 @@ contains
 
       ! Setup the context
       call io_context%initialise( context_name )
-      call io_context%initialise_xios_context( communicator,          &
+      call lfric_comm%set_comm_mpi_val(communicator)
+      call io_context%initialise_xios_context( lfric_comm,            &
                                                chi, panel_id,         &
                                                model_clock, calendar, &
                                                before_close_ptr )

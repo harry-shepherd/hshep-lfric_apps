@@ -20,7 +20,8 @@ program semi_implicit
                                      LOG_LEVEL_ERROR, &
                                      LOG_LEVEL_INFO
   use mpi_mod,                 only: mpi_type, global_mpi, &
-                                     create_comm, destroy_comm
+                                     create_comm, destroy_comm, &
+                                     lfric_comm_type
   use namelist_collection_mod, only: namelist_collection_type
   use tl_test_driver_mod,      only: initialise,                  &
                                      finalise,                    &
@@ -45,7 +46,7 @@ program semi_implicit
   character(len=0) :: dummy
   character(len=:), allocatable :: program_name, test_flag
 
-  integer        :: communicator
+  type(lfric_comm_type) :: communicator
 
   ! Flags which determine the tests that will be carried out
   logical :: do_test_timesteps = .false.
@@ -62,7 +63,8 @@ program semi_implicit
 
   call create_comm( communicator )
   call modeldb%mpi%initialise( communicator )
-  call initialise_logging( communicator, "linear_interface-semi_implicit-test" )
+  call initialise_logging( communicator%get_comm_mpi_val(), &
+                           "linear_interface-semi_implicit-test" )
   call initialise_halo_comms( communicator )
 
   call log_event( 'TL testing running ...', LOG_LEVEL_INFO )

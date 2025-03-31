@@ -45,7 +45,8 @@ use namelist_mod,               only: namelist_type
 use step_calendar_mod,          only: step_calendar_type
 
 ! Interface to mpi
-use mpi_mod,                    only: global_mpi, create_comm, destroy_comm
+use mpi_mod,                    only: global_mpi, create_comm, destroy_comm, &
+                                      lfric_comm_type
 
 ! Configuration modules
 use base_mesh_config_mod,       only: geometry_spherical, &
@@ -72,7 +73,7 @@ character(len=fnamelen) :: program_name
 integer(kind=i_def), public :: total_ranks
 integer(kind=i_def), public :: local_rank
 
-integer(kind=i_def), public :: comm = -999
+type(lfric_comm_type), public :: comm
 
 type(mesh_type), public, pointer :: mesh      => null()
 type(mesh_type), public, pointer :: twod_mesh => null()
