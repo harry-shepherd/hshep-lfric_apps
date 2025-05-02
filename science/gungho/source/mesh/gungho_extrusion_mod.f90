@@ -20,8 +20,7 @@
 
 module gungho_extrusion_mod
 
-  use base_mesh_config_mod, only : geometry,          &
-                                   key_from_geometry, &
+  use base_mesh_config_mod, only : key_from_geometry, &
                                    geometry_planar,   &
                                    geometry_spherical
   use constants_mod,        only : r_def, i_def
@@ -32,8 +31,7 @@ module gungho_extrusion_mod
                                    geometric_extrusion_type,   &
                                    shifted_extrusion_type,     &
                                    double_level_extrusion_type
-  use extrusion_config_mod, only : method,                     &
-                                   key_from_method,            &
+  use extrusion_config_mod, only : key_from_method,            &
                                    method_uniform,             &
                                    method_quadratic,           &
                                    method_geometric,           &
@@ -41,13 +39,10 @@ module gungho_extrusion_mod
                                    method_um_L38_29t_9s_40km,  &
                                    method_um_L85_50t_35s_85km, &
                                    method_um_L70_61t_9s_40km,  &
-                                   method_um_L70_50t_20s_80km, &
-                                   domain_height,                 &
-                                   number_of_layers
+                                   method_um_L70_50t_20s_80km
   use log_mod,              only : log_event,       &
                                    log_level_error, &
                                    log_scratch_space
-  use planet_config_mod,    only : scaled_radius
 
   implicit none
 
@@ -473,16 +468,31 @@ contains
 
   !> @brief Creates vertical mesh extrusion
   !> @details Creates vertical mesh with nlayers.
-  !> @return new     Extrusion class
-  function create_extrusion() result(new)
+  !> @param  method            Extrusion method to apply
+  !> @param  geometry          Enumeration integer for 2D mesh geometrical shape
+  !> @param  number_of_layers  Layers in extrusion
+  !> @param  domain_height     Height above surface level (m)
+  !> @param  scaled_radius     Radius of surface level, spherical geometries only
+  !> @return extrusion         Extrusion class
+  function create_extrusion( method,           &
+                             geometry,         &
+                             number_of_layers, &
+                             domain_height,    &
+                             scaled_radius ) result(extrusion)
 
     implicit none
 
-    class(extrusion_type), allocatable :: new
+    integer,        intent(in) :: method
+    integer,        intent(in) :: geometry
+    integer(i_def), intent(in) :: number_of_layers
+    real(r_def),    intent(in) :: domain_height
+    real(r_def),    intent(in) :: scaled_radius
+
+    class(extrusion_type), allocatable :: extrusion
 
     real(r_def) :: atmosphere_bottom
 
-    if (allocated(new)) deallocate(new)
+    if (allocated(extrusion)) deallocate(extrusion)
 
     select case (geometry)
       case (geometry_planar)
@@ -498,50 +508,48 @@ contains
 
     select case (method)
       case (method_uniform)
-        allocate( new, source=uniform_extrusion_type( atmosphere_bottom, &
-                                                      domain_height,        &
-                                                      number_of_layers,  &
-                                                      PRIME_EXTRUSION ) )
-      case (method_um_L38_29t_9s_40km)
-        allocate( new, source=um_L38_29t_9s_40km_extrusion_type( atmosphere_bottom, &
-                                                                 domain_height,        &
-                                                                 number_of_layers,  &
-                                                                 PRIME_EXTRUSION ) )
-      case (method_um_L85_50t_35s_85km)
-        allocate( new, source=um_L85_50t_35s_85km_extrusion_type( atmosphere_bottom, &
-                                                                 domain_height,         &
-                                                                 number_of_layers,   &
-                                                                 PRIME_EXTRUSION ) )
-      case (method_um_L70_50t_20s_80km)
-        allocate( new, source=um_L70_50t_20s_80km_extrusion_type( atmosphere_bottom, &
-                                                                 domain_height,         &
-                                                                 number_of_layers,   &
-                                                                 PRIME_EXTRUSION ) )
-      case (method_um_L70_61t_9s_40km)
-       allocate( new, source=um_L70_61t_9s_40km_extrusion_type( atmosphere_bottom,   &
-                                                                 domain_height,         &
-                                                                 number_of_layers,   &
-                                                                 PRIME_EXTRUSION ) )
+        allocate( extrusion, source=uniform_extrusion_type(              &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
+
+      case (method_um_l38_29t_9s_40km)
+        allocate( extrusion, source=um_l38_29t_9s_40km_extrusion_type(   &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
+
+      case (method_um_l85_50t_35s_85km)
+        allocate( extrusion, source=um_l85_50t_35s_85km_extrusion_type(  &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
+
+      case (method_um_l70_50t_20s_80km)
+        allocate( extrusion, source=um_l70_50t_20s_80km_extrusion_type(  &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
+
+      case (method_um_l70_61t_9s_40km)
+       allocate( extrusion, source=um_l70_61t_9s_40km_extrusion_type(    &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
       case (method_quadratic)
-        allocate( new, source=quadratic_extrusion_type( atmosphere_bottom, &
-                                                        domain_height,        &
-                                                        number_of_layers,  &
-                                                        PRIME_EXTRUSION ) )
+        allocate( extrusion, source=quadratic_extrusion_type(            &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
       case (method_geometric)
-        allocate( new, source=geometric_extrusion_type( atmosphere_bottom, &
-                                                        domain_height,        &
-                                                        number_of_layers,  &
-                                                        PRIME_EXTRUSION ) )
+        allocate( extrusion, source=geometric_extrusion_type(            &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
       case (method_dcmip)
-        allocate( new, source=dcmip_extrusion_type( atmosphere_bottom, &
-                                                    domain_height,        &
-                                                    number_of_layers,  &
-                                                    PRIME_EXTRUSION ) )
+        allocate( extrusion, source=dcmip_extrusion_type(                &
+                                       atmosphere_bottom, domain_height, &
+                                       number_of_layers, prime_extrusion ) )
+
       case default
-        write( log_scratch_space,                         &
-               '(A, ": Unrecognised extrusion method: ", A)' ) &
-             module_name, key_from_method( method )
+        write( log_scratch_space, '(A)' )                              &
+            trim(module_name) // ': Unrecognised extrusion method: ' //&
+            trim(key_from_method( method ))
         call log_event( log_scratch_space, log_level_error )
+
     end select
 
   end function create_extrusion

@@ -170,7 +170,7 @@ program solver
     call log_event("Invalid geometry for mesh initialisation", LOG_LEVEL_ERROR)
   end select
   allocate( extrusion, source=create_extrusion( method,           &
-                                                domain_height,       &
+                                                domain_height,    &
                                                 domain_bottom,    &
                                                 number_of_layers, &
                                                 PRIME_EXTRUSION ) )

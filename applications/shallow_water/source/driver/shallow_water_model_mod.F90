@@ -163,7 +163,7 @@ module shallow_water_model_mod
     end select
 
     allocate( extrusion, source=create_extrusion( method,           &
-                                                  domain_height,       &
+                                                  domain_height,    &
                                                   domain_bottom,    &
                                                   number_of_layers, &
                                                   PRIME_EXTRUSION ) )

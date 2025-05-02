@@ -242,13 +242,15 @@ contains
     case (geometry_spherical)
       domain_bottom = scaled_radius
     case default
-      call log_event("Invalid geometry for mesh initialisation", LOG_LEVEL_ERROR)
+      call log_event( "Invalid geometry for mesh initialisation", &
+                      log_level_error )
     end select
+
     allocate( extrusion, source=create_extrusion( method,           &
-                                                  domain_height,       &
+                                                  domain_height,    &
                                                   domain_bottom,    &
                                                   number_of_layers, &
-                                                  PRIME_EXTRUSION ) )
+                                                  prime_extrusion ) )
 
     allocate( twod_names, source=base_mesh_names )
     do i=1, size(twod_names)

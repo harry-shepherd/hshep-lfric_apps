@@ -118,8 +118,9 @@ procedure(event_action), pointer :: context_advance
 
 type(namelist_collection_type), save :: configuration
 
-type(namelist_type), pointer :: base_mesh_nml => null()
-type(namelist_type), pointer :: planet_nml    => null()
+type(namelist_type), pointer :: base_mesh_nml
+type(namelist_type), pointer :: planet_nml
+type(namelist_type), pointer :: extrusion_nml
 
 class(extrusion_type),        allocatable :: extrusion
 type(uniform_extrusion_type), allocatable :: extrusion_2d
@@ -136,6 +137,9 @@ integer(i_def) :: geometry
 real(r_def)    :: domain_bottom
 real(r_def)    :: scaled_radius
 logical(l_def) :: check_partitions
+integer        :: extrusion_method
+integer(i_def) :: number_of_layers
+real(r_def)    :: domain_height
 
 !=====================================================================
 
@@ -182,11 +186,14 @@ call log_event('Initialising mesh', LOG_LEVEL_INFO)
 ! -------------------------------
 base_mesh_nml => configuration%get_namelist('base_mesh')
 planet_nml    => configuration%get_namelist('planet')
+extrusion_nml => configuration%get_namelist('extrusion')
+
 call base_mesh_nml%get_value( 'prime_mesh_name', prime_mesh_name )
 call base_mesh_nml%get_value( 'geometry', geometry )
 call planet_nml%get_value( 'scaled_radius', scaled_radius )
-base_mesh_nml => null()
-planet_nml    => null()
+call extrusion_nml%get_value( 'method', extrusion_method )
+call extrusion_nml%get_value( 'number_of_layers', number_of_layers )
+call extrusion_nml%get_value( 'domain_height', domain_height )
 
 !-------------------------------------------------------------------------
 ! 1.0 Create the meshes
@@ -207,7 +214,12 @@ case default
                   LOG_LEVEL_ERROR )
 end select
 
-allocate( extrusion, source=create_extrusion() )
+allocate( extrusion, source=create_extrusion( extrusion_method, &
+                                              geometry,         &
+                                              number_of_layers, &
+                                              domain_height,    &
+                                              scaled_radius ) )
+
 extrusion_2d = uniform_extrusion_type( domain_bottom, &
                                        domain_bottom, &
                                        one_layer, TWOD )

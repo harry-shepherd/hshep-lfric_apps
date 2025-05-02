@@ -61,7 +61,9 @@ contains
     character(str_def)              :: prime_mesh_name
     integer(i_def),       parameter :: one_layer = 1_i_def
     integer(i_def)                  :: geometry
+    integer(i_def)                  :: extrusion_method
     integer(i_def)                  :: stencil_depth
+    integer(i_def)                  :: number_of_layers
     integer(i_def)                  :: i
     real(r_def)                     :: domain_bottom
     real(r_def)                     :: domain_height
@@ -79,6 +81,8 @@ contains
     call base_mesh_nml%get_value( 'prime_mesh_name', prime_mesh_name )
     call base_mesh_nml%get_value( 'geometry', geometry )
     call extrusion_nml%get_value( 'domain_height', domain_height )
+    call extrusion_nml%get_value( 'method', extrusion_method )
+    call extrusion_nml%get_value( 'number_of_layers', number_of_layers )
     call planet_nml%get_value( 'scaled_radius', scaled_radius )
 
     !--------------------------------------
@@ -105,8 +109,13 @@ contains
       call log_event("Invalid geometry for mesh initialisation", LOG_LEVEL_ERROR)
     end select
 
-    allocate( extrusion, source=create_extrusion() )
-    extrusion_2d = uniform_extrusion_type( domain_height,    &
+    allocate( extrusion, source=create_extrusion( extrusion_method, &
+                                                  geometry,         &
+                                                  number_of_layers, &
+                                                  domain_height,    &
+                                                  scaled_radius ) )
+
+    extrusion_2d = uniform_extrusion_type( domain_height, &
                                            domain_bottom, &
                                            one_layer, TWOD )
 

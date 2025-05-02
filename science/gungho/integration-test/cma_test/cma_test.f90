@@ -125,13 +125,19 @@ program cma_test
 
   ! Namelist and configuration variables
   type(namelist_collection_type), save :: configuration
-  type(namelist_type), pointer         :: nml_obj => null()
+
+  type(namelist_type), pointer :: extrusion_nml
+  type(namelist_type), pointer :: base_mesh_nml
+  type(namelist_type), pointer :: planet_nml
 
   integer(i_def)     :: stencil_depth
   character(str_def) :: file_prefix
   character(str_def) :: prime_mesh_name
   real(r_def)        :: radius
-  integer(i_def)     :: geometry
+  real(r_def)        :: scaled_radius
+  integer            :: geometry
+  integer            :: extrusion_method
+  integer(i_def)     :: number_of_layers
   logical(l_def)     :: prepartitioned
   logical            :: check_partitions = .false.
 
@@ -256,19 +262,19 @@ program cma_test
 
   call init_collections()
 
-  if (configuration%namelist_exists('extrusion')) then
-    nml_obj => configuration%get_namelist('extrusion')
-    call nml_obj%get_value( 'planet_radius', radius )
-  end if
+  extrusion_nml => configuration%get_namelist('extrusion')
+  base_mesh_nml => configuration%get_namelist('base_mesh')
+  planet_nml    => configuration%get_namelist('planet')
 
-  if (configuration%namelist_exists('base_mesh')) then
-    nml_obj => configuration%get_namelist('base_mesh')
-    call nml_obj%get_value( 'file_prefix', file_prefix )
-    call nml_obj%get_value( 'prepartitioned', prepartitioned )
-    call nml_obj%get_value( 'geometry', geometry )
-    call nml_obj%get_value( 'prime_mesh_name', prime_mesh_name )
-  end if
-
+  call extrusion_nml%get_value( 'method', extrusion_method )
+  call extrusion_nml%get_value( 'planet_radius', radius )
+  call extrusion_nml%get_value( 'number_of_layers', number_of_layers )
+  call extrusion_nml%get_value( 'domain_height', domain_height )
+  call base_mesh_nml%get_value( 'file_prefix', file_prefix )
+  call base_mesh_nml%get_value( 'prepartitioned', prepartitioned )
+  call base_mesh_nml%get_value( 'geometry', geometry )
+  call base_mesh_nml%get_value( 'prime_mesh_name', prime_mesh_name )
+  call planet_nml%get_value( 'scaled_radius', scaled_radius )
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Initialise
@@ -276,7 +282,12 @@ program cma_test
   call log_event( 'Initialising harness', LOG_LEVEL_INFO )
 
   base_mesh_names(1) = prime_mesh_name
-  allocate( extrusion, source=create_extrusion() )
+
+  allocate( extrusion, source=create_extrusion( extrusion_method, &
+                                                geometry,         &
+                                                number_of_layers, &
+                                                domain_height,    &
+                                                scaled_radius ) )
 
   stencil_depth = get_required_stencil_depth()
   check_partitions = .false.

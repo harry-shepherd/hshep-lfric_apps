@@ -394,10 +394,12 @@ contains
     logical(l_def) :: apply_partition_check
 
     integer(i_def) :: geometry
+    integer(i_def) :: extrusion_method
     integer(i_def) :: stencil_depth
     real(r_def)    :: domain_bottom
     real(r_def)    :: domain_height
     real(r_def)    :: scaled_radius
+    integer(i_def) :: number_of_layers
 
     type(namelist_type), pointer :: base_mesh_nml
     type(namelist_type), pointer :: formulation_nml
@@ -453,6 +455,8 @@ contains
     call base_mesh_nml%get_value( 'geometry', geometry )
     call base_mesh_nml%get_value( 'prepartitioned', prepartitioned )
     call extrusion_nml%get_value( 'domain_height', domain_height )
+    call extrusion_nml%get_value( 'method', extrusion_method )
+    call extrusion_nml%get_value( 'number_of_layers', number_of_layers )
     call planet_nml%get_value( 'scaled_radius', scaled_radius )
 
     !-------------------------------------------------------------------------
@@ -583,7 +587,11 @@ contains
       call log_event("Invalid geometry for mesh initialisation", LOG_LEVEL_ERROR)
     end select
 
-    allocate( extrusion, source=create_extrusion() )
+    allocate( extrusion, source=create_extrusion( extrusion_method, &
+                                                  geometry,         &
+                                                  number_of_layers, &
+                                                  domain_height,    &
+                                                  scaled_radius ) )
 
     extrusion_2d = uniform_extrusion_type( domain_bottom, &
                                            domain_bottom, &

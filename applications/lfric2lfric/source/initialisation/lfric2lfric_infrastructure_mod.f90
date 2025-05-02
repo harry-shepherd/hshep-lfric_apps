@@ -51,7 +51,8 @@ module lfric2lfric_infrastructure_mod
   use lfric2lfric_config_mod,     only : regrid_method_map,         &
                                          source_geometry_spherical, &
                                          source_geometry_planar
-
+  use base_mesh_config_mod,       only : geometry_planar, &
+                                         geometry_spherical
 
   implicit none
 
@@ -107,6 +108,7 @@ contains
 
     ! Pointers for namelists
     type(namelist_type), pointer :: planet_nml
+    type(namelist_type), pointer :: extrusion_nml
     type(namelist_type), pointer :: lfric2lfric_nml
     type(namelist_type), pointer :: files_nml
 
@@ -124,6 +126,12 @@ contains
     integer(i_def)          :: regrid_method
     real(kind=r_def)        :: domain_bottom
     real(kind=r_def)        :: scaled_radius
+
+    integer :: geometry
+    integer :: extrusion_method
+
+    integer(i_def) :: number_of_layers
+    real(r_def)    :: domain_height
 
     integer(kind=i_def)            :: i
     integer(kind=i_def), parameter :: one_layer = 1_i_def
@@ -149,10 +157,14 @@ contains
     ! 0.0 Extract namelist variables
     ! -------------------------------
     planet_nml      => modeldb%configuration%get_namelist('planet')
+    extrusion_nml   => modeldb%configuration%get_namelist('extrusion')
     lfric2lfric_nml => modeldb%configuration%get_namelist('lfric2lfric')
     files_nml       => modeldb%configuration%get_namelist('files')
 
     call planet_nml%get_value( 'scaled_radius', scaled_radius )
+    call extrusion_nml%get_value( 'method', extrusion_method )
+    call extrusion_nml%get_value( 'number_of_layers', number_of_layers )
+    call extrusion_nml%get_value( 'domain_height', domain_height )
 
     ! Check lfric2lfric configuration settings are allowed
     call lfric2lfric_check_configuration( lfric2lfric_nml )
@@ -176,14 +188,22 @@ contains
     select case (source_geometry)
       case (source_geometry_planar)
         domain_bottom = 0.0_r_def
+        geometry      = geometry_planar
+
       case (source_geometry_spherical)
         domain_bottom = scaled_radius
+        geometry      = geometry_spherical
+
       case default
         call log_event("Invalid geometry for mesh initialisation", &
                        log_level_error)
     end select
 
-    allocate( extrusion, source=create_extrusion() )
+    allocate( extrusion, source=create_extrusion( extrusion_method, &
+                                                  geometry,         &
+                                                  number_of_layers, &
+                                                  domain_height,    &
+                                                  scaled_radius ) )
 
     extrusion_2d = uniform_extrusion_type( domain_bottom, &
                                            domain_bottom, &
@@ -231,10 +251,10 @@ contains
 
     ! Log this change
     call log_event('Source mesh set to: '           &
-                   //mesh_src%get_mesh_name(),          &
+                   //mesh_src%get_mesh_name(),      &
                    log_level_debug)
     call log_event('Source 2D mesh set to: '        &
-                   //twod_mesh_src%get_mesh_name(),     &
+                   //twod_mesh_src%get_mesh_name(), &
                    log_level_debug)
     call log_event('Destination mesh set to: '      &
                    //mesh_dst%get_mesh_name(),      &
