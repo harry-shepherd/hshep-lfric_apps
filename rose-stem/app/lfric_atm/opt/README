@@ -83,6 +83,7 @@ Configuration specific settings
 - lowres_stp - override maximum wavenumber for low resolution (e.g. C12) runs
                with stochastic physics
 - ls_and_jedi - diagnostics and date for JEDI testing
+- ral_ls_and_jedi - diagnostics for regional (seuk) JEDI testing
 - ncas-data - override data paths on Archer
 - no_diags - turn off diagnostic output
 - test_diags - simple diagnostics for testing

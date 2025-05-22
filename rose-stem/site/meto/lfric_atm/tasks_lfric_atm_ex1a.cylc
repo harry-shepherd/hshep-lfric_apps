@@ -117,7 +117,14 @@
         "memory": [24, "GB"],
     }) %}
 
+{% elif task_ns.conf_name == "ral3-seuk_ls_and_jedi" %}
+
+    {% do task_dict.update({
+        "memory": [24, "GB"]
+    }) %}
+
 {% endif %}
+
 
 {% if "perftools" in task_ns.compiler %}
     {% do task_dict.update({

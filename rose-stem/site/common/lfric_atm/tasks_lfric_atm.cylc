@@ -436,6 +436,18 @@
         "plot_str": "plot_map.py -ral $NODAL_DATA_DIR/lfric_ral_diagnostics.nc  $PLOT_DIR",
     }) %}
 
+{% elif task_ns.conf_name == "ral3-seuk_ls_and_jedi" %}
+
+    {% do task_dict.update({
+        "opt_confs": ["l70_40km","ral3","hh_solve","ral_ls_and_jedi"],
+        "resolution": "seuk_MG",
+        "DT": 60,
+        "tsteps": 120,
+        "crun": 1,
+        "crun_compare": false,
+        "mpi_parts": 16,
+    }) %}
+
 {% elif task_ns.conf_name == "ral3-uk_MG" %}
 
     {% do task_dict.update({
