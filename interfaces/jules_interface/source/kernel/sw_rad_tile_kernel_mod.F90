@@ -202,7 +202,7 @@ subroutine sw_rad_tile_code(nlayers, seg_len,                       &
   use jules_sea_seaice_mod,      only: nice, nice_use
   use ancil_info,                only: rad_nband, dim_cslayer, nsoilt, nmasst
   use jules_vegetation_mod,      only: l_triffid, l_phenol, l_use_pft_psi,     &
-                                       can_rad_mod, l_acclim, l_sugar
+                                       can_rad_mod, l_acclim, l_sugar, l_red
   use jules_soil_mod,            only: ns_deep, l_bedrock
   use jules_soil_biogeochem_mod, only: dim_ch4layer, soil_bgc_model,           &
                                        soil_model_ecosse, l_layeredc
@@ -211,7 +211,6 @@ subroutine sw_rad_tile_code(nlayers, seg_len,                       &
   use jules_deposition_mod,      only: l_deposition
   use jules_surface_mod,         only: l_urban2t, l_flake_model
   use jules_urban_mod,           only: l_moruses
-  use veg3_parm_mod,             only: l_veg3
 
   !-----------------------------------------------------------------------------
   ! JULES modules
@@ -369,7 +368,7 @@ subroutine sw_rad_tile_code(nlayers, seg_len,                       &
                       n_land_tile, npft, nsoilt, sm_levels, ns_deep, nsmax,   &
                       dim_cslayer, dim_cs1, dim_ch4layer,                     &
                       nice, nice_use, soil_bgc_model, soil_model_ecosse,      &
-                      l_layeredc, l_triffid, l_phenol, l_bedrock, l_veg3,     &
+                      l_layeredc, l_triffid, l_phenol, l_bedrock, l_red,      &
                       nmasst, nnpft, l_acclim, l_sugar, progs_data)
   call prognostics_assoc(progs,progs_data)
 

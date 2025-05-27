@@ -284,7 +284,7 @@ contains
     use jules_urban_mod,          only: l_moruses
     use jules_vegetation_mod,     only: l_crop, l_triffid,                     &
                                         l_phenol, l_use_pft_psi, can_rad_mod,  &
-                                        l_acclim, l_sugar
+                                        l_acclim, l_sugar, l_red
     use theta_field_sizes,        only: t_i_length, t_j_length, u_i_length,    &
                                         u_j_length, v_i_length, v_j_length
     use jules_surface_types_mod,  only: ncpft, nnpft
@@ -297,7 +297,6 @@ contains
                                         l_water_livestock, l_water_resources,  &
                                         l_water_transfers, nwater_use
     use jules_water_tracers_mod,  only: l_wtrac_jls, n_wtrac_jls, n_evap_srce
-    use veg3_parm_mod,            only: l_veg3
 
     use crop_vars_mod,            only: crop_vars_type, crop_vars_data_type,   &
                                         crop_vars_alloc, crop_vars_assoc, &
@@ -595,7 +594,7 @@ contains
                       nsurft, npft, nsoilt, sm_levels, ns_deep, nsmax,        &
                       dim_cslayer, dim_cs1, dim_ch4layer,                     &
                       nice, nice_use, soil_bgc_model, soil_model_ecosse,      &
-                      l_layeredc, l_triffid, l_phenol, l_bedrock, l_veg3,     &
+                      l_layeredc, l_triffid, l_phenol, l_bedrock, l_red,      &
                       nmasst, nnpft, l_acclim, l_sugar, progs_data)
     call prognostics_assoc(progs,progs_data)
 

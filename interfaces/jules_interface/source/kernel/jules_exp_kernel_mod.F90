@@ -473,7 +473,7 @@ contains
     use jules_surface_types_mod, only: npft, ntype, ncpft, nnpft, soil
     use jules_urban_mod, only: l_moruses
     use jules_vegetation_mod, only: l_crop, l_triffid, l_phenol, l_use_pft_psi,&
-                                    can_rad_mod, l_acclim, l_sugar
+                                    can_rad_mod, l_acclim, l_sugar, l_red
     use jules_water_tracers_mod, only: l_wtrac_jls, n_wtrac_jls, n_evap_srce
     use nlsizes_namelist_mod, only: sm_levels, ntiles, bl_levels
     use planet_constants_mod, only: p_zero, kappa, planet_radius, cp, g, grcp, &
@@ -483,7 +483,6 @@ contains
                              specified_fluxes_only, specified_fluxes_cd, &
                              l_noice_in_turb
     use water_constants_mod, only: lc
-    use veg3_parm_mod, only: l_veg3
     use c_elevate, only: l_elev_absolute_height
 
     ! subroutines used
@@ -857,7 +856,7 @@ contains
                            sm_levels, ns_deep, nsmax, dim_cslayer, dim_cs1,    &
                            dim_ch4layer, nice_use, nice_use, soil_bgc_model,   &
                            soil_model_ecosse, l_layeredc, l_triffid, l_phenol, &
-                           l_bedrock, l_veg3, nmasst, nnpft, l_acclim,         &
+                           l_bedrock, l_red, nmasst, nnpft, l_acclim,          &
                            l_sugar, progs_data)
     call prognostics_assoc(progs,progs_data)
 

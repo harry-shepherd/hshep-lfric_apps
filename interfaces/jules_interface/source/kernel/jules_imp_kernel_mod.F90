@@ -364,7 +364,7 @@ contains
                                        soil
     use jules_surface_mod, only: l_flake_model
     use jules_vegetation_mod, only: can_model, l_crop, l_triffid, l_phenol,    &
-                                    can_rad_mod, l_acclim, l_sugar
+                                    can_rad_mod, l_acclim, l_sugar, l_red
     use jules_radiation_mod, only: l_albedo_obs
     use jules_soil_mod, only: ns_deep, l_bedrock
     use jules_soil_biogeochem_mod, only: dim_ch4layer, soil_bgc_model,         &
@@ -376,7 +376,6 @@ contains
     use theta_field_sizes, only: t_i_length, t_j_length, &
                                  u_i_length,u_j_length,  &
                                  v_i_length,v_j_length
-    use veg3_parm_mod, only: l_veg3
 
     ! subroutines used
     use sf_diags_mod, only: dealloc_sf_imp, alloc_sf_imp, strnewsfdiag
@@ -654,7 +653,7 @@ contains
                       nsurft, npft, nsoilt, sm_levels, ns_deep, nsmax,        &
                       dim_cslayer, dim_cs1, dim_ch4layer,                     &
                       nice, nice_use, soil_bgc_model, soil_model_ecosse,      &
-                      l_layeredc, l_triffid, l_phenol, l_bedrock, l_veg3,     &
+                      l_layeredc, l_triffid, l_phenol, l_bedrock, l_red,      &
                       nmasst, nnpft, l_acclim, l_sugar, progs_data)
     call prognostics_assoc(progs,progs_data)
 
