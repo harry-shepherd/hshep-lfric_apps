@@ -60,8 +60,8 @@
     "lfric_atm_azspice_developer": [
         "lfric_atm_nwp_azspice_developer",
         "lfric_atm_clim_gal9_nomg-C12_azspice_gnu_fast-debug-64bit",
-        "lfric_atm_rce_test-BiP64x64-1500x1500_MG_azspice_gnu_fast-debug-64bit",
         "lfric_atm_ral_azspice_developer",
+        "lfric_atm_rce_test-BiP64x64-1500x1500_MG_azspice_gnu_fast-debug-64bit",
         "lfric_atm_scm_azspice_developer",
     ],
     "lfric_atm_azspice_extra": [
@@ -112,8 +112,8 @@
         "lfric_atm_nwp_gal9_nomg-C12_ex1a_cce_fast-debug-64bit-rbl32-rdef32-rtran32",
         "lfric_atm_nwp_gal9-C48_MG_ex1a_cce_fast-debug-64bit",
         "lfric_atm_nwp_gal9_coarse_aero-C48_MG_ex1a_cce_fast-debug-64bit",
-        "lfric_atm_nwp_gal9_ls_and_jedi-C12_ex1a_cce_fast-debug-64bit",
         "lfric_atm_nwp_gal9_da-C12_ex1a_cce_fast-debug-64bit",
+        "lfric_atm_nwp_gal9_ls_and_jedi-C12_ex1a_cce_fast-debug-64bit",
         "lfric_atm_nwp_gal9_debug-C48_MG_ex1a_gnu_full-debug-64bit",
         "lfric_atm_nwp_casim-C12_ex1a_cce_fast-debug-64bit",
         "lfric_atm_nwp_coma9-C12_ex1a_cce_fast-debug-64bit",
@@ -136,6 +136,7 @@
     ],
     "lfric_atm_ral_ex1a": [
         "lfric_atm_ral_ex1a_developer",
+        "lfric_atm_ral_ex1a_weekly",
     ],
     "lfric_atm_scm_ex1a_developer": [
         "lfric_atm_scm_gal9_bomex-BiP2x2-50000x50000_ex1a_cce_fast-debug-64bit",
