@@ -446,6 +446,7 @@ module um_ukca_init_mod
                                          'conv_cloud_amount'
   character(len=*), parameter, public :: fldname_grid_volume = 'grid_volume'
   character(len=*), parameter, public :: fldname_grid_airmass = 'grid_airmass'
+  character(len=*), parameter, public :: fldname_rel_humid = 'rel_humid_frac'
   ! Offline chemical fields
   character(len=*), parameter, public :: fldname_o3_offline = 'O3'
   character(len=*), parameter, public :: fldname_no3_offline = 'NO3'
@@ -459,8 +460,11 @@ module um_ukca_init_mod
   character(len=*), parameter, public :: fldname_accretion = 'accretion'
   character(len=*), parameter, public :: fldname_rim_cry = 'rim_cry'
   character(len=*), parameter, public :: fldname_rim_agg = 'rim_agg'
+  character(len=*), parameter, public :: fldname_rel_humid_clear_sky =         &
+                                         'rel_humid_frac_clr'
   ! Activate-specific drivers
   character(len=*), parameter, public :: fldname_vertvel = 'vertvel'
+  character(len=*), parameter, public :: fldname_svp = 'qsvp'
 
   ! - Drivers in full-height plus level 0 grid group -
 
@@ -874,6 +878,7 @@ contains
            ! UKCA environmental driver configuration options
            l_param_conv=l_param_conv,                                          &
            l_ctile=.true.,                                                     &
+           l_environ_rel_humid=.true.,                                         &
            ! General GLOMAP configuration options
            i_mode_nzts=15,                                                     &
            i_mode_setup=8,                                                     &
@@ -1550,6 +1555,7 @@ contains
            ! UKCA environmental driver configuration options
            !
            l_param_conv=l_param_conv,                                          &
+           l_environ_rel_humid=.true.,                                         &
 
            ! General GLOMAP configuration options
            !

@@ -1153,6 +1153,9 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                               fldname_oh_offline,                              &
                               fldname_ho2_offline,                             &
                               fldname_h2o2_limit,                              &
+                              fldname_rel_humid,                               &
+                              fldname_rel_humid_clear_sky,                     &
+                              fldname_svp,                                     &
                               fldname_liq_cloud_frac,                          &
                               fldname_autoconv,                                &
                               fldname_accretion,                               &
@@ -1224,6 +1227,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   use nlsizes_namelist_mod, only: bl_levels
   use planet_constants_mod, only: p_zero, kappa, planet_radius
   use timestep_mod,         only: timestep
+  use atmos_ukca_humidity_mod, only: atmos_ukca_humidity
 
   ! JULES modules
   use jules_surface_types_mod, only: npft, ntype
@@ -1577,6 +1581,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
 
   real(r_um) :: r_theta_levels(seg_len,1,0:nlayers)
   real(r_um) :: r_rho_levels(seg_len,1,nlayers)
+
   ! Environmental driver fields (including emissions)
 
   ! dimensions (seg_len, 1, m_fields)
@@ -1613,6 +1618,10 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   real(r_um), allocatable :: environ_bllev_real(:,:,:,:)
   real(r_um), allocatable :: environ_entlev_real(:,:,:,:)
   real(r_um), allocatable :: emissions_fullht(:,:,:,:)
+  real(r_um), allocatable :: p_theta_lev(:,:,:)
+  real(r_um), allocatable :: rel_humid(:,:,:)
+  real(r_um), allocatable :: rel_humid_clear_sky(:,:,:)
+  real(r_um), allocatable :: svp(:,:,:)
 
   ! Dimensions: n_land_pts, M
 
@@ -1650,6 +1659,15 @@ subroutine aerosol_ukca_code( nlayers,                                         &
   integer(i_um) :: error_code
   integer(i_um) :: nlayers_plus_one
 
+  real(r_um), allocatable :: t_theta_lev(:,:,:)  ! Temperature on theta levels
+
+  ! UM-compatible versions of LFRic fields for use in calculating derived
+  ! humidity-related values required by UKCA
+  real(r_um), allocatable :: m_v_n_um(:,:,:)
+  real(r_um), allocatable :: m_cf_n_um(:,:,:)
+  real(r_um), allocatable :: cf_liq_um(:,:,:)
+  real(r_um), allocatable :: cf_bulk_um(:,:,:)
+
   real(r_um) :: frac_land(seg_len)     ! Land fraction of cell
   real(r_um) :: frac_sea(seg_len)      ! Sea fraction of cell
   real(r_um) :: frac_seaice(seg_len)   ! Sea fraction with respect to sea area
@@ -1657,6 +1675,11 @@ subroutine aerosol_ukca_code( nlayers,                                         &
 
   real(r_um) :: exner_rho_top ! Exner pressure at top rho level
   real(r_um) :: exner_theta_top ! Exner pressure at top theta level
+
+  ! switches to indicate whether derived humidity fields are required by UKCA
+  logical :: l_req_rel_humid 
+  logical :: l_req_rel_humid_clear_sky
+  logical :: l_req_svp
 
   logical :: l_land_any    ! Land/sea indicator (True for land point)
 
@@ -2844,8 +2867,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
 
   ! -- Environmental Drivers --
 
-  ! Set up UM level_height_mod driver fields. These are not yet
-  ! supported as environmental drivers in the UKCA API.
+  ! Set up UM level_height_mod driver fields.
   ! N.B. These are required for interf_z calculation below
 
   ! height of theta levels from centre of planet
@@ -2887,6 +2909,106 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                             grid_volume(i,1,k)
     end do
   end do
+
+  ! Calculate pressure on theta levels
+  allocate( p_theta_lev( seg_len, 1, nlayers ) )
+  do i = 1, seg_len
+    do k = 1, nlayers
+      p_theta_lev( i, 1, k ) = p_zero *                                        &
+        real( exner_in_wth( map_wth(1,i) + k ), r_um )**( 1.0_r_um / kappa )
+    end do
+  end do
+
+  ! Determine whether humidity-related fields are needed
+  l_req_rel_humid = .FALSE.
+  l_req_rel_humid_clear_sky = .FALSE.
+  l_req_svp = .FALSE.
+  do m = 1, size(env_names_fullht_real)
+    select case(env_names_fullht_real(m))
+    case(fldname_rel_humid)
+      l_req_rel_humid = .TRUE.
+    case(fldname_rel_humid_clear_sky)
+      l_req_rel_humid_clear_sky = .TRUE.
+    case(fldname_svp)
+      l_req_svp = .TRUE.
+    end select
+  end do
+
+  ! Calculate relative humidity, clear-sky relative humidity and/or saturation
+  ! vapour pressure as required
+
+  if (l_req_rel_humid .or. l_req_rel_humid_clear_sky .or. l_req_svp) then
+
+    allocate( t_theta_lev(seg_len, 1, nlayers) )
+    do i = 1, seg_len
+      do k = 1, nlayers
+        t_theta_lev( i, 1, k ) =                                               &
+          real( exner_in_wth( map_wth(1,i) + k ), r_um ) *                     &
+          real( theta_wth( map_wth(1,i) + k ), r_um )
+      end do
+    end do
+
+    allocate( m_v_n_um( seg_len, 1, nlayers ) )
+    do i = 1, seg_len
+      do k = 1, nlayers
+        m_v_n_um( i, 1, k ) = real( m_v_n( map_wth(1,i) + k ), r_um )
+      end do
+    end do
+
+    allocate( m_cf_n_um( seg_len, 1, nlayers ) )
+    do i = 1, seg_len
+      do k = 1, nlayers
+        m_cf_n_um( i, 1, k ) = real( m_cf_n( map_wth(1,i) + k ), r_um )
+      end do
+    end do
+
+    if (l_req_rel_humid_clear_sky) then
+
+      allocate( cf_liq_um( seg_len, 1, nlayers ) )
+      do i = 1, seg_len
+        do k = 1, nlayers
+          cf_liq_um( i, 1, k ) = real( cf_liq( map_wth(1,i) + k ), r_um )
+        end do
+      end do
+
+      allocate( cf_bulk_um( seg_len, 1, nlayers ) )
+      do i = 1, seg_len
+        do k = 1, nlayers
+          cf_bulk_um( i, 1, k ) = real( cf_bulk( map_wth(1,i) + k ), r_um )
+        end do
+      end do
+
+    end if 
+
+    if (l_req_rel_humid) then
+      allocate( rel_humid(seg_len, 1, nlayers) )
+      rel_humid = 0.0_r_um
+    end if
+
+    if (l_req_rel_humid_clear_sky) then
+      allocate( rel_humid_clear_sky(seg_len, 1, nlayers) )
+      rel_humid_clear_sky = 0.0_r_um
+    end if
+
+    if (l_req_svp) then
+      allocate( svp(seg_len, 1, nlayers) )
+      svp = 0.0_r_um
+    end if
+
+    call atmos_ukca_humidity(seg_len, 1, nlayers,                              &
+                             l_req_rel_humid, l_req_rel_humid_clear_sky,       &
+                             l_req_svp,                                        &
+                             t_theta_lev, p_theta_lev,                         &
+                             m_v_n_um, m_cf_n_um, cf_liq_um, cf_bulk_um,       &
+                             rel_humid, rel_humid_clear_sky, svp)
+
+    deallocate(t_theta_lev)
+    deallocate(cf_bulk_um)
+    deallocate(cf_liq_um)
+    deallocate(m_cf_n_um)
+    deallocate(m_v_n_um)
+
+  end if
 
   ! Determine no. of land points (0 or 1) and set land/sea indicator
   frac_land(:) = 0.0_r_um
@@ -3455,9 +3577,7 @@ subroutine aerosol_ukca_code( nlayers,                                         &
       ! Air pressure on theta levels
       do i = 1, seg_len
         do k = 1, nlayers
-          environ_fullht_real( i, 1, k, m ) =                                  &
-            p_zero *                                                           &
-            real( exner_in_wth( map_wth(1,i) + k ), r_um )**( 1.0_r_um / kappa )
+          environ_fullht_real( i, 1, k, m ) = p_theta_lev( i, 1, k )
         end do
       end do
     case(fldname_p_rho_lev)
@@ -3542,6 +3662,15 @@ subroutine aerosol_ukca_code( nlayers,                                         &
                   ( r_rho_levels( i, 1, k )**2 ), r_um )
         end do
       end do
+    case(fldname_rel_humid)
+      ! Relative humidity
+      environ_fullht_real(:, :, :, m) = rel_humid(:,:,:)
+    case(fldname_rel_humid_clear_sky)
+      ! Clear-sky relative humidity
+      environ_fullht_real(:, :, :, m) = rel_humid_clear_sky(:,:,:)
+    case(fldname_svp)
+      ! Saturation vapour pressure
+      environ_fullht_real(:, :, :, m) = svp(:,:,:) 
     case(fldname_liq_cloud_frac)
       ! Liquid cloud fraction
       do i = 1, seg_len
@@ -4163,6 +4292,21 @@ subroutine aerosol_ukca_code( nlayers,                                         &
     environ_fullhtphot_real = 0.0_r_um
 
   end if     ! chem_scheme_strattrop / photol_rates reqd
+
+  ! Clear working fields used in environmental driver setup
+  deallocate(z0h_bare_surft)
+  deallocate(catch_surft)
+  deallocate(catch_snow_surft)
+  deallocate(z0m_soil_gb)
+  deallocate(l_tile_active)
+  deallocate(canht_pft)
+  deallocate(lai_pft)
+  deallocate(z0_surft)
+  if (allocated(svp)) deallocate(svp)
+  if (allocated(rel_humid_clear_sky)) deallocate(rel_humid_clear_sky)
+  if (allocated(rel_humid)) deallocate(rel_humid)
+  deallocate( p_theta_lev )
+
   !-----------------------------------------------------------------------
   ! Do UKCA time step
   !-----------------------------------------------------------------------
@@ -5656,14 +5800,6 @@ subroutine aerosol_ukca_code( nlayers,                                         &
     end select
   end do
 
-  deallocate( z0h_bare_surft )
-  deallocate( catch_surft )
-  deallocate( catch_snow_surft )
-  deallocate( z0m_soil_gb )
-  deallocate( l_tile_active )
-  deallocate( canht_pft )
-  deallocate( lai_pft )
-  deallocate( z0_surft )
   deallocate( ntp )
   deallocate( tracer )
 

@@ -47,11 +47,9 @@ use atm_fields_mod, only:                                                      &
   gc_nd_ait_ins,                                                               &
   gc_ait_ins_bc,                                                               &
   gc_ait_ins_oc
-use atmos_ukca_humidity_mod, only: atmos_ukca_humidity
 use c_sulchm_mod, only: chi, rad_acc, rad_ait, sigma
 use calc_surf_area_mod, only: calc_surf_area
 use cderived_mod, only: delta_lambda, delta_phi, base_phi
-use cloud_inputs_mod, only: rhcrit
 use copydiag_3d_mod, only: copydiag_3d
 use copydiag_mod, only: copydiag
 use cstash_mod, only: idom_b, iopl_d, isec_b, item_b, modl_b, ndiag
@@ -63,7 +61,6 @@ use glomap_clim_option_mod, only: i_gc_activation_arg,                         &
                                   i_glomap_clim_activation_scheme,             &
                                   i_glomap_clim_setup, l_glomap_clim_radaer,   &
                                   i_glomap_clim_tune_bc
-use lsp_subgrid_mod, only: lsp_qclear
 use planet_constants_mod, only: c_virtual, cp, g, kappa, planet_radius, pref,  &
                                 r, vkman
 use set_pseudo_list_mod, only: set_pseudo_list
@@ -216,8 +213,6 @@ implicit none
 ! Flags to indicate UM code availability
 logical, parameter :: l_um_infrastructure = .true.
   ! UM infrastructure code including STASH support, grid parameters
-logical, parameter :: l_um_atmos_ukca_humidity = .true.
-  ! atmos_ukca_humidity subroutine
 logical, parameter :: l_um_emissions_updates = .true.
   ! trsrc subroutine for emissions updating of tracers
 logical, parameter :: l_um_calc_surf_area = .true.
