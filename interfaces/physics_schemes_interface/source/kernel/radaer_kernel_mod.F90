@@ -613,6 +613,10 @@ subroutine radaer_code( nlayers,                                               &
   logical, parameter :: l_inverted = .false.
   integer(i_um) :: trindxrad_um( row_length * rows )
 
+  ! Variables close to but not exactly 1 or -1 for bounding asymmetry
+  real(r_def), parameter :: one_minus_eps = 1.0_r_def - epsilon(1.0_r_def)
+  real(r_def), parameter :: minus1_plus_eps = -1.0_r_def + epsilon(1.0_r_def)
+
   !-----------------------------------------------------------------------
 
   logical, parameter :: soluble_wanted   = .true.
@@ -896,7 +900,8 @@ subroutine radaer_code( nlayers,                                               &
         aer_lw_scattering(map_rmode_lw(1) + ((i_rmode-1)*(nlayers+1)) + k ) =  &
                                   aer_lw_scattering_um( 1, k, i_mode, i_band )
         aer_lw_asymmetry( map_rmode_lw(1) + ((i_rmode-1)*(nlayers+1)) + k ) =  &
-                                  aer_lw_asymmetry_um(  1, k, i_mode, i_band )
+                                  max(minus1_plus_eps, min(one_minus_eps,      &
+                                  aer_lw_asymmetry_um( 1, k, i_mode, i_band )))
       end do
     end do
 
@@ -991,7 +996,8 @@ subroutine radaer_code( nlayers,                                               &
           aer_sw_scattering(map_rmode_sw(1) + ((i_rmode-1)*(nlayers+1)) + k ) &
                                 =  aer_sw_scattering_um( 1, k, i_mode, i_band )
           aer_sw_asymmetry( map_rmode_sw(1) + ((i_rmode-1)*(nlayers+1)) + k ) &
-                                =  aer_sw_asymmetry_um(  1, k, i_mode, i_band )
+                                =  max(minus1_plus_eps, min(one_minus_eps,    &
+                                   aer_sw_asymmetry_um( 1, k, i_mode, i_band )))
         end do
       end do
 
@@ -1019,7 +1025,7 @@ subroutine radaer_code( nlayers,                                               &
           aer_sw_scattering(map_rmode_sw(1) + ((i_rmode-1)*(nlayers+1)) + k ) &
                                 =  1.0_r_def
           aer_sw_asymmetry( map_rmode_sw(1) + ((i_rmode-1)*(nlayers+1)) + k ) &
-                                =  1.0_r_def
+                                =  one_minus_eps
         end do
       end do
 
