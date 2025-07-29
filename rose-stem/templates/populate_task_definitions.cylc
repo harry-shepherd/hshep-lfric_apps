@@ -47,27 +47,25 @@
     {# If the task doesn't have a defined dictionary and the application is mesh #}
     {# then define a default dictionary here as mesh are standardised enough. #}
     {# If not mesh then raise an error #}
+    {% if task_ns.application == "mesh" %}
+
+        {% do task_dict.update({"application_dir": "core/mesh_tools",
+                                "app_name": "mesh"}) %}
+        {% if task.startswith("build") %}
+            {% do task_dict.update({"task_family": "build"}) %}
+        {% else %}
+            {% do task_dict.update({"resolutions": [task_ns.conf_name],
+                                    "task_family": "mesh"}) %}
+        {% endif %}
+
+    {% endif %}
+
     {% if not task_dict %}
 
-        {% if task_ns.application == "mesh" %}
-
-            {% do task_dict.update({"application_dir": "core/mesh_tools",
-                                    "app_name": "mesh"}) %}
-            {% if task.startswith("build") %}
-                {% do task_dict.update({"task_family": "build"}) %}
-            {% else %}
-                {% do task_dict.update({"resolutions": [task_ns.conf_name],
-                                        "task_family": "mesh"}) %}
-            {% endif %}
-
-        {% else %}
-
-            {{ raise("The task '"~task~"' does not have a task definition in "
-                     "your sites '"~task_ns.application~"/tasks_"~
-                     task_ns.application~".cylc' file. Please ensure there "
-                    "is an entry for '"~task_ns.conf_name~"'.") }}
-
-        {% endif %}
+        {{ raise("The task '"~task~"' does not have a task definition in "
+                    "your sites '"~task_ns.application~"/tasks_"~
+                    task_ns.application~".cylc' file. Please ensure there "
+                "is an entry for '"~task_ns.conf_name~"'.") }}
 
     {% endif %}
 

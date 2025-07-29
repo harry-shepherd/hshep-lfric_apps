@@ -26,6 +26,8 @@
             MESH_DIR              = {{mesh_dir}}
             SOURCE_DIRECTORY      = $SOURCE_ROOT/mesh_tools
             OUTPUT_FILE_PREFIX    = $MESH_DIR/mesh_{{task_ns.conf_name}}
+            TOTAL_RANKS           = {{task_values["mpi_parts"]}}
+            FINAL_RANK            = $((TOTAL_RANKS-1))
 
         [[[directives]]]
 {{ set_task_resources(task_values["mesh_cpus"], task_values["mesh_memory"]) }}

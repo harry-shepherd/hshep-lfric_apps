@@ -124,7 +124,11 @@
         {% if task_ns.application == "mesh" %}
             {% do tasks_to_run.update({mesh_run_task: task_values}) %}
         {% else %}
-            {% do tasks_to_run.update({mesh_run_task: {} }) %}
+            {% set mesh_dict = {} %}
+            {% if "mpi_parts" in task_values %}
+                {% do mesh_dict.update({"mpi_parts": task_values["mpi_parts"]}) %}
+            {% endif %}
+            {% do tasks_to_run.update({mesh_run_task: mesh_dict}) %}
         {% endif %}
     {% endif %}
 {% endif %}

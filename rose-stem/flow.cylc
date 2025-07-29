@@ -88,11 +88,16 @@
 {# Don't do it if it's an export task, a script or already defined #}
 {% set tasks_to_run_list = tasks_to_run.keys() %}
 {% for task in tasks_to_run_list %}
-    {% if not task.startswith("export-") and
+    {% set defined_dict = true %}
+    {% if not tasks_to_run[task] or
+            task.startswith("run_mesh") %}
+        {% set defined_dict = false %}
+    {% endif %}
+    {% if not defined_dict and
+            not task.startswith("export-") and
             not task.startswith("remote-init") and
-            not task.startswith("housekeep") and
-            not tasks_to_run[task] %}
-        {% set task_dict = {} %}
+            not task.startswith("housekeep") %}
+        {% set task_dict = tasks_to_run[task].copy() %}
         {% include "templates/populate_task_definitions.cylc" %}
         {% do tasks_to_run.update({task: task_dict}) %}
     {% endif %}

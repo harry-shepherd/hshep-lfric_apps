@@ -115,7 +115,7 @@
 
     {% do task_dict.update({
         "opt_confs": ["um_dump","june_case"],
-        "resolution": "C224_MG",
+        "resolution": "C224_MG_op",
         "DT": 720,
         "tsteps": 120,
         "mpi_parts": 1176,
@@ -131,7 +131,7 @@
 
     {% do task_dict.update({
         "opt_confs": ["um_dump","june_case","no_diags"],
-        "resolution": "C224_MG",
+        "resolution": "C224_MG_op",
         "DT": 720,
         "tsteps": 6,
         "mpi_parts": 1176,
