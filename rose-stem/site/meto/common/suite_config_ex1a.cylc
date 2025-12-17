@@ -5,17 +5,35 @@
 {# ########################################################################### #}
 {% do LOG.debug("Entered site/meto/common/suite_config_ex1a.cylc") %}
 
-{% set ex1a_base = 'module use /common/internal/spack/releases/2025.10.1/ngms' %}
+{% if site_vars.ex_trustzone == "collab" %}
+{% set ex1a_base = 'module use /projects/metoff/spackadmin.mon/releases/2025.12.18/ngms' %}
+{% else %}
+{% set ex1a_base = 'module use /common/internal/spack/releases/2025.10.1/ngms ; '~
+                   'module use /data/users/mark.hedley/modules/' %}
+{% endif %}
 
 {% set ex1a_compiler_gnu =  'module switch cpe/22.11 cpe/23.05 ; ' ~
                             'module load PrgEnv-gnu ; '~
                             'module load gcc/12.2.0 ; '~
+                            'module load cray-mpich/8.1.27 ; '~
                             'module load lfric-gnu/12.2.0/3.0+ || true' %}
 
 {% set ex1a_compiler_cce =  'module switch PrgEnv-cray PrgEnv-cray/8.4.0 ; ' ~
-                            'module load cpe/23.05 ; '~
+                            'module load cpe/23.09 ; '~
                             'module switch cce cce/15.0.0 ; '~
-                            'module load lfric-cray/15.0.0/3.0+ || true ' %}
+                            'module load lfric-cray/15.0.0/3.0+ || true ; '~
+                            'module unload xios  || true ; '~
+                            'module unload netcdf-c netcdf-fortran hdf5  || true ; '~
+                            'module load cray-hdf5-parallel ; '~
+                            'module load cray-netcdf-hdf5parallel ; '~
+                            'export LD_LIBRARY_PATH=/opt/cray/pe/pmi/6.1.11/lib:/opt/cray/pe/papi/7.0.1.1/lib64:/opt/cray/libfabric/1.15.2.0/lib64:$HDF5_DIR/lib ; '~
+                            'export XIOS_ROOT=/home/users/mark.hedley/XIOS/xios ; '~
+                            'export CMAKE_PREFIX_PATH=$XIOS_ROOT:$CMAKE_PREFIX_PATH ; '~
+                            'export FFLAGS="-I$XIOS_ROOT/inc -I/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/yaxt-0.11.4-brclvo63p4xuxlgy2ftejxtznoo5exna/include -I/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/vernier-0.4.0-bfjsmg5kcbce6hfhqw6kzrpfqx7jgik4/include -I/common/internal/umdir/shumlib/shumlib-2023.08.1/meto-ex1a-gfortran-12.2.0-gcc-12.2.0/openmp/include -I$NETCDF_DIR/include" ; '~
+                            'export LDFLAGS="-L$XIOS_ROOT/lib -Wl,-rpath=$XIOS_ROOT/lib -L/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/yaxt-0.11.4-brclvo63p4xuxlgy2ftejxtznoo5exna/lib -Wl,-rpath=/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/yaxt-0.11.4-brclvo63p4xuxlgy2ftejxtznoo5exna/lib -L/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/vernier-0.4.0-bfjsmg5kcbce6hfhqw6kzrpfqx7jgik4/lib64 -Wl,-rpath=/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/vernier-0.4.0-bfjsmg5kcbce6hfhqw6kzrpfqx7jgik4/lib64 -L/common/internal/umdir/shumlib/shumlib-2023.08.1/meto-ex1a-gfortran-12.2.0-gcc-12.2.0/openmp/lib -Wl,-rpath=/common/internal/umdir/shumlib/shumlib-2023.08.1/meto-ex1a-gfortran-12.2.0-gcc-12.2.0/openmp/lib -L$NETCDF_DIR/lib -Wl,-rpath=NETCDF_DIR/lib -L$HDF5_DIR/lib -Wl,-rpath=$HDF5_DIR/lib -lnetcdff -lyaxt -lyaxt_c -lnetcdf -lhdf5 " ; '~
+                            'export PATH=$XIOS_ROOT/bin:$PATH ; '~
+                            'module list' %}
+
 
 {% set ex1a_coupled_cce = 'module unload xios/2701-h57fm7d || true ; ' ~
                           'module load cray-hdf5-parallel ; ' ~
@@ -40,30 +58,42 @@
         [[[environment]]]
             BUILD_ROOT = ${TMPDIR}
             HYPERTHREADS    = 1
-            CORES_PER_NODE  = 128
+            CORES_PER_NODE  = {{site_vars.node_cores}}
             NUMA_REGIONS_PER_NODE = 2
             LUSTRE_FILESYSTEM = true
             ROSE_LAUNCHER = 'mpiexec'
+            OMP_STACKSIZE=1g
+
+    [[EX1A_WEIGHTS]]
+        inherit = EX1A_BASE
 
     [[EX1A_BUILD]]
         [[[environment]]]
             TRANSMUTE_INCLUDE_METHOD = specify_include
         [[[environment]]]
-            USE_VERNIER=yes
-            USE_TIMING_WRAPPER=yes
+            USE_LEGACY_TIMER=true
+            USE_TIMING_WRAPPER=true
         [[[directives]]]
             -l tmpsize=12GB
 
     [[EX1A_RUN]]
         [[[environment]]]
             {# BIG_DATA_DIR holds ancils and dump files #}
-{% if site_vars["host_ex"] == "exz" %}
+{% if site_vars["ex_trustzone"] == "collab" %}
+            BIG_DATA_DIR = '/data/users/lfricadmin.mon/data'
+{% elif site_vars["host_ex"] == "exz" %}
             BIG_DATA_DIR = '/common/internal/lfricdir/data'
 {% else %}
             BIG_DATA_DIR = '/data/users/lfricadmin/data'
 {% endif %}
             TARGET_PLATFORM = 'meto-ex1a'
             RUN_METHOD = 'mpiexec'
+            FI_CXI_RX_MATCH_MODE = 'hybrid'
+            FI_CXI_RDZV_THRESHOLD = 131072
+            FI_CXI_RDZV_EAGER_SIZE = 16384
+            FI_CXI_OFLOW_BUF_SIZE = 50331648
+            FI_CXI_REQ_BUF_MIN_POSTED = 12
+            FI_CXI_REQ_BUF_SIZE = 50331648
 
     [[EX1A_GNU]]
         [[[environment]]]
@@ -173,11 +203,18 @@
                      module list 2>&1
                      """
 
+    [[EX1A_SCRIPTS]]
+        inherit = EX1A_TECH
+
     [[EX1A_EXPORT-SOURCE]]
         inherit=METO_ORIG
         [[[environment]]]
+{% if site_vars["ex_trustzone"] == "collab" %}
+            PLATFORM_SYNC = false
+{% else %}
             hostname = $(rose host-select {{site_vars.host_ex}})
             PLATFORM_SYNC = true
+{% endif %}
 
     [[EX1A_HOUSEKEEPING]]
         inherit=EX1A_TECH_BASE
