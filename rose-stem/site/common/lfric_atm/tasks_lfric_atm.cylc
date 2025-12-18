@@ -255,10 +255,29 @@
         "tsteps": 120,
         "mpi_parts": 4704,
         "xios_nodes": 4,
-        "mpi_parts_xios" : 32,
-        "log_level": "info",
-        "plot_str": "plot_map.py $NODAL_DATA_DIR/lfric_diagnostics.nc  $PLOT_DIR",
-    }) %}
+        "mpi_parts_xios" : 192,
+        "log_level": "debug",
+        "plot_str": "",
+        "memory_plot_ex": true,
+        "log_to_rank_zero_only": ".true.",
+     }) %}
+
+{% elif task_ns.conf_name == "nwp_gal9-C896_MG_dump" %}
+
+    {% do task_dict.update({
+        "opt_confs": ["um_dump"],
+        "resolution": "C896_MG",
+        "DT": 240,
+        "tsteps": 120,
+        "mpi_parts": 4704,
+        "xios_nodes": 4,
+        "mpi_parts_xios" : 192,
+        "log_level": "debug",
+        "plot_str": "",
+        "memory_plot_ex": true,
+        "log_to_rank_zero_only": ".true.",
+        "restart_write": true,
+     }) %}
 
 {% elif task_ns.conf_name == "nwp_gal9_coarse_aero-C48_MG" %}
 
@@ -428,6 +447,19 @@
         "mpi_parts": 24,
         "log_level": "debug",
         "kgo_checks": ["checksum"],
+    }) %}
+
+{% elif task_ns.conf_name == "nwp_gal9_debug-C48_MG_dump" %}
+
+    {% do task_dict.update({
+        "opt_confs": ["um_dump","no_diags"],
+        "resolution": "C48_MG",
+        "DT": 1800,
+        "tsteps": 4,
+        "mpi_parts": 24,
+        "log_level": "debug",
+        "memory": [24, "GB"],
+        "restart_write": true,
     }) %}
 
 {% elif task_ns.conf_name == "nwp_gal9_short-C12" %}

@@ -261,6 +261,13 @@
         "build_lfric_atm_ex1a_gnu_fast-debug-32bit",
         "build_lfric_atm_ex1a_gnu_full-debug-32bit",
     ],
+    "lfric_atm_scaling_output": [
+        "lfric_atm_nwp_gal9_debug-C48_MG_ex1a_cce_full-debug-32bit",
+        "lfric_atm_nwp_gal9_debug-C48_MG_dump_ex1a_cce_full-debug-32bit",
+	"lfric_atm_nwp_gal9_debug-C224_MG_ex1a_cce_full-debug-32bit",
+        "lfric_atm_nwp_gal9-C896_MG_ex1a_cce_production-32bit",
+        "lfric_atm_nwp_gal9-C896_MG_dump_ex1a_cce_production-32bit",
+    ],
     }) %}
 
 
