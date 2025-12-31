@@ -91,9 +91,16 @@
             FI_CXI_RX_MATCH_MODE = 'hybrid'
             FI_CXI_RDZV_THRESHOLD = 131072
             FI_CXI_RDZV_EAGER_SIZE = 16384
+            FI_CXI_DEFAULT_TX_SIZE = 8192
             FI_CXI_OFLOW_BUF_SIZE = 50331648
+            FI_CXI_OFLOW_BUF_COUNT = 6
             FI_CXI_REQ_BUF_MIN_POSTED = 12
             FI_CXI_REQ_BUF_SIZE = 50331648
+            HDF5_USE_FILE_LOCKING = 0
+            MPICH_MPIIO_HINTS=*:cray_cb_write_lock_mode=2:cray_cb_nodes_multiplier=2
+            MPICH_MPIIO_STATS = 1
+            MPICH_MPIIO_TIMERS = 1
+            {# MPICH_MPIIO_STATS_FILE = ${TASK_OUTPUT_DIR}/mpiio_stats.out #}
 
     [[EX1A_GNU]]
         [[[environment]]]
