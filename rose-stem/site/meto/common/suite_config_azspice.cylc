@@ -8,11 +8,10 @@
 {% set azspice_base = 'umask 0022 ; '~
                       'module purge ; '~
                       'module use /home/users/lfricadmin/lmod ; '~
-                      'module use /data/users/mark.hedley/spack-test/releases/markh.2026.01.builds' %}
+                      'module use /data/users/mark.hedley/spack-test/releases/markh.2026.01.builds/libraries/linux-rhel9-x86_64/mpich/4.2.3-kimr22o/gcc/12.2.0' %}
 
 {% set azspice_compiler_gnu = 'module load lfric/vn3.0 ; '~
-                              'module unload xios ; module load boost ; '~
-                              'module load libraries/linux-rhel9-x86_64/mpich/4.2.3-kimr22o/gcc/12.2.0/xios/3_develop_abeb3_' %}
+                              'module load xios/3_develop_abeb3_ ' %}
 
 {% set azspice_coupled_gnu = 'module load xios/2701-oasis ; '~
                              'module load oasis' %}

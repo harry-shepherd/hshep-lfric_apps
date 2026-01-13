@@ -9,7 +9,8 @@
 {% set ex1a_base = 'module use /projects/metoff/spackadmin.mon/releases/2025.12.18/ngms' %}
 {% else %}
 {% set ex1a_base = 'module use /common/internal/spack/releases/2025.10.1/ngms ; '~
-                   'module use /data/users/mark.hedley/modules/' %}
+                   'module use /data/users/mark.hedley/modules/linux-sles15-x86_64/cce/15.0.0/ ; '~
+                   'module use /data/users/mark.hedley/modules/linux-sles15-x86_64/cray-mpich/8.1.27-aaisa7i/cce/15.0.0' %}
 {% endif %}
 
 {% set ex1a_compiler_gnu =  'module switch cpe/22.11 cpe/23.05 ; ' ~
@@ -22,13 +23,9 @@
                             'module load cpe/23.09 ; '~
                             'module switch cce cce/15.0.0 ; '~
                             'module load lfric-cray/15.0.0/3.0+ || true ; '~
-                            'module unload xios  || true ; '~
-                            'module unload netcdf-c netcdf-fortran || true ; '~
+                            'module load xios/3_develop_abeb3_  || true ; '~
                             'module load zlib-ng/2.2.1-qc6q62y glibc/2.31-2gykboy || true ; '~
                             'module load pkg-config/0.29.2-hxxl2mu || true ; '~
-                            'module load linux-sles15-x86_64/cce/15.0.0/netcdf-c/4.9.0.7-etemubc ; '~
-                            'module load linux-sles15-x86_64/cce/15.0.0/netcdf-fortran/4.9.0.7-qcaud6v ; '~
-                            'module load linux-sles15-x86_64/cray-mpich/8.1.27-aaisa7i/cce/15.0.0/xios/3.1_dev_abeb3fe_ ; '~
                             'export LD_LIBRARY_PATH=/opt/cray/pe/pmi/6.1.11/lib:$LD_LIBRARY_PATH ; '~
                             'module list' %}
 
