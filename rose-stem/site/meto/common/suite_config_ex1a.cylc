@@ -23,15 +23,13 @@
                             'module switch cce cce/15.0.0 ; '~
                             'module load lfric-cray/15.0.0/3.0+ || true ; '~
                             'module unload xios  || true ; '~
-                            'module unload netcdf-c netcdf-fortran hdf5  || true ; '~
-                            'module load cray-hdf5-parallel ; '~
-                            'module load cray-netcdf-hdf5parallel ; '~
-                            'export LD_LIBRARY_PATH=/opt/cray/pe/pmi/6.1.11/lib:/opt/cray/pe/papi/7.0.1.1/lib64:/opt/cray/libfabric/1.15.2.0/lib64:$HDF5_DIR/lib ; '~
-                            'export XIOS_ROOT=/home/users/mark.hedley/XIOS/xios ; '~
-                            'export CMAKE_PREFIX_PATH=$XIOS_ROOT:$CMAKE_PREFIX_PATH ; '~
-                            'export FFLAGS="-I$XIOS_ROOT/inc -I/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/yaxt-0.11.4-brclvo63p4xuxlgy2ftejxtznoo5exna/include -I/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/vernier-0.4.0-bfjsmg5kcbce6hfhqw6kzrpfqx7jgik4/include -I/common/internal/umdir/shumlib/shumlib-2023.08.1/meto-ex1a-gfortran-12.2.0-gcc-12.2.0/openmp/include -I$NETCDF_DIR/include" ; '~
-                            'export LDFLAGS="-L$XIOS_ROOT/lib -Wl,-rpath=$XIOS_ROOT/lib -L/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/yaxt-0.11.4-brclvo63p4xuxlgy2ftejxtznoo5exna/lib -Wl,-rpath=/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/yaxt-0.11.4-brclvo63p4xuxlgy2ftejxtznoo5exna/lib -L/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/vernier-0.4.0-bfjsmg5kcbce6hfhqw6kzrpfqx7jgik4/lib64 -Wl,-rpath=/common/internal/spack/releases/2025.10.1/install/linux-sles15-zen3/cce-15.0.0/vernier-0.4.0-bfjsmg5kcbce6hfhqw6kzrpfqx7jgik4/lib64 -L/common/internal/umdir/shumlib/shumlib-2023.08.1/meto-ex1a-gfortran-12.2.0-gcc-12.2.0/openmp/lib -Wl,-rpath=/common/internal/umdir/shumlib/shumlib-2023.08.1/meto-ex1a-gfortran-12.2.0-gcc-12.2.0/openmp/lib -L$NETCDF_DIR/lib -Wl,-rpath=NETCDF_DIR/lib -L$HDF5_DIR/lib -Wl,-rpath=$HDF5_DIR/lib -lnetcdff -lyaxt -lyaxt_c -lnetcdf -lhdf5 " ; '~
-                            'export PATH=$XIOS_ROOT/bin:$PATH ; '~
+                            'module unload netcdf-c netcdf-fortran || true ; '~
+                            'module load zlib-ng/2.2.1-qc6q62y glibc/2.31-2gykboy || true ; '~
+                            'module load pkg-config/0.29.2-hxxl2mu || true ; '~
+                            'module load linux-sles15-x86_64/cce/15.0.0/netcdf-c/4.9.0.7-etemubc ; '~
+                            'module load linux-sles15-x86_64/cce/15.0.0/netcdf-fortran/4.9.0.7-qcaud6v ; '~
+                            'module load linux-sles15-x86_64/cray-mpich/8.1.27-aaisa7i/cce/15.0.0/xios/3.1_dev_abeb3fe_ ; '~
+                            'export LD_LIBRARY_PATH=/opt/cray/pe/pmi/6.1.11/lib:$LD_LIBRARY_PATH ; '~
                             'module list' %}
 
 
