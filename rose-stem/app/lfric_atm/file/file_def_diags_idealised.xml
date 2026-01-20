@@ -2,9 +2,9 @@
 
   <!-- Diagnostic output file for idealised runs -->
   <file id="lfric_diagnostics" name="results/lfric_diagnostics" output_freq="1h" convention="UGRID" enabled=".TRUE.">
-    <field_group operation="instant" freq_op="1h" chunking_blocksize_target="4" prec="4">
+    <field_group operation="instant" freq_op="1h" prec="4">
       <field field_ref="theta" />
-      <field field_ref="processed__temperature" chunking_blocksize_target="1"/>
+      <field field_ref="processed__temperature" />
       <field field_ref="processed__virtual_theta" />
       <field field_ref="m_v" />
       <field field_ref="m_cl" />
