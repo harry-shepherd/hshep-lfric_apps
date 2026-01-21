@@ -119,8 +119,6 @@ contains
     ! from RB's python metadata generator
     if (grid_ref == full_level_face_grid                                      &
       .or. grid_ref ==  ' --> ' // full_level_face_grid                       &
-      .or. grid_ref == var_face_aod_wavel                                     &
-      .or. grid_ref == ' --> ' // var_face_aod_wavel                          &
       .or. grid_ref == var_full_face_grid                                     &
       .or. grid_ref == ' --> ' // var_full_face_grid) then
       fsenum = Wtheta
@@ -128,6 +126,8 @@ contains
       .or. grid_ref == ' --> ' // half_level_face_grid                        &
       .or. grid_ref == var_face                                               &
       .or. grid_ref == ' --> ' // var_face                                    &
+      .or. grid_ref == var_face_aod_wavel                                     &
+      .or. grid_ref == ' --> ' // var_face_aod_wavel                          &
       .or. domain_ref == 'face') then
       fsenum = W3
     else if (grid_ref == half_level_edge_grid &
@@ -286,6 +286,8 @@ contains
 
     ! metadata lookup
     grid_ref = get_field_grid_ref(xios_id)
+    ! call log_event("get_field_grid_ref for xios_id: " // xios_id // " , grid_ref: " &
+    !                 // grid_ref , log_level_debug)
     call split_composite_grid_ref(grid_ref, axis_ref)
     domain_ref = get_field_domain_ref(xios_id)
     if (axis_ref == '') then
@@ -297,6 +299,8 @@ contains
     order_h = get_field_order(xios_id, force_order_h)
     order_v = get_field_order(xios_id, force_order_v)
 
+    ! call log_event("get_field_fsenum xios_id: " // xios_id // " , grid_ref: " &
+    !                 // grid_ref // " , domain_ref: " // domain_ref, log_level_debug)
     ! derive function space and flavour from metadata
     fsenum = get_field_fsenum(xios_id, grid_ref, domain_ref)
     flavour = get_field_flavour(xios_id, grid_ref, domain_ref, axis_ref)
