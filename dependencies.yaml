@@ -42,10 +42,11 @@ lfric_apps:
     ref:
 
 lfric_core:
-    source: cazcron2:/home/users/mark.hedley/metofficegit/lfric_core
-    ref: 
-    # source: git@github.com:mo-marqh/lfric_core.git
-    # ref:
+    # source: cazcron2:/home/users/mark.hedley/metofficegit/lfric_core
+    # ref: 
+    source: git@github.com:mo-marqh/lfric_core.git
+    # X3-testing-core working branch
+    ref: 5835da3431f56db12e6aec4a6e6224dc5809f8fa
 
 moci:
     source: git@github.com:MetOffice/moci.git
