@@ -66,8 +66,8 @@
         [[[environment]]]
             TRANSMUTE_INCLUDE_METHOD = specify_include
         [[[environment]]]
-            USE_LEGACY_TIMER=true
-            USE_TIMING_WRAPPER=true
+            USE_VERNIER = yes
+            USE_TIMING_WRAPPER = true
         [[[directives]]]
             -l tmpsize=12GB
 
@@ -83,19 +83,7 @@
 {% endif %}
             TARGET_PLATFORM = 'meto-ex1a'
             RUN_METHOD = 'mpiexec'
-            FI_CXI_RX_MATCH_MODE = 'hybrid'
-            FI_CXI_RDZV_THRESHOLD = 131072
-            FI_CXI_RDZV_EAGER_SIZE = 16384
-            FI_CXI_DEFAULT_TX_SIZE = 8192
-            FI_CXI_OFLOW_BUF_SIZE = 50331648
-            FI_CXI_OFLOW_BUF_COUNT = 6
-            FI_CXI_REQ_BUF_MIN_POSTED = 12
-            FI_CXI_REQ_BUF_SIZE = 50331648
-            HDF5_USE_FILE_LOCKING = 0
-            MPICH_MPIIO_HINTS=*:cray_cb_write_lock_mode=2:cray_cb_nodes_multiplier=2
-            MPICH_MPIIO_STATS = 1
-            MPICH_MPIIO_TIMERS = 1
-            {# MPICH_MPIIO_STATS_FILE = ${TASK_OUTPUT_DIR}/mpiio_stats.out #}
+            VERNIER_OUTPUT_MODE = single
 
     [[EX1A_GNU]]
         [[[environment]]]
@@ -217,6 +205,16 @@
             hostname = $(rose host-select {{site_vars.host_ex}})
             PLATFORM_SYNC = true
 {% endif %}
+
+    [[EX1A_REMOTE_INIT]]
+        inherit = EX1A_BASE
+        [[[directives]]]
+{% if site_vars["ex_trustzone"] == "collab" %}
+            -q = collabshared
+{% else %}
+            -q = shared
+{% endif %}
+            -l ncpus=1
 
     [[EX1A_HOUSEKEEPING]]
         inherit=EX1A_TECH_BASE
