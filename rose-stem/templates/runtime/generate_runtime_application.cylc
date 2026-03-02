@@ -153,7 +153,6 @@
             FI_CXI_RDZV_THRESHOLD = 131072
             FI_CXI_RDZV_EAGER_SIZE = 16384
             HDF5_USE_FILE_LOCKING = 0
-            MPICH_MPIIO_STATS = 2
             MPICH_MPIIO_TIMERS = 1
     {% endif %}
 {% endif %}
