@@ -455,7 +455,7 @@
         "wallclock": 25,
         "mpi_parts": 4704,
         "xios_nodes": 3,
-        "mpi_parts_xios" : 144,
+        "mpi_parts_xios" : 192,
         "log_level": "info",
         "log_to_rank_zero_only": ".true.",
         "memory_plot_ex": true,
