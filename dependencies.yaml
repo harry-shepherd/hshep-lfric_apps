@@ -42,10 +42,7 @@ lfric_apps:
     ref:
 
 lfric_core:
-    # source: git@github.com:mo-marqh/lfric_core.git
-    # X3-testing-core-up working branch
-    # ref: b971d0514d558aa21832a819815f05f55d363079
-    source: cazcron2:/home/users/mark.hedley/metofficegit/lfric_core
+    source: https://github.com/harry-shepherd/hshep-lfric_core.git
     ref: 095af0ef32e0b3766b867eccf69586a0654eb856
 
 moci:
