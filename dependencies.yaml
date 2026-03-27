@@ -43,7 +43,7 @@ lfric_apps:
 
 lfric_core:
     source: https://github.com/harry-shepherd/hshep-lfric_core.git
-    ref: 483313973d3be31d167ae6be77c02ae322c08505
+    ref: fd518c1e667819011041831d16ca236e29cd7716
 
 moci:
     source: https://github.com/harry-shepherd/moci.git
