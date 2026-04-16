@@ -90,7 +90,7 @@ subroutine initialise_infrastructure( self, filename, model_communicator )
   use driver_collections_mod,        only: init_collections
   use driver_config_mod,             only: init_config
   use driver_log_mod,                only: init_logger
-  use driver_timer_mod,              only: init_timers
+  use driver_time_mod,              only: init_timers
   use jedi_lfric_tests_mod,          only: jedi_lfric_tests_required_namelists
   use lfric_mpi_mod,                 only: lfric_comm_type
 
@@ -141,7 +141,7 @@ end function get_configuration
 !>
 subroutine finalise_timers(self)
 
-  use driver_timer_mod, only: final_timers
+  use driver_time_mod, only: final_timers
 
   implicit none
 
@@ -159,7 +159,7 @@ subroutine finalise(self)
   use driver_collections_mod,        only: final_collections
   use driver_config_mod,             only: final_config
   use driver_log_mod,                only: final_logger
-  use driver_timer_mod,              only: final_timers
+  use driver_time_mod,              only: final_timers
   use jedi_lfric_comm_mod,           only: final_external_comm, &
                                            final_internal_comm
   use lfric_mpi_mod,                 only: destroy_comm

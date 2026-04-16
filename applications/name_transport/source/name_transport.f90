@@ -17,7 +17,7 @@ program name_transport
   use driver_log_mod,            only: init_logger, final_logger
   use driver_modeldb_mod,        only: modeldb_type
   use driver_time_mod,           only: init_time, final_time
-  use driver_timer_mod,          only: init_timers, final_timers
+  use driver_time_mod,          only: init_timers, final_timers
   use lfric_mpi_mod,             only: global_mpi
   use log_mod,                   only: log_event,       &
                                        log_level_debug, &

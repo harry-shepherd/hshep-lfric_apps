@@ -21,7 +21,7 @@ program jedi_lfric_tests
   use driver_config_mod,      only : init_config, final_config
   use driver_log_mod,         only : init_logger, final_logger
   use driver_time_mod,        only : init_time, final_time
-  use driver_timer_mod,       only : init_timers, final_timers
+  use driver_time_mod,       only : init_timers, final_timers
   use gungho_mod,             only : gungho_required_namelists
   use driver_modeldb_mod,     only : modeldb_type
   use lfric_mpi_mod,          only : global_mpi

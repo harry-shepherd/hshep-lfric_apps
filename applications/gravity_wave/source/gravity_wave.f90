@@ -18,7 +18,7 @@ program gravity_wave
   use driver_config_mod,       only: init_config, final_config
   use driver_log_mod,          only: init_logger, final_logger
   use driver_time_mod,         only: init_time, final_time
-  use driver_timer_mod,        only: init_timers, final_timers
+  use driver_time_mod,        only: init_timers, final_timers
   use gravity_wave_mod,        only: gravity_wave_required_namelists
   use gravity_wave_driver_mod, only: initialise, step, finalise
   use lfric_mpi_mod,           only: global_mpi
