@@ -77,7 +77,7 @@ program lfric_atm
   call init_config( filename, gungho_required_namelists, &
                     modeldb%configuration )
   call init_logger( modeldb%mpi%get_comm(), application_name )
-  call init_time( application_name )
+  call init_time( modeldb )
 
   io_nml => modeldb%configuration%get_namelist('io')
   call io_nml%get_value('subroutine_timers', lsubroutine_timers)
@@ -103,7 +103,7 @@ program lfric_atm
   if ( LPROF ) call stop_timing( timing_handle_global )
   call final_timing(application_name)
 
-  call final_time( application_name )
+  call final_time( modeldb )
   call final_logger( application_name )
   call final_config()
   call final_comm( modeldb )
