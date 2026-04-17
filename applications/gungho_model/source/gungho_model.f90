@@ -23,7 +23,7 @@ program gungho_model
   use driver_counter_mod,     only: init_counters, final_counters
   use driver_log_mod,         only: init_logger, final_logger
   use driver_time_mod,        only: init_time, final_time
-  use driver_time_mod,       only: init_timers, final_timers
+  use driver_timer_mod,       only: init_timers, final_timers
   use gungho_mod,             only: gungho_required_namelists
   use gungho_driver_mod,      only: initialise, step, finalise
   use driver_modeldb_mod,     only: modeldb_type
