@@ -1,0 +1,54 @@
+<file_definition>
+
+  <!-- Diagnostic output file for idealised runs -->
+  <file id="lfric_diagnostics" name="results/lfric_diagnostics" output_freq="1h" convention="UGRID" enabled=".TRUE.">
+    <field_group operation="instant" freq_op="1h" prec="4">
+<field field_ref="theta" add_offset="225.0" scale_factor="0.17" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="processed__temperature" add_offset="161.0" scale_factor="0.0048" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="processed__virtual_theta" add_offset="225.0" scale_factor="0.17" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="m_v" add_offset="0.0" scale_factor="3.1e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="m_cl" add_offset="0.0" scale_factor="3.1e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="m_cf" add_offset="0.0" scale_factor="3.1e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="m_r" add_offset="0.0" scale_factor="3.1e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="processed__m_tot" add_offset="0.0" scale_factor="3.1e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="processed__tot_col_m_cl" add_offset="0.0" scale_factor="0.00031" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="rho" add_offset="0.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="wetrho_in_w3" add_offset="0.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="processed__pressure_in_w3" add_offset="1.0" scale_factor="3.2" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="processed__pressure_in_wth" add_offset="0.0" scale_factor="3.2" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="u_in_w3" add_offset="-62.0" scale_factor="0.0051" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="v_in_w3" add_offset="-85.0" scale_factor="0.0052" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="w_in_wth" add_offset="-4.0" scale_factor="0.00049" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__sw_heating_rate" add_offset="0.0" scale_factor="3.1e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__lw_heating_rate" add_offset="-1.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__sw_direct_toa" add_offset="0.0" scale_factor="0.042" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__sw_up_toa" add_offset="0.0" scale_factor="0.032" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__lw_up_toa" add_offset="1.0" scale_factor="0.016" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__sw_down_surf" add_offset="0.0" scale_factor="0.036" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__sw_up_surf" add_offset="0.0" scale_factor="0.026" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__lw_down_surf" add_offset="68.0" scale_factor="0.013" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="radiation__lw_up_surf" add_offset="82.0" scale_factor="0.023" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="microphysics__ls_prec" add_offset="-1.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="processed__total_prec" add_offset="-1.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="cloud__bulk_fraction" add_offset="0.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="cloud__area_fraction" add_offset="0.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="cloud__combined_cloud_amount" add_offset="0.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="cloud__cloud_amount_maxrnd" add_offset="0.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="cloud__cloud_base_altitude" add_offset="-1.0" scale_factor="0.0089" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="convection__conv_rain" add_offset="0.0" scale_factor="3.1e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="convection__massflux_up" add_offset="0.0" scale_factor="0.00058" prec="2" conversion_by_netcdf=".false." />
+      <field field_ref="convection__cv_top" />
+      <field field_ref="convection__cv_base" />
+<field field_ref="turbulence__zh" add_offset="11.0" scale_factor="0.39" prec="2" conversion_by_netcdf=".false." />
+      <field field_ref="surface__tile_temperature" />
+<field field_ref="surface__grid_surface_temperature" add_offset="195.0" scale_factor="0.0048" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="surface__z0m" add_offset="0.0" scale_factor="6.2e-05" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="surface__grid_latent_heat" add_offset="-277.0" scale_factor="0.042" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="surface__tile_heat_flux" add_offset="-1246.0" scale_factor="0.089" prec="2" conversion_by_netcdf=".false." />
+<field field_ref="snow__grid_snow_mass" add_offset="-1.0" scale_factor="1.6" prec="2" conversion_by_netcdf=".false." />
+      <field field_ref="forcing__dtheta_force" />
+      <field field_ref="forcing__dt_force" />
+    </field_group>
+  </file>
+
+</file_definition>
