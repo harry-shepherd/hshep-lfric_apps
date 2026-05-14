@@ -73,6 +73,10 @@
     'find . -regex ".*PET0+\..+\.Log" -exec cp {} $TASK_OUTPUT_DIR \;',
     'ls -sh $TASK_OUTPUT_DIR/results > $ROSE_TASK_LOG_DIR/results_file_sizes.log',
     'find . -name timer.txt -exec cp {} $ROSE_TASK_LOG_DIR \;',
+    'find . -name "vernier-output-*-collated" -exec cp {} $ROSE_TASK_LOG_DIR \;',
+    'find . -name "_cray_mpiio_stats_*"  -exec cat {} + > $ROSE_TASK_LOG_DIR/cray_mpiio_stats_concat ',
+    'find . -name "xios_client_*.out"  -exec cat {} + > $ROSE_TASK_LOG_DIR/xios_client_collated.out ',
+    'find . -name "xios_server_*.out"  -exec cat {} + > $ROSE_TASK_LOG_DIR/xios_server_collated.out ',
     'test -f '~task_values["app_name"]~
         '-checksums.txt && cp $CYLC_TASK_WORK_DIR/'~
         task_values["app_name"]~'-checksums.txt $TASK_OUTPUT_DIR/checksum.txt',
@@ -147,7 +151,11 @@
 {% endif %}
 {% if SITE~"-"~task_ns.platform == 'meto-ex1a' %}
     {% if "CXI_MATCH_hybrid" in task_values and task_values["CXI_MATCH_hybrid"] %}
-            FI_CXI_RX_MATCH_MODE    = "hybrid"
+            FI_CXI_RX_MATCH_MODE = "software"
+            FI_CXI_RDZV_THRESHOLD = 131072
+            FI_CXI_RDZV_EAGER_SIZE = 16384
+            HDF5_USE_FILE_LOCKING = 0
+            MPICH_MPIIO_TIMERS = 1
     {% endif %}
 {% endif %}
 
