@@ -215,12 +215,8 @@ module gungho_setup_io_mod
     read(timestep_start,*,iostat=rc)  ts_start
     read(timestep_end,*,iostat=rc)    ts_end
 
-    ! Setup initial output file - no initial output for continuation runs
-    if ( .not. checkpoint_read ) then
-      call files_list%insert_item( lfric_xios_file_type( "lfric_initial",         &
-                                                         xios_id="lfric_initial", &
-                                                         io_mode=FILE_MODE_WRITE ) )
-    end if
+    ! The hardwired setup of initial output file lfric_initial has been
+    ! removed from here
 
     ! Setup diagnostic output files
     if (write_diag) then
