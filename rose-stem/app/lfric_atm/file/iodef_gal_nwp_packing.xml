@@ -23,7 +23,7 @@
 
     <!-- Include field definitions -->
     <field_definition src="$METADATA/lfric_dictionary.xml"/>
-    <field_definition src="$METADATA/field_def_diags.xml"/>
+    <field_definition src="./field_def_diags_packed.xml"/>
     <field_definition src="$METADATA/field_def_initial_diags.xml"/>
 
     <!-- Include file definitions -->
@@ -31,7 +31,7 @@
     <file_definition src="./file_def_ancil_main.xml"/>
     <file_definition src="./file_def_ancil_gal.xml"/>
     <file_definition src="./file_def_ancil_hadisst.xml"/>
-    <file_definition src="./file_def_diags_gal_nwp_packed.xml"/>
+    <file_definition src="./file_def_diags_gal_nwp.xml"/>
     <file_definition src="./file_def_diags_ver.xml"/>
     <file_definition src="./file_def_diags_name.xml"/>
     <file_definition src="./file_def_initial_diags.xml"/>
@@ -102,8 +102,8 @@
 
       <variable_group id = "parameters" >
         <variable id = "using_server" type = "bool" >true</variable>
-        <variable id = "info_level" type = "int" >$XIOS_INFO_LEVEL</variable>
-        <variable id = "print_file" type="bool">$XIOS_PRINT_FILE</variable>
+        <variable id = "info_level" type = "int" >100</variable>
+        <variable id = "print_file" type="bool">true</variable>
       </variable_group>
     </variable_definition>
   </context>
